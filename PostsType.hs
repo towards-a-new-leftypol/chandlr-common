@@ -19,5 +19,5 @@ data Post = Post
     , name            :: Maybe Text
     , subject         :: Maybe Text
     , email           :: Maybe Text
-    , thread_id       :: Int
+    , thread_id       :: Int64
     } deriving (Show, Generic, FromJSON, ToJSON)
