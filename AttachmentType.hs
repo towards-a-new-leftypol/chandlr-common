@@ -1,3 +1,4 @@
+{-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DeriveAnyClass #-}
 module Common.AttachmentType
 ( Attachment (..)
@@ -14,7 +15,7 @@ import Data.Time.Clock (UTCTime)
 data Dimension = Dimension
   { width  :: Int
   , height :: Int
-  } deriving (Show, Generic, FromJSON, ToJSON)
+  } deriving (Show, Generic, FromJSON, ToJSON, Eq)
 
 data Paths = Paths
   { file_path :: FilePath
