@@ -32,5 +32,7 @@ data Attachment = Attachment
     , resolution        :: Maybe Dimension
     , file_extension    :: Maybe Text
     , original_filename :: Maybe Text
+    , board_filename    :: Text
+    , spoiler           :: Bool
     , file_size_bytes   :: Int
     } deriving (Show, Generic, FromJSON, ToJSON)
