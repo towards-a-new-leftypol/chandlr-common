@@ -31,6 +31,7 @@ data Attachment = Attachment
     , post_id           :: Int64
     , resolution        :: Maybe Dimension
     , file_extension    :: Maybe Text
+    , thumb_extension   :: Maybe Text
     , original_filename :: Maybe Text
     , board_filename    :: Text
     , spoiler           :: Bool
