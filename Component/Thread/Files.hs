@@ -27,7 +27,7 @@ import Data.Foldable (toList)
 import qualified Data.Text as Text
 import Miso.String (append, toMisoString)
 import qualified Data.Map as Map
-import GHCJS.DOM.Types (JSString)
+import Miso.String (MisoString)
 import Common.Network.SiteType (Site)
 import qualified Common.Network.SiteType as Site
 import qualified Common.Network.BoardType as Board
@@ -47,7 +47,7 @@ max_thumbnail_height = 255
 max_original_filename_display_length :: Int
 max_original_filename_display_length = 25
 
-files :: JSString -> Site -> Post -> View a
+files :: MisoString -> Site -> Post -> View a
 files media_root site post = div_
   [ class_ "files" ]
   ( map (file media_root site multi) as )
@@ -57,7 +57,7 @@ files media_root site post = div_
 
     as = Post.attachments post
 
-file :: JSString -> Site -> Bool -> Attachment -> View a
+file :: MisoString -> Site -> Bool -> Attachment -> View a
 file media_root site multifile a = div_
   ( [ class_ "file" ] ++
     if multifile then
@@ -98,21 +98,21 @@ file media_root site multifile a = div_
   ]
 
   where
-    orig_file_name :: JSString
+    orig_file_name :: MisoString
     orig_file_name = toMisoString fname
 
-    size :: JSString
+    size :: MisoString
     size = toMisoString $
       bytesToHumanReadable (Attachment.file_size_bytes a) True
 
-    res_str :: JSString
+    res_str :: MisoString
     res_str = maybe "" show_dimension $ Attachment.resolution a
 
-    show_dimension :: Attachment.Dimension -> JSString
+    show_dimension :: Attachment.Dimension -> MisoString
     show_dimension Attachment.Dimension {..} = toMisoString $
         ", " ++ show width ++ "x" ++ show height ++ ", "
 
-    filename_text :: JSString
+    filename_text :: MisoString
     filename_text
       | Text.length fname > max_original_filename_display_length =
           toMisoString (Text.take max_original_filename_display_length fname)
@@ -128,17 +128,17 @@ file media_root site multifile a = div_
     board_filename :: Text.Text
     board_filename = Attachment.board_filename a <> file_ext
 
-    thumb_url :: JSString
+    thumb_url :: MisoString
     thumb_url = img_url_path
       `append` "/thumbnail_" `append` toMisoString (Attachment.board_filename a)
       `append` toMisoString  (maybe "" ((<>) ".") $ Attachment.thumb_extension a)
 
-    file_url :: JSString
+    file_url :: MisoString
     file_url = img_url_path
       `append` "/" `append` toMisoString (Attachment.board_filename a)
       `append` toMisoString  file_ext
 
-    img_url_path :: JSString
+    img_url_path :: MisoString
     img_url_path
       = media_root
       `append` "/" `append` toMisoString (Site.name site)
@@ -172,7 +172,7 @@ file media_root site multifile a = div_
           )
       ]
 
-    toPx :: Int -> JSString
+    toPx :: Int -> MisoString
     toPx i = (toMisoString $ show i) `append` "px"
 
     thumb_dimensions :: Dimension -> Dimension
