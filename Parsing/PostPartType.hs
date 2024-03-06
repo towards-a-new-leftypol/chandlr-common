@@ -2,7 +2,9 @@ module Common.Parsing.PostPartType where
 
 import GHCJS.DOM.Types (JSString)
 import Text.Parsec (ParseError)
+import Data.Map (Map)
 
+import Common.Network.PostType (Post)
 import Common.Parsing.QuoteLinkParser (ParsedURL)
 
 data PostPart
@@ -23,4 +25,6 @@ data PostPart
     | Strikethrough [ PostPart ]
     deriving (Show, Eq)
 
+
+type Backlinks = Map Integer [ Post ]
 
