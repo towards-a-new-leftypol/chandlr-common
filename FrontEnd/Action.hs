@@ -9,7 +9,7 @@ import Data.Time.Clock (UTCTime)
 import Data.JSString (JSString)
 import Miso (URI)
 
-import qualified Component.CatalogGrid as Grid
+import qualified Common.Component.CatalogGrid as Grid
 import qualified Common.Network.ClientTypes as C
 import Common.Network.CatalogPostType (CatalogPost)
 import Network.Http (HttpResult)
