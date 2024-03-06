@@ -38,9 +38,9 @@ import qualified Common.Network.BoardType as Board
 import Common.Network.BoardType (Board)
 import qualified Common.Network.ThreadType as Thread
 import Common.Network.ThreadType (Thread)
-import Component.Thread.Files (files)
-import Component.Thread.Intro (intro)
-import Component.Thread.Embed (embed)
+import Common.Component.Thread.Files (files)
+import Common.Component.Thread.Intro (intro)
+import Common.Component.Thread.Embed (embed)
 import Common.Component.Thread.Model
 import Parsing.BodyParser
 import qualified Common.Component.BodyRender as Body
