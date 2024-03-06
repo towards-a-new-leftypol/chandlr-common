@@ -16,7 +16,7 @@ import Miso
 
 import qualified Data.Map as Map
 import Data.Text (Text, pack)
-import GHCJS.DOM.Types (JSString)
+import Miso.String (MisoString)
 import Data.Foldable (toList)
 import Miso.String (toMisoString)
 import Data.Time.Clock (UTCTime, diffUTCTime)
@@ -33,7 +33,7 @@ import Common.Network.ThreadType (Thread)
 import Parsing.BodyParser (Backlinks)
 
 
-formatUTC :: UTCTime -> JSString
+formatUTC :: UTCTime -> MisoString
 formatUTC time = toMisoString $
     formatTime defaultTimeLocale "%Y-%m-%d (%a) %T" time
 
@@ -77,10 +77,10 @@ intro site board thread post backlinks current_time = span_
     subject :: [ View a ]
     subject = map (mkSubject . toMisoString) $ toList $ Post.subject post
 
-    name :: JSString
+    name :: MisoString
     name = maybe "Anonymous" toMisoString $ Post.name post
 
-    mkSubject :: JSString -> View a
+    mkSubject :: MisoString -> View a
     mkSubject s = span_ 
       [ class_ "subject" ]
       [ text s ]
@@ -106,7 +106,7 @@ intro site board thread post backlinks current_time = span_
             [ text $ ">>" <> bpid ]
 
         where
-            bpid :: JSString
+            bpid :: MisoString
             bpid = toMisoString $ show $ Post.board_post_id p
 
 
