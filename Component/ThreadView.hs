@@ -41,7 +41,7 @@ import Common.Network.ThreadType (Thread)
 import Component.Thread.Files (files)
 import Component.Thread.Intro (intro)
 import Component.Thread.Embed (embed)
-import Component.Thread.Model
+import Common.Component.Thread.Model
 import Parsing.BodyParser
 import qualified Common.Component.BodyRender as Body
 

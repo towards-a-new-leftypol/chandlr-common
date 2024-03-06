@@ -27,7 +27,7 @@ import Data.Maybe (fromJust)
 
 import Parsing.BodyParser (PostPart (..))
 import Parsing.QuoteLinkParser
-import qualified Component.Thread.Model as Model
+import qualified Common.Component.Thread.Model as Model
 import qualified Common.Network.SiteType as Site
 import qualified Common.Network.BoardType as Board
 import qualified Common.Network.ThreadType as Thread
