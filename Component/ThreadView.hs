@@ -43,7 +43,7 @@ import Component.Thread.Intro (intro)
 import Component.Thread.Embed (embed)
 import Component.Thread.Model
 import Parsing.BodyParser
-import qualified Component.BodyRender as Body
+import qualified Common.Component.BodyRender as Body
 
 initialModel :: JSString -> Site -> Model
 initialModel mroot s = Model
