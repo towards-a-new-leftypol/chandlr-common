@@ -5,7 +5,7 @@ import Network.Http (HttpResult (..))
 import Control.Concurrent.MVar (MVar)
 
 import qualified Network.ClientTypes as Client
-import Network.CatalogPostType (CatalogPost)
+import Common.Network.CatalogPostType (CatalogPost)
 
 data Action
     = SearchChange JSString

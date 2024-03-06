@@ -11,7 +11,7 @@ import Miso (URI)
 
 import qualified Component.CatalogGrid as Grid
 import qualified Network.ClientTypes as C
-import Network.CatalogPostType (CatalogPost)
+import Common.Network.CatalogPostType (CatalogPost)
 import Network.Http (HttpResult)
 import Network.SiteType (Site)
 import qualified Component.ThreadView as Thread
