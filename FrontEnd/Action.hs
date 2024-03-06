@@ -10,7 +10,7 @@ import Data.JSString (JSString)
 import Miso (URI)
 
 import qualified Component.CatalogGrid as Grid
-import qualified Network.ClientTypes as C
+import qualified Common.Network.ClientTypes as C
 import Common.Network.CatalogPostType (CatalogPost)
 import Network.Http (HttpResult)
 import Network.SiteType (Site)

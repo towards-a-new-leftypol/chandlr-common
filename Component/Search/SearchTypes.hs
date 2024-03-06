@@ -4,7 +4,7 @@ import Data.JSString (JSString)
 import Network.Http (HttpResult (..))
 import Control.Concurrent.MVar (MVar)
 
-import qualified Network.ClientTypes as Client
+import qualified Common.Network.ClientTypes as Client
 import Common.Network.CatalogPostType (CatalogPost)
 
 data Action
