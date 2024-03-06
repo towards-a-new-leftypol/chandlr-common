@@ -30,14 +30,14 @@ import GHCJS.DOM.Types (JSString)
 import Data.Time.Clock (UTCTime (..), secondsToDiffTime, getCurrentTime)
 import Data.Time.Calendar (Day (..))
 
-import Network.SiteType (Site)
-import qualified Network.SiteType as Site
+import Common.Network.SiteType (Site)
+import qualified Common.Network.SiteType as Site
 import Common.Network.PostType (Post)
 import qualified Common.Network.PostType as Post
-import qualified Network.BoardType as Board
-import Network.BoardType (Board)
-import qualified Network.ThreadType as Thread
-import Network.ThreadType (Thread)
+import qualified Common.Network.BoardType as Board
+import Common.Network.BoardType (Board)
+import qualified Common.Network.ThreadType as Thread
+import Common.Network.ThreadType (Thread)
 import Component.Thread.Files (files)
 import Component.Thread.Intro (intro)
 import Component.Thread.Embed (embed)

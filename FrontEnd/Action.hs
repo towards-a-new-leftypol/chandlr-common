@@ -13,7 +13,7 @@ import qualified Component.CatalogGrid as Grid
 import qualified Common.Network.ClientTypes as C
 import Common.Network.CatalogPostType (CatalogPost)
 import Network.Http (HttpResult)
-import Network.SiteType (Site)
+import Common.Network.SiteType (Site)
 import qualified Common.Component.ThreadView as Thread
 import qualified Common.Component.TimeControl as TC
 import qualified Common.Component.Search.SearchTypes as Search
