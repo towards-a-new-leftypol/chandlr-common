@@ -12,7 +12,7 @@ collectBacklinks xs = foldr insertElement Map.empty xs
     insertElement :: PostWithBody -> Backlinks -> Backlinks
     insertElement (post, body) acc = foldr insertPost acc (quotedPosts body)
       where
-        insertPost postId = Map.insertWith (++) postId [post]
+        insertPost post_id = Map.insertWith (++) post_id [post]
 
 
 quotedPosts :: [ PostPart ] -> [ Integer ]
