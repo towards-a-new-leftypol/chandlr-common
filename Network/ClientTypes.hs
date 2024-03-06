@@ -1,7 +1,7 @@
 module Common.Network.ClientTypes where
 
 import qualified Network.Http as Http
-import GHCJS.DOM.Types (JSString)
+import Miso.String (MisoString)
 
 data Action a = Connect (Http.HttpActionResult a)
 
@@ -11,7 +11,7 @@ data Interface a b = Interface
     }
 
 data Model = Model
-  { pgApiRoot :: JSString
+  { pgApiRoot :: MisoString
   , fetchCount :: Int
   } deriving Eq
 
