@@ -3,7 +3,7 @@ module Common.Parsing.PostPartType where
 import GHCJS.DOM.Types (JSString)
 import Text.Parsec (ParseError)
 
-import Parsing.QuoteLinkParser (ParsedURL)
+import Common.Parsing.QuoteLinkParser (ParsedURL)
 
 data PostPart
     = SimpleText JSString
