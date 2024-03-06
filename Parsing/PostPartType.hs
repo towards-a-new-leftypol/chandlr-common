@@ -1,6 +1,6 @@
 module Common.Parsing.PostPartType where
 
-import GHCJS.DOM.Types (JSString)
+import Miso.String (MisoString)
 import Text.Parsec (ParseError)
 import Data.Map (Map)
 
@@ -8,8 +8,8 @@ import Common.Network.PostType (Post)
 import Common.Parsing.QuoteLinkParser (ParsedURL)
 
 data PostPart
-    = SimpleText JSString
-    | PostedUrl JSString
+    = SimpleText MisoString
+    | PostedUrl MisoString
     | Skip
     | Quote (Either ParseError ParsedURL)
         -- Quotes don't seem to be able to be spoilered

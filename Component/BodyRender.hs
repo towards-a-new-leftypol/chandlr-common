@@ -22,7 +22,7 @@ import Miso
 import Miso.String (toMisoString)
 import System.FilePath ((</>))
 import Text.Parsec (ParseError)
-import GHCJS.DOM.Types (JSString)
+import Miso.String (MisoString)
 import Data.Maybe (fromJust)
 
 import Common.Parsing.PostPartType (PostPart (..))
@@ -99,7 +99,7 @@ renderPostPart m (Quote parse_result) = elems parse_result
                 op_id = Post.board_post_id $ head $ Thread.posts $ head $ Board.threads $ head $ Site.boards (Model.site m)
 
 
-        full_url :: ParsedURL -> Maybe JSString
+        full_url :: ParsedURL -> Maybe MisoString
         full_url ParsedURL {..} = do
             tid <- threadId
             pid <- postId
