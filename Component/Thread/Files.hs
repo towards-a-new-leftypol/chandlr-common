@@ -36,7 +36,7 @@ import qualified Common.Network.PostType as Post
 import Common.Network.PostType (Post)
 import Common.AttachmentType (Attachment, Dimension (..))
 import qualified Common.AttachmentType as Attachment
-import Network.Units (bytesToHumanReadable)
+import Common.Network.Units (bytesToHumanReadable)
 
 max_thumbnail_width :: Int
 max_thumbnail_width = 255
