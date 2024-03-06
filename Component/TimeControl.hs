@@ -3,6 +3,7 @@
 
 module Common.Component.TimeControl where
 
+import Control.Monad.IO.Class (liftIO)
 import Miso
     ( View
     , div_
@@ -21,8 +22,7 @@ import Miso
     , onChange
     )
 
-import Miso.String (toMisoString, fromMisoString)
-import GHCJS.DOM.Types (JSString)
+import Miso.String (MisoString, toMisoString, fromMisoString)
 import Data.Time.Clock
   ( UTCTime (..)
   , getCurrentTime
@@ -35,8 +35,8 @@ import Data.Time.Calendar (fromGregorian)
 data Time
   = Now
   | NoAction
-  | SlideInput JSString
-  | SlideChange JSString
+  | SlideInput MisoString
+  | SlideChange MisoString
   deriving Show
 
 data Interface a = Interface
@@ -84,7 +84,7 @@ update iface (SlideInput nstr) m = m <# do
 update iface (SlideChange nstr) m = m { whereAt = n } <# do
   consoleLog $ "Change: " <> nstr
 
-  now <- getCurrentTime
+  now <- liftIO getCurrentTime
 
   let newTime = interpolateTimeHours n now
 
