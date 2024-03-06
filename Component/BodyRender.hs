@@ -31,7 +31,7 @@ import qualified Component.Thread.Model as Model
 import qualified Network.SiteType as Site
 import qualified Network.BoardType as Board
 import qualified Network.ThreadType as Thread
-import qualified Network.PostType as Post
+import qualified Common.Network.PostType as Post
 
 {-
  - This is the inverse of parsePostBody from BodyParser except

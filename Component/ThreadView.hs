@@ -32,8 +32,8 @@ import Data.Time.Calendar (Day (..))
 
 import Network.SiteType (Site)
 import qualified Network.SiteType as Site
-import Network.PostType (Post)
-import qualified Network.PostType as Post
+import Common.Network.PostType (Post)
+import qualified Common.Network.PostType as Post
 import qualified Network.BoardType as Board
 import Network.BoardType (Board)
 import qualified Network.ThreadType as Thread
