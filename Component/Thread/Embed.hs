@@ -18,7 +18,7 @@ import Miso
 import qualified Data.Map as Map
 import Data.Maybe (fromJust)
 import Data.Text (unpack)
-import Data.JSString (JSString, pack)
+import Miso.String (MisoString, toMisoString)
 
 import qualified Common.Network.PostType as Post
 import Common.Network.PostType (Post)
@@ -51,6 +51,6 @@ embed post = div_
     ]
 
     where
-      video_id :: JSString
-      video_id = pack $ fromJust $
+      video_id :: MisoString
+      video_id = toMisoString $ fromJust $
           (Post.embed post) >>= Just . (\(Right r) -> r) . extractVideoId . unpack

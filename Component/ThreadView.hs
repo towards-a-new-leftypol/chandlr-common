@@ -25,10 +25,10 @@ import Miso
   )
 
 import Data.Text (Text)
-import Miso.String (toMisoString)
-import GHCJS.DOM.Types (JSString)
+import Miso.String (toMisoString, MisoString)
 import Data.Time.Clock (UTCTime (..), secondsToDiffTime, getCurrentTime)
 import Data.Time.Calendar (Day (..))
+import Control.Monad.IO.Class (liftIO)
 
 import Common.Network.SiteType (Site)
 import qualified Common.Network.SiteType as Site
@@ -45,7 +45,7 @@ import Common.Component.Thread.Model
 import Parsing.BodyParser
 import qualified Common.Component.BodyRender as Body
 
-initialModel :: JSString -> Site -> Model
+initialModel :: MisoString -> Site -> Model
 initialModel mroot s = Model
     { site = s
     , post_bodies = []
@@ -61,11 +61,11 @@ data Interface a = Interface { passAction :: Action -> a }
 
 update :: Interface a -> Action -> Model -> Effect a Model
 update iface (RenderSite s) m = m { site = s } <# do
-    bodies <- mapM getBody (map Post.body posts)
+    bodies <- mapM (liftIO . getBody) (map Post.body posts)
 
     mapM_ (consoleLog . toMisoString . show) bodies
 
-    now <- getCurrentTime
+    now <- liftIO getCurrentTime
 
     return $ passAction iface $ UpdatePostBodies now $ zip posts bodies
 
@@ -109,7 +109,7 @@ view m =
         op_post [] = [ h2_ [] [ "There's nothing here" ] ]
         op_post (x:_) = op m x backlinks
 
-        title :: JSString
+        title :: MisoString
         title = toMisoString $ (Site.name $ site m) <> " /" <> board <> "/"
 
         board = Board.pathpart $ head $ Site.boards (site m)

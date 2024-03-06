@@ -12,7 +12,7 @@ import Miso (URI)
 import qualified Common.Component.CatalogGrid as Grid
 import qualified Common.Network.ClientTypes as C
 import Common.Network.CatalogPostType (CatalogPost)
-import Network.Http (HttpResult)
+import Common.Network.HttpTypes (HttpResult)
 import Common.Network.SiteType (Site)
 import qualified Common.Component.ThreadView as Thread
 import qualified Common.Component.TimeControl as TC
