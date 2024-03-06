@@ -12,7 +12,6 @@ module Common.Component.CatalogGrid
 import Data.Maybe (maybeToList)
 import Data.Text (pack, Text)
 import qualified Data.Text as T
-import Data.JSString (append, JSString)
 import Miso
     ( View, div_ , class_ , img_ , href_ , a_
     , src_ , title_ , b_ , span_
@@ -32,7 +31,7 @@ data Model = Model
   , media_root :: MisoString
   } deriving Eq
 
-initialModel :: JSString -> Model
+initialModel :: MisoString -> Model
 initialModel media_root_ = Model
     { display_items = []
     , media_root = toMisoString media_root_
@@ -127,7 +126,7 @@ gridItem iface m post =
                 case mthumb_path of
                     -- TODO: what about embeds!?
                     Nothing -> "/static/default_thumbnail.png"
-                    Just thumb_path -> (media_root m) `append` (toMisoString thumb_path)
+                    Just thumb_path -> (media_root m) <> (toMisoString thumb_path)
             Just u -> "https://leftychan.net/vi/" <> toMisoString u <> "/0.jpg"
 
     mthumb_path :: Maybe Text

@@ -6,7 +6,7 @@ import Data.Text (Text)
 import Data.Aeson (FromJSON)
 import Data.Int (Int64)
 import Data.Time.Clock (UTCTime)
-import Data.JSString (JSString)
+import Miso.String (MisoString)
 import Miso (URI)
 
 import qualified Common.Component.CatalogGrid as Grid
@@ -35,5 +35,5 @@ data Action
     | SearchAction Search.Action
     | GoToTime UTCTime
     | ChangeURI URI
-    | SearchResults JSString
+    | SearchResults MisoString
     | NoAction
