@@ -1,10 +1,10 @@
 module Common.Component.Thread.Model where
 
+import Data.Time.Clock (UTCTime)
 import GHCJS.DOM.Types (JSString)
 import Common.Network.SiteType (Site)
 import Common.Network.PostType (Post)
-import Parsing.PostPartType (PostPart)
-import Data.Time.Clock (UTCTime)
+import Common.Parsing.PostPartType (PostPart)
 
 type PostWithBody = (Post, [ PostPart ])
 
