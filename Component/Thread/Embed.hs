@@ -22,7 +22,7 @@ import Data.JSString (JSString, pack)
 
 import qualified Common.Network.PostType as Post
 import Common.Network.PostType (Post)
-import Parsing.EmbedParser (extractVideoId)
+import Common.Parsing.EmbedParser (extractVideoId)
 
 embed :: Post -> View a
 embed post = div_
