@@ -1,6 +1,6 @@
 module Common.Network.ClientTypes where
 
-import qualified Network.Http as Http
+import qualified Common.Network.HttpTypes as Http
 import Miso.String (MisoString)
 
 data Action a = Connect (Http.HttpActionResult a)
