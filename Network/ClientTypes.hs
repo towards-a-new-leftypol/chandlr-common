@@ -10,4 +10,8 @@ data Model = Model
   , fetchCount :: Int
   } deriving Eq
 
+data Interface a b = Interface
+    { passAction :: Action b -> a
+    , returnResult :: Http.HttpResult b -> a
+    }
 
