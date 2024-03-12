@@ -8,7 +8,7 @@ import qualified Common.Component.CatalogGrid as Grid
 import qualified Common.Component.ThreadView as Thread
 import qualified Common.Component.Search.SearchTypes as Search
 import qualified Common.Component.TimeControl as TC
-import qualified Network.Client as Client
+import qualified Common.Network.ClientTypes as Client
 
 
 data Model = Model
