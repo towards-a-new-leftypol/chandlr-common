@@ -36,4 +36,5 @@ data Attachment = Attachment
     , board_filename    :: Text
     , spoiler           :: Bool
     , file_size_bytes   :: Int
+    , attachment_idx    :: Int
     } deriving (Show, Generic, FromJSON, ToJSON, Eq)
