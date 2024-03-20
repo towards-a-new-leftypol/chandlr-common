@@ -1,12 +1,14 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RecordWildCards #-}
 
 module Common.PostsType
     ( Post (..) )
     where
 
 import GHC.Generics
-import Data.Aeson (FromJSON, ToJSON)
+import Data.Aeson (FromJSON, ToJSON (..), (.=), object)
 import Data.Time.Clock (UTCTime) -- Required for timestamp with time zone
 import Data.Int (Int64)
 import Data.Text (Text)
@@ -22,4 +24,18 @@ data Post = Post
     , thread_id       :: Int64
     , embed           :: Maybe Text
     , local_idx       :: Int
-    } deriving (Show, Generic, FromJSON, ToJSON)
+    } deriving (Show, Generic, FromJSON)
+
+-- Custom ToJSON instance that excludes the post_id field
+instance ToJSON Post where
+  toJSON Post {..} =
+    object [ "board_post_id" .= board_post_id
+           , "creation_time" .= creation_time
+           , "body"          .= body
+           , "name"          .= name
+           , "subject"       .= subject
+           , "email"         .= email
+           , "thread_id"     .= thread_id
+           , "embed"         .= embed
+           , "local_idx"     .= local_idx
+           ]
