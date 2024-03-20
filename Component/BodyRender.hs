@@ -17,6 +17,7 @@ import Miso
     , em_
     , s_
     , small_
+    , pre_
     )
 
 import Miso.String (toMisoString)
@@ -64,6 +65,7 @@ renderPostPart m (Quote parse_result) = elems parse_result
             a_
                 []
                 [ text $ toMisoString $ show err ]
+
         elems (Right p) =
             case full_url p of
                 Nothing ->
@@ -145,3 +147,5 @@ renderPostPart m (Italics parts) =
 renderPostPart m (Strikethrough parts) =
     s_ [] (render m parts)
 
+renderPostPart m (Code parts) =
+    pre_ [ class_ "code" ] (render m parts)

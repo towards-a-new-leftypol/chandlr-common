@@ -23,6 +23,7 @@ data PostPart
     | Underlined    [ PostPart ]
     | Italics       [ PostPart ]
     | Strikethrough [ PostPart ]
+    | Code          [ PostPart ]
     deriving (Show, Eq)
 
 

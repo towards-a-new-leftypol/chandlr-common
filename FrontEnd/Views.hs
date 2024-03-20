@@ -19,7 +19,7 @@ import Miso.String (toMisoString)
 import Data.Text (Text)
 
 import Common.FrontEnd.Model
-import Common.FrontEnd.Action
+import Common.FrontEnd.Action (Action)
 import qualified Common.Component.ThreadView as Thread
 import qualified Common.Component.Search as Search
 import qualified Common.Component.CatalogGrid as Grid
