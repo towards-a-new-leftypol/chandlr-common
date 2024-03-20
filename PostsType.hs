@@ -21,4 +21,5 @@ data Post = Post
     , email           :: Maybe Text
     , thread_id       :: Int64
     , embed           :: Maybe Text
+    , local_idx       :: Int
     } deriving (Show, Generic, FromJSON, ToJSON)
