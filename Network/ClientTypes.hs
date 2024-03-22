@@ -15,3 +15,16 @@ data Interface a b = Interface
     , returnResult :: Http.HttpResult b -> a
     }
 
+data FetchCatalogArgs = FetchCatalogArgs
+  { max_time :: UTCTime
+  , max_row_read :: Int
+  } deriving (Generic, ToJSON)
+
+
+data SearchPostsArgs = SearchPostsArgs
+  { search_text :: JSString
+  , max_rows :: Int
+  }
+    deriving (Generic, ToJSON)
+
+
