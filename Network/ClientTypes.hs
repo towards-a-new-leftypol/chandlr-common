@@ -1,4 +1,11 @@
+{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE DeriveAnyClass #-}
+
 module Common.Network.ClientTypes where
+
+import GHC.Generics (Generic)
+import Data.Aeson (ToJSON)
+import Data.Time.Clock (UTCTime)
 
 import qualified Common.Network.HttpTypes as Http
 import Miso.String (MisoString)
@@ -22,9 +29,8 @@ data FetchCatalogArgs = FetchCatalogArgs
 
 
 data SearchPostsArgs = SearchPostsArgs
-  { search_text :: JSString
+  { search_text :: MisoString
   , max_rows :: Int
-  }
-    deriving (Generic, ToJSON)
+  } deriving (Generic, ToJSON)
 
 
