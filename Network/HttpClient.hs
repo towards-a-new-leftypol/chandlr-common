@@ -1,5 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 
+-- This is only common for server-side, not used by front-end
 module Common.Network.HttpClient
 ( HttpError(..)
 , get
