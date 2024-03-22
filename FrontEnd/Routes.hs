@@ -18,7 +18,7 @@ type Route
 type R_Latest = View Action
 
 -- Show selected thread
---  - <website>/<board>/res/<thread_id>
+--  - <website>/<board>/<thread_id>
 type R_Thread
     =  Capture "website" Text
     :> Capture "board"   Text
