@@ -20,7 +20,7 @@ import Network.HTTP.Client.Conduit (defaultManagerSettings)
 import qualified Data.ByteString.Char8 as C8
 import Control.Exception.Safe (tryAny, SomeException)
 
-import qualified JSONSettings as T
+import qualified Common.Server.JSONSettings as T
 
 data HttpError
     = HttpException SomeException
