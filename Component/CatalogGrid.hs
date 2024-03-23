@@ -10,6 +10,7 @@ module Common.Component.CatalogGrid
 ) where
 
 import Data.Maybe (maybeToList)
+import Data.Either (fromRight)
 import Data.Text (pack, Text)
 import qualified Data.Text as T
 import Miso
@@ -117,7 +118,7 @@ gridItem iface m post =
 
     embed_url :: Maybe String
     embed_url =
-        (CatalogPost.embed post) >>= Just . (\(Right r) -> r) . extractVideoId . T.unpack
+        (CatalogPost.embed post) >>= Just . (fromRight undefined) . extractVideoId . T.unpack
 
     thumb_url :: MisoString
     thumb_url  =

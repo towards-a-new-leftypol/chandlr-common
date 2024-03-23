@@ -19,6 +19,7 @@ import qualified Data.Map as Map
 import Data.Maybe (fromJust)
 import Data.Text (unpack)
 import Miso.String (MisoString, toMisoString)
+import Data.Either (fromRight)
 
 import qualified Common.Network.PostType as Post
 import Common.Network.PostType (Post)
@@ -53,4 +54,4 @@ embed post = div_
     where
       video_id :: MisoString
       video_id = toMisoString $ fromJust $
-          (Post.embed post) >>= Just . (\(Right r) -> r) . extractVideoId . unpack
+          (Post.embed post) >>= Just . (fromRight "") . extractVideoId . unpack
