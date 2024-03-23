@@ -118,7 +118,7 @@ gridItem iface m post =
 
     embed_url :: Maybe String
     embed_url =
-        (CatalogPost.embed post) >>= Just . (fromRight undefined) . extractVideoId . T.unpack
+        (CatalogPost.embed post) >>= Just . (fromRight "") . extractVideoId . T.unpack
 
     thumb_url :: MisoString
     thumb_url  =
