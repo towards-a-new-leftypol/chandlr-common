@@ -26,9 +26,9 @@ import Miso
   , consoleLog
   , noEff
   )
-import Data.JSString (JSString, pack)
-import qualified Network.Client as Client
-import Network.Http (HttpResult (..))
+import Miso.String (MisoString, toMisoString)
+import qualified Common.Network.ClientTypes as Client
+import Common.Network.HttpTypes (HttpResult (..))
 import Control.Concurrent.MVar (tryTakeMVar, takeMVar, putMVar, swapMVar)
 
 import Common.Network.CatalogPostType (CatalogPost)
@@ -38,7 +38,7 @@ import Common.Component.Search.SearchTypes
 data Interface a = Interface
     { passAction :: Action -> a
     , clientIface :: Client.Interface a [ CatalogPost ]
-    , searchResults :: JSString -> a
+    , searchResults :: MisoString -> a
     }
 
 
@@ -71,8 +71,8 @@ update iface (SearchResult result) model = model <# do
             return $ passAction iface $ PassPostsToSelf []
 
         HttpResponse {..} -> do
-            consoleLog $ (pack $ show $ status_code) <> " " <> (pack $ status_text)
-            consoleLog $ (pack $ show $ body)
+            consoleLog $ (toMisoString $ show $ status_code) <> " " <> (toMisoString $ status_text)
+            consoleLog $ (toMisoString $ show $ body)
 
             case body of
                 Just catlg_posts -> return $ passAction iface $ PassPostsToSelf catlg_posts
