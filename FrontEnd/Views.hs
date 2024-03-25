@@ -21,7 +21,8 @@ import Data.Text (Text)
 import Common.FrontEnd.Model
 import Common.FrontEnd.Action (Action)
 import qualified Common.Component.ThreadView as Thread
-import qualified Common.Component.Search as Search
+import qualified Common.Component.Search.View as Search
+import qualified Common.Component.Search.SearchTypes as Search
 import qualified Common.Component.CatalogGrid as Grid
 import qualified Common.Component.TimeControl as TC
 import Common.FrontEnd.Routes (BoardThreadId)

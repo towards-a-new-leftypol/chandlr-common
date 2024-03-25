@@ -3,7 +3,7 @@ module Common.FrontEnd.Interfaces where
 import Data.Aeson (FromJSON)
 
 import Common.FrontEnd.Action
-import qualified Common.Component.Search as Search
+import qualified Common.Component.Search.SearchTypes as Search
 import qualified Common.Component.TimeControl as TC
 import qualified Common.Component.ThreadView as Thread
 import qualified Common.Network.ClientTypes as Client

@@ -21,3 +21,10 @@ data Model = Model
     , clientModel :: Client.Model
     , displayResults :: [ CatalogPost ]
     } deriving Eq
+
+data Interface a = Interface
+    { passAction :: Action -> a
+    , clientIface :: Client.Interface a [ CatalogPost ]
+    , searchResults :: MisoString -> a
+    }
+
