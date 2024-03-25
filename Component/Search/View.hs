@@ -16,14 +16,10 @@ import Miso
   , form_
   , onChange
   , onSubmit
-  , Effect
-  , (<#)
-  , consoleLog
-  , noEff
   )
 
 view :: Interface a -> Model -> View a
-view iface m = form_
+view iface _ = form_
     [ class_ "search_form"
     , action_ "/search"
     , method_ "GET"
