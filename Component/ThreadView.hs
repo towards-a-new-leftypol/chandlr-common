@@ -21,7 +21,6 @@ import Miso
   , h2_
   , Attribute
   , (<#)
-  , consoleLog
   )
 
 import Data.Text (Text)
@@ -59,15 +58,10 @@ data Action
 
 data Interface a = Interface { passAction :: Action -> a }
 
-update :: Interface a -> Action -> Model -> Effect a Model
-update iface (RenderSite s) m = m { site = s } <# do
-    bodies <- mapM (liftIO . getBody) (map Post.body posts)
-
-    mapM_ (consoleLog . toMisoString . show) bodies
-
-    now <- liftIO getCurrentTime
-
-    return $ passAction iface $ UpdatePostBodies now $ zip posts bodies
+getPostWithBodies :: Site -> IO [ PostWithBody ]
+getPostWithBodies site = do
+    bodies <- mapM getBody (map Post.body posts)
+    return $ zip posts bodies
 
     where
         getBody :: Maybe Text -> IO [ PostPart ]
@@ -75,8 +69,15 @@ update iface (RenderSite s) m = m { site = s } <# do
         getBody (Just b) = parsePostBody b
 
         posts :: [ Post ]
-        posts = Thread.posts $ head $ Board.threads $ head $ Site.boards s
---update (RenderSite s) m = noEff (m { site = s })
+        posts = Thread.posts $ head $ Board.threads $ head $ Site.boards site
+
+update :: Interface a -> Action -> Model -> Effect a Model
+update iface (RenderSite s) m = m { site = s } <# do
+    pwbs <- liftIO $ getPostWithBodies s
+
+    now <- liftIO getCurrentTime
+
+    return $ passAction iface $ UpdatePostBodies now pwbs
 
 update _ (UpdatePostBodies t pwbs) m = noEff m { post_bodies = pwbs, current_time = t }
 
