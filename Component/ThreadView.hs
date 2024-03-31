@@ -7,6 +7,7 @@ module Common.Component.ThreadView
 , update
 , view
 , Interface (..)
+, getPostWithBodies
 ) where
 
 import Miso
