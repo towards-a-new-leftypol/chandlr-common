@@ -4,11 +4,14 @@
 module Common.Network.HttpClient
 ( HttpError(..)
 , get
+, get_
 , post
 ) where
 
+import Data.Text.Encoding (encodeUtf8)
 import qualified Data.ByteString.Lazy as LBS
-import Network.HTTP.Simple hiding (httpLbs)
+import qualified Data.ByteString as BS
+import Network.HTTP.Simple hiding (httpLbs, Header)
 import Network.HTTP.Types.Status (statusCode)
 import Network.HTTP.Client
     ( newManager
@@ -17,7 +20,7 @@ import Network.HTTP.Client
     , responseTimeoutNone
     )
 import Network.HTTP.Client.Conduit (defaultManagerSettings)
-import qualified Data.ByteString.Char8 as C8
+import Network.HTTP.Types.Header (HeaderName)
 import Control.Exception.Safe (tryAny, SomeException)
 
 import qualified Common.Server.JSONSettings as T
@@ -27,16 +30,24 @@ data HttpError
     | StatusCodeError Int LBS.ByteString
     deriving (Show)
 
-get :: T.JSONSettings -> String -> IO (Either HttpError LBS.ByteString)
-get settings path = do
-    let requestUrl = T.postgrest_url settings ++ path
-    initReq <- parseRequest requestUrl
-    let req = setRequestHeader "Authorization" [C8.pack $ "Bearer " ++ T.jwt settings] initReq
-    putStrLn $ "calling " ++ requestUrl
+type Header = (HeaderName, [ BS.ByteString ])
+
+get_ :: String -> [ Header ] -> IO (Either HttpError LBS.ByteString)
+get_ url headers = do
+    initReq <- parseRequest url
+    let req = foldl (\r (k,v) -> setRequestHeader k v r) initReq headers
+    putStrLn $ "calling " ++ url
 
     let man_settings = managerSetMaxHeaderLength (16384 * 4) defaultManagerSettings
     manager <- newManager man_settings
     handleHttp (httpLbs req manager)
+
+
+get :: T.JSONSettings -> String -> IO (Either HttpError LBS.ByteString)
+get settings path = get_ url [headers]
+  where
+    url = T.postgrest_url settings ++ path
+    headers = bearer settings
 
 
 post
@@ -50,7 +61,7 @@ post settings path payload return_repr = do
     req <- parseRequest requestUrl
     let initReq = setRequestResponseTimeout responseTimeoutNone req
     let request = setRequestMethod "POST"
-            . setRequestHeader "Authorization" [ jwt_header ]
+            . setRequestHeader "Authorization" jwt_header
             . setRequestHeader "Content-Type" [ "application/json" ]
             . setRequestBodyLBS payload
             . prefer
@@ -61,11 +72,17 @@ post settings path payload return_repr = do
     handleHttp (httpLBS request)
 
     where
-      jwt_header = C8.pack $ "Bearer " ++ T.jwt settings
+      jwt_header = snd $ bearer settings
       prefer =
         if return_repr
         then setRequestHeader "Prefer" [ "return=representation" ]
         else id
+
+
+bearer :: T.JSONSettings -> Header
+bearer settings = ("Authorization", [ jwt_header ])
+    where
+      jwt_header = encodeUtf8 $ "Bearer " <> T.jwt settings
 
 
 handleHttp :: IO (Response LBS.ByteString) -> IO (Either HttpError LBS.ByteString)
