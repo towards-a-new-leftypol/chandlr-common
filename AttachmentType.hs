@@ -19,7 +19,7 @@ data Dimension = Dimension
 
 data Paths = Paths
   { file_path :: FilePath
-  , thumbnail_path :: FilePath
+  , thumbnail_path :: Maybe FilePath
   } deriving (Show)
 
 data Attachment = Attachment
