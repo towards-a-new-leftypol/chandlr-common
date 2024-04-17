@@ -17,6 +17,8 @@ data ConsumerJSONSettings = ConsumerJSONSettings
     , postgrest_url :: String
     , jwt :: Text
     , media_root_path :: String
+    , http_fill_all :: Bool
+    , http_sync_continously :: Bool
     } deriving (Show, Generic)
 
 instance FromJSON ConsumerJSONSettings
