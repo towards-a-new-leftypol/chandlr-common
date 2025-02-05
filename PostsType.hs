@@ -9,7 +9,7 @@ module Common.PostsType
 
 import GHC.Generics
 import Data.Aeson (FromJSON, ToJSON (..), (.=), object)
-import Data.Time.Clock (UTCTime) -- Required for timestamp with time zone
+import Data.Time.Clock (UTCTime)
 import Data.Int (Int64)
 import Data.Text (Text)
 
