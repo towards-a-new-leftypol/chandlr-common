@@ -14,16 +14,17 @@ import Data.Int (Int64)
 import Data.Text (Text)
 
 data Post = Post
-    { post_id         :: Maybe Int64
-    , board_post_id   :: Int64
-    , creation_time   :: UTCTime
-    , body            :: Maybe Text
-    , name            :: Maybe Text
-    , subject         :: Maybe Text
-    , email           :: Maybe Text
-    , thread_id       :: Int64
-    , embed           :: Maybe Text
-    , local_idx       :: Int
+    { post_id                :: Maybe Int64
+    , board_post_id          :: Int64
+    , creation_time          :: UTCTime
+    , body                   :: Maybe Text
+    , name                   :: Maybe Text
+    , subject                :: Maybe Text
+    , email                  :: Maybe Text
+    , thread_id              :: Int64
+    , embed                  :: Maybe Text
+    , local_idx              :: Int
+    , is_missing_attachments :: Bool
     } deriving (Show, Generic, FromJSON)
 
 -- Custom ToJSON instance that excludes the post_id field
