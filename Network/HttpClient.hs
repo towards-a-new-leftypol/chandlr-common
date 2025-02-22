@@ -6,6 +6,7 @@ module Common.Network.HttpClient
 , get
 , get_
 , post
+, patch
 ) where
 
 import Data.Text.Encoding (encodeUtf8)
@@ -50,17 +51,18 @@ get settings path = get_ url [headers]
     headers = bearer settings
 
 
-post
-  :: T.JSONSettings
+request
+  :: BS.ByteString
+  -> T.JSONSettings
   -> String
   -> LBS.ByteString
   -> Bool
   -> IO (Either HttpError LBS.ByteString)
-post settings path payload return_repr = do
+request method settings path payload return_repr = do
     let requestUrl = T.postgrest_url settings ++ path
     req <- parseRequest requestUrl
     let initReq = setRequestResponseTimeout responseTimeoutNone req
-    let request = setRequestMethod "POST"
+    let httpRequest = setRequestMethod method
             . setRequestHeader "Authorization" jwt_header
             . setRequestHeader "Content-Type" [ "application/json" ]
             . setRequestBodyLBS payload
@@ -69,7 +71,7 @@ post settings path payload return_repr = do
 
     putStrLn $ "posting to " ++ requestUrl
     -- putStrLn $ "Payload: " ++ (LC8.unpack payload)
-    handleHttp (httpLBS request)
+    handleHttp (httpLBS httpRequest)
 
     where
       jwt_header = snd $ bearer settings
@@ -77,6 +79,24 @@ post settings path payload return_repr = do
         if return_repr
         then setRequestHeader "Prefer" [ "return=representation" ]
         else id
+
+
+post
+  :: T.JSONSettings
+  -> String
+  -> LBS.ByteString
+  -> Bool
+  -> IO (Either HttpError LBS.ByteString)
+post = request "POST"
+
+
+patch
+  :: T.JSONSettings
+  -> String
+  -> LBS.ByteString
+  -> Bool
+  -> IO (Either HttpError LBS.ByteString)
+patch = request "PATCH"
 
 
 bearer :: T.JSONSettings -> Header
