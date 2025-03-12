@@ -25,6 +25,7 @@ data Post = Post
     , embed                  :: Maybe Text
     , local_idx              :: Int
     , is_missing_attachments :: Bool
+    , sage                   :: Bool
     } deriving (Show, Generic, FromJSON)
 
 -- Custom ToJSON instance that excludes the post_id field
