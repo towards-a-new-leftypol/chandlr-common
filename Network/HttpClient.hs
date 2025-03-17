@@ -7,6 +7,7 @@ module Common.Network.HttpClient
 , get_
 , post
 , patch
+, delete
 ) where
 
 import Data.Text.Encoding (encodeUtf8)
@@ -69,7 +70,7 @@ request method settings path payload return_repr = do
             . prefer
             $ initReq
 
-    putStrLn $ "posting to " ++ requestUrl
+    putStrLn $ show method ++ "ing to " ++ requestUrl
     -- putStrLn $ "Payload: " ++ (LC8.unpack payload)
     handleHttp (httpLBS httpRequest)
 
@@ -99,6 +100,14 @@ patch
 patch = request "PATCH"
 
 
+delete
+  :: T.JSONSettings
+  -> String
+  -> Bool
+  -> IO (Either HttpError LBS.ByteString)
+delete settings path = request "DELETE" settings path LBS.empty
+
+
 bearer :: T.JSONSettings -> Header
 bearer settings = ("Authorization", [ jwt_header ])
     where
@@ -109,7 +118,7 @@ handleHttp :: IO (Response LBS.ByteString) -> IO (Either HttpError LBS.ByteStrin
 handleHttp action = do
     result <- tryAny action
     case result of
-        Right response -> 
+        Right response ->
             let responseBody = getResponseBody response
             in if 200 <= (statusCode $ getResponseStatus response) && (statusCode $ getResponseStatus response) < 300
                then return $ Right responseBody
