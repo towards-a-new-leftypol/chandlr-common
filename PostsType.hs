@@ -24,7 +24,7 @@ data Post = Post
     , thread_id              :: Int64
     , embed                  :: Maybe Text
     , local_idx              :: Int
-    , is_missing_attachments :: Bool
+    , attachment_not_considered :: Bool
     , sage                   :: Bool
     } deriving (Show, Generic, FromJSON)
 
