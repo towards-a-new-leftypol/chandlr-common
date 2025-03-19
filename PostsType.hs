@@ -40,4 +40,6 @@ instance ToJSON Post where
            , "thread_id"     .= thread_id
            , "embed"         .= embed
            , "local_idx"     .= local_idx
+           , "attachment_not_considered" .= attachment_not_considered
+           , "sage"          .= sage
            ]
