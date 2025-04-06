@@ -30,7 +30,7 @@ import Common.Network.BoardType (Board)
 import qualified Common.Network.BoardType as Board
 import qualified Common.Network.ThreadType as Thread
 import Common.Network.ThreadType (Thread)
-import Parsing.BodyParser (Backlinks)
+import Common.Parsing.BodyParser (Backlinks)
 
 
 formatUTC :: UTCTime -> MisoString

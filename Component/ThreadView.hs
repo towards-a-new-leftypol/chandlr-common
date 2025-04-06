@@ -42,7 +42,7 @@ import Common.Component.Thread.Files (files)
 import Common.Component.Thread.Intro (intro)
 import Common.Component.Thread.Embed (embed)
 import Common.Component.Thread.Model
-import Parsing.BodyParser
+import Common.Parsing.BodyParser
 import qualified Common.Component.BodyRender as Body
 
 initialModel :: MisoString -> Site -> Model
