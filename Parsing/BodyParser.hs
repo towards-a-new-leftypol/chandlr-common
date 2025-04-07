@@ -1,3 +1,4 @@
+-- DEPRECATED
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE NamedFieldPuns #-}
 
