@@ -75,7 +75,7 @@ update
     :: Interface a
     -> Time
     -> Model
-    -> Effect a Model
+    -> Effect Model a ()
 update iface (SlideInput nstr) m = m <# do
   consoleLog $ "Input: " <> nstr
 

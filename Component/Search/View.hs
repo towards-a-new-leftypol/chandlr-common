@@ -13,13 +13,13 @@ import Miso
   , type_
   , value_
   , name_
-  , form_
+  , form
   , onChange
   , onSubmit
   )
 
 view :: Interface a -> Model -> View a
-view iface _ = form_
+view iface _ = form
     [ class_ "search_form"
     , action_ "/search"
     , method_ "GET"

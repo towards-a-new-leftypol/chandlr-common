@@ -29,6 +29,7 @@ import Miso.String (toMisoString, MisoString)
 import Data.Time.Clock (UTCTime (..), secondsToDiffTime, getCurrentTime)
 import Data.Time.Calendar (Day (..))
 import Control.Monad.IO.Class (liftIO)
+import qualified Data.JSString.Text as JStr
 
 import Common.Network.SiteType (Site)
 import qualified Common.Network.SiteType as Site
@@ -67,12 +68,12 @@ getPostWithBodies site = do
     where
         getBody :: Maybe Text -> IO [ PostPart ]
         getBody Nothing = return []
-        getBody (Just b) = parsePostBody b
+        getBody (Just b) = parsePostBody $ JStr.textToJSString b
 
         posts :: [ Post ]
         posts = Thread.posts $ head $ Board.threads $ head $ Site.boards site
 
-update :: Interface a -> Action -> Model -> Effect a Model
+update :: Interface a -> Action -> Model -> Effect Model a ()
 update iface (RenderSite s) m = m { site = s } <# do
     pwbs <- liftIO $ getPostWithBodies s
 

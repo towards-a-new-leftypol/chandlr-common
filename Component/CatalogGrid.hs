@@ -55,7 +55,7 @@ update
     :: Interface a
     -> Action
     -> Model
-    -> Effect a Model
+    -> Effect Model a ()
 update _ (DisplayItems xs) m = noEff (m { display_items = xs })
 
 view :: Interface a -> Model -> View a
