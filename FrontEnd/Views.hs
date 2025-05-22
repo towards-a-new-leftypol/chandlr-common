@@ -14,6 +14,7 @@ import Miso
     , h1_
     , time_
     , text
+    , embed
     )
 import Miso.String (toMisoString)
 import Data.Text (Text)
@@ -37,7 +38,7 @@ catalogView m = div_ []
         ]
     , TC.view iTime (tc_model m)
     , Search.view iSearch (search_model m)
-    , Grid.view iGrid (grid_model m)
+    , Grid.view (grid_model m)
     ]
 
 threadView :: Text -> Text -> BoardThreadId -> Model -> View Action
@@ -46,8 +47,8 @@ threadView site_name board_pathpart board_thread_id m = maybe
     Thread.view
     (thread_model m)
 
-searchView :: Maybe Text -> Model -> View Action
-searchView _ m = div_ []
+searchView :: Grid.GridComponent -> Maybe Text -> Model -> View Action
+searchView gc _ m = div_ []
     [ div_
         [ class_ "page_heading" ]
         [ h1_ [] [ text "Search" ]

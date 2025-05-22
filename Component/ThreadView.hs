@@ -10,6 +10,7 @@ module Common.Component.ThreadView
 , getPostWithBodies
 ) where
 
+import Prelude hiding (head)
 import Miso
   ( View
   , Effect
@@ -23,7 +24,8 @@ import Miso
   , Attribute
   , (<#)
   )
-
+import Data.List.NonEmpty (head, NonEmpty, toList)
+import qualified Data.List as L
 import Data.Text (Text)
 import Miso.String (toMisoString, MisoString)
 import Data.Time.Clock (UTCTime (..), secondsToDiffTime, getCurrentTime)
@@ -71,9 +73,9 @@ getPostWithBodies site = do
         getBody (Just b) = parsePostBody $ JStr.textToJSString b
 
         posts :: [ Post ]
-        posts = Thread.posts $ head $ Board.threads $ head $ Site.boards site
+        posts = toList $ Thread.posts $ head $ Board.threads $ head $ Site.boards site
 
-update :: Interface a -> Action -> Model -> Effect Model a ()
+update :: Interface a -> Action -> Model -> Effect Model Action
 update iface (RenderSite s) m = m { site = s } <# do
     pwbs <- liftIO $ getPostWithBodies s
 
@@ -101,8 +103,8 @@ view m =
     where
         thread_posts :: [ Post ]
         thread_posts =
-            concatMap (Thread.posts) $
-                concatMap (Board.threads) $
+            concatMap (toList . Thread.posts) $
+                concatMap (toList . Board.threads) $
                     Site.boards (site m)
 
         backlinks :: Backlinks
@@ -153,7 +155,7 @@ op m op_post backlinks =
 
         body :: [ PostWithBody ] -> [ View a ]
         body [] = []
-        body x = Body.render m $ snd $ head x
+        body x = Body.render m $ snd $ L.head x
 
 
 multi :: Post -> [ Attribute a ]

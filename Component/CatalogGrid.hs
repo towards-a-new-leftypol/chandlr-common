@@ -7,8 +7,10 @@ module Common.Component.CatalogGrid
 , Interface (..)
 , view
 , update
+, app
 ) where
 
+import Control.Monad.State (modify)
 import Data.Maybe (maybeToList)
 import Data.Either (fromRight)
 import Data.Text (pack, Text)
@@ -20,17 +22,26 @@ import Miso
     , text, rawHtml, onWithOptions
     , defaultOptions, preventDefault
     , Attribute, emptyDecoder
+    , App
+    , defaultApp
+    , notify
+    , io
+    , Component
     )
 import Miso.String (toMisoString, MisoString)
 
 import Common.Network.CatalogPostType (CatalogPost)
 import qualified Common.Network.CatalogPostType as CatalogPost
 import Common.Parsing.EmbedParser (extractVideoId)
+import Common.FrontEnd.Action (mkGetThread)
+import qualified Common.FrontEnd.MainComponent as MC
 
 data Model = Model
   { display_items :: [ CatalogPost ]
   , media_root :: MisoString
   } deriving Eq
+
+type GridComponent = Component Effect Model Action ()
 
 initialModel :: MisoString -> Model
 initialModel media_root_ = Model
@@ -40,6 +51,8 @@ initialModel media_root_ = Model
 
 data Action
     = DisplayItems [ CatalogPost ]
+    | ThreadSelected CatalogPost
+
 
 data Interface a = Interface
     { passAction :: Action -> a -- We're not using this.
@@ -47,36 +60,45 @@ data Interface a = Interface
     }
 
 
+app
+    :: MisoString
+    -> MC.MainComponent
+    -> App Effect Model Action ()
+app media_root mc = defaultApp (initialModel media_root) (update mc) view
+
+
 -- Custom event handler with preventDefault set to True
 onClick_ :: a -> Attribute a
 onClick_ action = onWithOptions defaultOptions { preventDefault = True } "click" emptyDecoder (const action)
 
-update
-    :: Interface a
-    -> Action
-    -> Model
-    -> Effect Model a ()
-update _ (DisplayItems xs) m = noEff (m { display_items = xs })
 
-view :: Interface a -> Model -> View a
-view iface model =
+update
+    :: MC.MainComponent
+    -> Action
+    -> Effect Model Action ()
+update _ (DisplayItems xs) = modify $ \m -> (m { display_items = xs })
+update mc (ThreadSelected post) = io $ notify mc $ mkGetThread post
+
+
+view :: Model -> View Action
+view model =
     div_
         [ class_ "theme-catalog" ]
         [ div_
             [ class_ "threads" ]
             [ div_
                 [ id_ "Grid" ]
-                (map (gridItem iface model) (display_items model))
+                (map (gridItem model) (display_items model))
             ]
         ]
 
-gridItem :: Interface a -> Model -> CatalogPost -> View a
-gridItem iface m post =
+gridItem :: Model -> CatalogPost -> View Action
+gridItem m post =
     div_
         [ class_ "thread grid-li grid-size-small" ]
         [ a_
             [ href_ thread_url
-            , onClick_ (threadSelected iface post)
+            , onClick_ (ThreadSelected post)
             ]
             [ img_
                 [ class_ "thread-image"

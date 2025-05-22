@@ -3,6 +3,7 @@
 
 module Common.Component.Thread.Files where
 
+import Prelude hiding (head)
 import Miso
   ( View
   , div_
@@ -12,7 +13,6 @@ import Miso
   , title_
   , alt_
   , src_
-  , style_
   , img_
   , span_
   , loading_
@@ -21,12 +21,12 @@ import Miso
   , Attribute
   , text
   , target_
+  , data_
   )
-
+import Data.List.NonEmpty (head)
 import Data.Foldable (toList)
 import qualified Data.Text as Text
 import Miso.String (append, toMisoString)
-import qualified Data.Map as Map
 import Miso.String (MisoString)
 import Common.Network.SiteType (Site)
 import qualified Common.Network.SiteType as Site
@@ -151,26 +151,20 @@ file media_root site multifile a = div_
     board = head $ Site.boards site
 
     size_style_attr :: [ Attribute a ]
-    size_style_attr = map (mk_size_style_attr . thumb_dimensions) $ toList $ Attachment.resolution a
+    size_style_attr = concatMap (mk_size_style_attr . thumb_dimensions) $ toList $ Attachment.resolution a
 
     file_elem_size_attr :: [ Attribute a ]
     file_elem_size_attr = map (mk_file_elem_width_style . thumb_dimensions) $ toList $ Attachment.resolution a
 
     mk_file_elem_width_style :: Dimension -> Attribute a
     mk_file_elem_width_style Dimension {..} =
-      style_ $ Map.singleton "width" $ toPx (width + 40)
+      data_ "width" $ toPx (width + 40)
 
-    mk_size_style_attr :: Dimension -> Attribute a
-    mk_size_style_attr Dimension {..} = style_ $ Map.fromList
-      [
-          ( "width"
-          , toPx width
-          )
-        ,
-          ( "height"
-          , toPx height
-          )
-      ]
+    mk_size_style_attr :: Dimension -> [ Attribute a ]
+    mk_size_style_attr Dimension {..} =
+        [ data_ "width" (toPx width)
+        , data_ "height" (toPx height)
+        ]
 
     toPx :: Int -> MisoString
     toPx i = (toMisoString $ show i) `append` "px"

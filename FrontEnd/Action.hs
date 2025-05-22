@@ -9,9 +9,9 @@ import Data.Time.Clock (UTCTime)
 import Miso.String (MisoString)
 import Miso (URI)
 
-import qualified Common.Component.CatalogGrid as Grid
 import qualified Common.Network.ClientTypes as C
 import Common.Network.CatalogPostType (CatalogPost)
+import qualified Common.Network.CatalogPostType as CatalogPost
 import Common.Network.HttpTypes (HttpResult)
 import Common.Network.SiteType (Site)
 import qualified Common.Component.ThreadView as Thread
@@ -25,8 +25,7 @@ data GetThreadArgs = GetThreadArgs
     }
 
 data Action
-    = GridAction Grid.Action
-    | GetThread GetThreadArgs
+    = GetThread GetThreadArgs
     | HaveLatest (HttpResult [ CatalogPost ])
     | HaveThread (HttpResult [ Site ])
     | forall a. (FromJSON a) => ClientAction (HttpResult a -> Action) (C.Action a)
@@ -37,3 +36,11 @@ data Action
     | ChangeURI URI
     | SearchResults MisoString
     | NoAction
+
+
+mkGetThread :: CatalogPost -> Action
+mkGetThread post = GetThread GetThreadArgs
+    { website = CatalogPost.site_name post
+    , board_pathpart = CatalogPost.pathpart post
+    , board_thread_id = CatalogPost.board_thread_id post
+    }

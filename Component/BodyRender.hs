@@ -3,6 +3,7 @@
 
 module Common.Component.BodyRender where
 
+import Prelude hiding (head)
 import Miso
     ( text
     , href_
@@ -19,12 +20,12 @@ import Miso
     , small_
     , pre_
     )
-
 import Miso.String (toMisoString)
 import System.FilePath ((</>))
 import Text.Parsec (ParseError)
 import Miso.String (MisoString)
 import Data.Maybe (fromJust)
+import Data.List.NonEmpty (head)
 
 import Common.Parsing.PostPartType (PostPart (..))
 import Common.Parsing.QuoteLinkParser

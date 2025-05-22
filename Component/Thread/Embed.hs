@@ -10,12 +10,11 @@ import Miso
   , href_
   , target_
   , img_
-  , style_
   , src_
   , span_
+  , data_
   )
 
-import qualified Data.Map as Map
 import Data.Maybe (fromJust)
 import Data.Text (unpack)
 import Miso.String (MisoString, toMisoString)
@@ -34,16 +33,8 @@ embed post = div_
         , class_ "file"
         ]
         [ img_
-            [ style_ $ Map.fromList
-                [
-                    ( "height"
-                    , "190px"
-                    )
-                ,
-                    ( "width"
-                    , "255px"
-                    )
-                ]
+            [ data_ "height" "190px"
+            , data_ "width" "255px"
             , src_ ("https://leftychan.net/vi/" <> video_id <> "/0.jpg")
             , class_ "post-image"
             ]
