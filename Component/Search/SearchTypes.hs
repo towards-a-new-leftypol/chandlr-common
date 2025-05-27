@@ -4,7 +4,6 @@ import Miso.String (MisoString)
 import Common.Network.HttpTypes (HttpResult (..))
 import Control.Concurrent.MVar (MVar)
 
-import qualified Common.Network.ClientTypes as Client
 import Common.Network.CatalogPostType (CatalogPost)
 
 data Action
@@ -18,13 +17,13 @@ data Action
 data Model = Model
     { searchTerm :: MisoString
     , searchVar :: MVar MisoString
-    , clientModel :: Client.Model
     , displayResults :: [ CatalogPost ]
     } deriving Eq
 
+{-
 data Interface a = Interface
     { passAction :: Action -> a
     , clientIface :: Client.Interface a [ CatalogPost ]
     , searchResults :: MisoString -> a
     }
-
+-}

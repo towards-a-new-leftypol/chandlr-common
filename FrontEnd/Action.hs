@@ -9,7 +9,6 @@ import Data.Time.Clock (UTCTime)
 import Miso.String (MisoString)
 import Miso (URI)
 
-import qualified Common.Network.ClientTypes as C
 import Common.Network.CatalogPostType (CatalogPost)
 import qualified Common.Network.CatalogPostType as CatalogPost
 import Common.Network.HttpTypes (HttpResult)
@@ -28,7 +27,7 @@ data Action
     = GetThread GetThreadArgs
     | HaveLatest (HttpResult [ CatalogPost ])
     | HaveThread (HttpResult [ Site ])
-    | forall a. (FromJSON a) => ClientAction (HttpResult a -> Action) (C.Action a)
+    -- | forall n m a b. (FromJSON a) => ClientAction (HttpResult a -> Action) (C.Action n m a b)
     | ThreadAction Thread.Action
     | TimeAction TC.Time
     | SearchAction Search.Action

@@ -1,5 +1,4 @@
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE DataKinds #-}
 
 module Common.Component.ThreadView
 ( Model (..)
@@ -7,6 +6,7 @@ module Common.Component.ThreadView
 , Action (..)
 , update
 , view
+, Interface (..)
 , getPostWithBodies
 ) where
 
@@ -22,21 +22,16 @@ import Miso
   , id_
   , h2_
   , Attribute
-  , Component
-  , defaultEvents
-  , put
-  , issue
-  , io
+  , (<#)
   )
-import qualified Miso as M
 import Data.List.NonEmpty (head, NonEmpty, toList)
 import qualified Data.List as L
 import Data.Text (Text)
 import Miso.String (toMisoString, MisoString)
 import Data.Time.Clock (UTCTime (..), secondsToDiffTime, getCurrentTime)
 import Data.Time.Calendar (Day (..))
-import qualified Data.JSString.Text as JStr
 import Control.Monad.IO.Class (liftIO)
+import qualified Data.JSString.Text as JStr
 
 import Common.Network.SiteType (Site)
 import qualified Common.Network.SiteType as Site
@@ -54,33 +49,18 @@ import Common.Parsing.BodyParser
 import qualified Common.Component.BodyRender as Body
 
 initialModel :: MisoString -> Site -> Model
-initialModel m_root s = Model
+initialModel mroot s = Model
     { site = s
     , post_bodies = []
-    , media_root = m_root
+    , media_root = mroot
     , current_time = UTCTime (ModifiedJulianDay 0) (secondsToDiffTime 0)
     }
-
-type ThreadViewComponent = Component "thread-view" Model Action
 
 data Action
     = RenderSite Site
     | UpdatePostBodies UTCTime [ PostWithBody ]
 
-
-app :: MisoString -> Site -> ThreadViewComponent
-app m_root s = M.Component
-    { M.model = initialModel m_root s
-    , M.update = undefined
-    , M.view = view
-    , M.subs = []
-    , M.events = defaultEvents
-    , M.styles = []
-    , M.initialAction = Just $ RenderSite s
-    , M.mountPoint = Nothing
-    , M.logLevel = M.DebugAll
-    }
-
+data Interface a = Interface { passAction :: Action -> a }
 
 getPostWithBodies :: Site -> IO [ PostWithBody ]
 getPostWithBodies site = do
@@ -95,15 +75,15 @@ getPostWithBodies site = do
         posts :: [ Post ]
         posts = toList $ Thread.posts $ head $ Board.threads $ head $ Site.boards site
 
+update :: Interface a -> Action -> Model -> Effect Model Action
+update iface (RenderSite s) m = m { site = s } <# do
+    pwbs <- liftIO $ getPostWithBodies s
 
-update :: Action -> Model -> Effect Model Action
-update (RenderSite s) m = do
-    put $ m { site = s }
+    now <- liftIO getCurrentTime
 
-    io $ do
-        pwbs <- liftIO $ getPostWithBodies s
-        now <- liftIO $ getCurrentTime
-        return $ UpdatePostBodies now pwbs
+    return $ passAction iface $ UpdatePostBodies now pwbs
+
+update _ (UpdatePostBodies t pwbs) m = noEff m { post_bodies = pwbs, current_time = t }
 
 
 view :: Model -> View a
