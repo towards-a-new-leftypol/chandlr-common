@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE DataKinds #-}
 
 module Common.Component.CatalogGrid
 ( Model (..)
@@ -18,17 +19,16 @@ import qualified Data.Text as T
 import Miso
     ( View, div_ , class_ , img_ , href_ , a_
     , src_ , title_ , b_ , span_
-    , p_ , id_ , Effect , noEff
+    , p_ , id_ , Effect
     , text, rawHtml, onWithOptions
     , defaultOptions, preventDefault
     , Attribute, emptyDecoder
-    , App
-    , defaultApp
     , notify
-    , io
+    , io_
     , Component
     )
 import Miso.String (toMisoString, MisoString)
+import qualified Miso as M
 
 import Common.Network.CatalogPostType (CatalogPost)
 import qualified Common.Network.CatalogPostType as CatalogPost
@@ -41,7 +41,7 @@ data Model = Model
   , media_root :: MisoString
   } deriving Eq
 
-type GridComponent = Component Effect Model Action ()
+type GridComponent = Component "catalog-grid" Model Action
 
 initialModel :: MisoString -> Model
 initialModel media_root_ = Model
@@ -61,10 +61,21 @@ data Interface a = Interface
 
 
 app
-    :: MisoString
-    -> MC.MainComponent
-    -> App Effect Model Action ()
-app media_root mc = defaultApp (initialModel media_root) (update mc) view
+    :: MC.MainComponent
+    -> MisoString
+    -> GridComponent
+app mc m_root =
+    M.Component
+        { M.model = initialModel m_root
+        , M.update = update mc
+        , M.view = view
+        , M.subs = []
+        , M.events = M.defaultEvents
+        , M.styles = []
+        , M.initialAction = Nothing
+        , M.mountPoint = Nothing
+        , M.logLevel = M.DebugAll
+        }
 
 
 -- Custom event handler with preventDefault set to True
@@ -75,9 +86,9 @@ onClick_ action = onWithOptions defaultOptions { preventDefault = True } "click"
 update
     :: MC.MainComponent
     -> Action
-    -> Effect Model Action ()
+    -> Effect Model Action
 update _ (DisplayItems xs) = modify $ \m -> (m { display_items = xs })
-update mc (ThreadSelected post) = io $ notify mc $ mkGetThread post
+update mc (ThreadSelected post) = io_ $ notify mc $ mkGetThread post
 
 
 view :: Model -> View Action

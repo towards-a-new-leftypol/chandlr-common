@@ -37,6 +37,7 @@ import Data.Time.Clock (UTCTime (..), secondsToDiffTime, getCurrentTime)
 import Data.Time.Calendar (Day (..))
 import qualified Data.JSString.Text as JStr
 import Control.Monad.IO.Class (liftIO)
+import Control.Monad.State (modify)
 
 import Common.Network.SiteType (Site)
 import qualified Common.Network.SiteType as Site
@@ -71,7 +72,7 @@ data Action
 app :: MisoString -> Site -> ThreadViewComponent
 app m_root s = M.Component
     { M.model = initialModel m_root s
-    , M.update = undefined
+    , M.update = update
     , M.view = view
     , M.subs = []
     , M.events = defaultEvents
@@ -96,9 +97,9 @@ getPostWithBodies site = do
         posts = toList $ Thread.posts $ head $ Board.threads $ head $ Site.boards site
 
 
-update :: Action -> Model -> Effect Model Action
-update (RenderSite s) m = do
-    put $ m { site = s }
+update :: Action -> Effect Model Action
+update (RenderSite s) = do
+    modify $ \m -> (m { site = s })
 
     io $ do
         pwbs <- liftIO $ getPostWithBodies s

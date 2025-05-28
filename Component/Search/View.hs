@@ -18,12 +18,12 @@ import Miso
   , onSubmit
   )
 
-view :: Interface a -> Model -> View a
-view iface _ = form
+view :: Model -> View Action
+view = const $ form
     [ class_ "search_form"
     , action_ "/search"
     , method_ "GET"
-    , onSubmit $ pass $ OnSubmit
+    , onSubmit OnSubmit
     ]
     [ input_
         [ type_ "submit"
@@ -32,9 +32,6 @@ view iface _ = form
     , input_
         [ type_ "text"
         , name_ "search"
-        , onChange $ pass . SearchChange
+        , onChange $ SearchChange
         ]
     ]
-
-    where
-        pass = passAction iface

@@ -27,7 +27,6 @@ import qualified Common.Component.Search.SearchTypes as Search
 import qualified Common.Component.CatalogGrid as Grid
 import qualified Common.Component.TimeControl as TC
 import Common.FrontEnd.Routes (BoardThreadId)
-import Common.FrontEnd.Interfaces
 
 catalogView :: Model -> View Action
 catalogView m = div_ []

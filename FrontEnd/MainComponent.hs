@@ -1,3 +1,5 @@
+{-# LANGUAGE DataKinds #-}
+
 module Common.FrontEnd.MainComponent where
 
 import Miso
@@ -8,4 +10,4 @@ import Miso
 import Common.FrontEnd.Model (Model)
 import Common.FrontEnd.Action (Action)
 
-type MainComponent = Component Effect Model Action ()
+type MainComponent = Component "main" Model Action

@@ -12,13 +12,15 @@ import Miso (Component)
 import qualified Common.Network.HttpTypes as Http
 import qualified Common.FrontEnd.Action as A
 
-data Action n m a b
-    = Connect (Interface n m a b) (Http.HttpActionResult b)
-    | FetchLatest UTCTime (Interface n m a b)
-    | GetThread A.GetThreadArgs (Interface n m a b)
-    | Search MisoString (Interface n m a b)
+type Action n m a b = (Interface n m a b, ActionVerb b)
 
-data Model = Model
+data ActionVerb b
+    = Connect (Http.HttpActionResult b)
+    | FetchLatest UTCTime
+    | GetThread A.GetThreadArgs
+    | Search MisoString
+
+data Model = Uninitialized | Model
   { pgApiRoot :: MisoString
   , fetchCount :: Int
   } deriving Eq
