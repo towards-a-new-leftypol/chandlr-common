@@ -4,18 +4,9 @@ import Miso (URI)
 import Miso.String (MisoString)
 import Data.Time.Clock (UTCTime)
 
-import qualified Common.Component.ThreadView as Thread
-import qualified Common.Component.Search.SearchTypes as Search
-import qualified Common.Component.TimeControl as TC
-import qualified Common.Network.ClientTypes as Client
-
-
 data Model = Model
-    { client_model :: Client.Model
-    , thread_model :: Maybe Thread.Model
-    , current_uri :: URI
+    { current_uri :: URI
     , media_root_ :: MisoString
     , current_time :: UTCTime
-    , tc_model :: TC.Model
-    , search_model :: Search.Model
+    , searchTerm :: MisoString
     } deriving Eq

@@ -9,6 +9,7 @@ module Common.Component.CatalogGrid
 , view
 , update
 , app
+, GridComponent
 ) where
 
 import Control.Monad.State (modify)

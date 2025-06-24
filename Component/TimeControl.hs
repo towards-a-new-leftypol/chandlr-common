@@ -1,5 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE RankNTypes #-}
 
 module Common.Component.TimeControl where
 
@@ -14,14 +15,19 @@ import Miso
     , max_
     , type_
     , value_
-    , (<#)
     , consoleLog
     , Effect
-    , noEff
     , onInput
     , onChange
+    , Component
+    , defaultEvents
+    , modify
+    , io_
+    , notify
     )
 
+import GHC.TypeLits (KnownSymbol)
+import qualified Miso as M
 import Miso.String (MisoString, toMisoString, fromMisoString)
 import Data.Time.Clock
   ( UTCTime (..)
@@ -34,7 +40,6 @@ import Data.Time.Calendar (fromGregorian)
 
 data Time
   = Now
-  | NoAction
   | SlideInput MisoString
   | SlideChange MisoString
   deriving Show
@@ -48,11 +53,10 @@ data Model = Model
   { whereAt :: Integer
   } deriving Eq
 
-initialModel :: Integer -> Model
-initialModel = Model
+type TimeControl = Component "time-controls" Model Time
 
-view :: Interface a -> Model -> View a
-view iface m =
+view :: Model -> View Time
+view m =
     div_
         [ class_ "time-control"
         ]
@@ -63,38 +67,39 @@ view iface m =
             , max_ "0"
             , step_ "1"
             , value_ $ toMisoString $ show (whereAt m)
-            , onInput $ pass SlideInput
-            , onChange $ pass SlideChange
+            , onInput SlideInput
+            , onChange SlideChange
             ]
         ]
 
-    where
-      pass action = \t -> passAction iface $ action t
+type TimeChangeCallback name = forall model action.
+    ( Component name model action
+    , UTCTime -> action
+    )
 
 update
-    :: Interface a
+    :: (KnownSymbol name)
+    => TimeChangeCallback name
     -> Time
-    -> Model
-    -> Effect Model a
-update iface (SlideInput nstr) m = m <# do
+    -> Effect Model Time
+update _ (SlideInput nstr) = io_ $
   consoleLog $ "Input: " <> nstr
 
-  return $ (passAction iface) NoAction
+update (callback_component, callback_action) (SlideChange nstr) = do
+  modify (\model ->  model { whereAt = n })
 
-update iface (SlideChange nstr) m = m { whereAt = n } <# do
-  consoleLog $ "Change: " <> nstr
+  io_ $ do
+      consoleLog $ "Change: " <> nstr
 
-  now <- liftIO getCurrentTime
+      now <- liftIO getCurrentTime
 
-  let newTime = interpolateTimeHours n now
+      let newTime = interpolateTimeHours n now
 
-  return $ (goTo iface) newTime
+      notify callback_component $ callback_action newTime
 
   where
     n :: Integer
     n = read $ fromMisoString nstr
-
-update _ _ m = noEff m
 
 
 earliest :: UTCTime
@@ -119,3 +124,20 @@ interpolateTimeHours n currentTime
 
     -- One hour in seconds
     secondsInHour = 3600
+
+app
+    :: (KnownSymbol name)
+    => Integer
+    -> TimeChangeCallback name
+    -> TimeControl
+app t callback_info = M.Component
+    { M.model = Model t
+    , M.update = update callback_info
+    , M.view = view
+    , M.subs = []
+    , M.events = defaultEvents
+    , M.styles = []
+    , M.initialAction = Nothing
+    , M.mountPoint = Nothing
+    , M.logLevel = M.DebugAll
+    }

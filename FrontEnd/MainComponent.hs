@@ -4,7 +4,6 @@ module Common.FrontEnd.MainComponent where
 
 import Miso
     ( Component
-    , Effect
     )
 
 import Common.FrontEnd.Model (Model)

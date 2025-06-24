@@ -1,13 +1,15 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE DataKinds #-}
 
-module Common.Component.ThreadView
+module Common.Component.Thread
 ( Model (..)
 , initialModel
 , Action (..)
 , update
 , view
 , getPostWithBodies
+, app
+, ThreadComponent
 ) where
 
 import Prelude hiding (head)
@@ -17,19 +19,16 @@ import Miso
   , div_
   , text
   , h1_
-  , noEff
   , class_
   , id_
   , h2_
   , Attribute
   , Component
   , defaultEvents
-  , put
-  , issue
   , io
   )
 import qualified Miso as M
-import Data.List.NonEmpty (head, NonEmpty, toList)
+import Data.List.NonEmpty (head, toList)
 import qualified Data.List as L
 import Data.Text (Text)
 import Miso.String (toMisoString, MisoString)
@@ -62,14 +61,14 @@ initialModel m_root s = Model
     , current_time = UTCTime (ModifiedJulianDay 0) (secondsToDiffTime 0)
     }
 
-type ThreadViewComponent = Component "thread-view" Model Action
+type ThreadComponent = Component "thread-view" Model Action
 
 data Action
     = RenderSite Site
     | UpdatePostBodies UTCTime [ PostWithBody ]
 
 
-app :: MisoString -> Site -> ThreadViewComponent
+app :: MisoString -> Site -> ThreadComponent
 app m_root s = M.Component
     { M.model = initialModel m_root s
     , M.update = update

@@ -2,8 +2,8 @@
 
 module Common.FrontEnd.Views
     ( catalogView
-    , threadView
     , searchView
+    , threadView
     , page404
     ) where
 
@@ -14,50 +14,45 @@ import Miso
     , h1_
     , time_
     , text
-    , embed
+    , component
     )
 import Miso.String (toMisoString)
 import Data.Text (Text)
 
 import Common.FrontEnd.Model
 import Common.FrontEnd.Action (Action)
-import qualified Common.Component.ThreadView as Thread
-import qualified Common.Component.Search.View as Search
-import qualified Common.Component.Search.SearchTypes as Search
+import qualified Component.Search as Search
 import qualified Common.Component.CatalogGrid as Grid
-import qualified Common.Component.TimeControl as TC
+import qualified Common.Component.Thread as Thread
+import Common.Component.TimeControl (TimeControl)
 import Common.FrontEnd.Routes (BoardThreadId)
 
-catalogView :: Model -> View Action
-catalogView m = div_ []
+catalogView :: TimeControl -> Grid.GridComponent -> Model -> View Action
+catalogView tc gc m = div_ []
     [ div_
         [ class_ "page_heading" ]
         [ h1_ [] [ text "Overboard Catalog" ]
         , time_ [] [ text $ toMisoString $ show $ current_time m ]
         ]
-    , TC.view iTime (tc_model m)
-    , Search.view iSearch (search_model m)
-    , Grid.view (grid_model m)
+    , component tc []
+    , component Search.app []
+    , component gc []
     ]
-
-threadView :: Text -> Text -> BoardThreadId -> Model -> View Action
-threadView site_name board_pathpart board_thread_id m = maybe
-    (h1_ [] [ text "Thread View" ])
-    Thread.view
-    (thread_model m)
 
 searchView :: Grid.GridComponent -> Maybe Text -> Model -> View Action
 searchView gc _ m = div_ []
     [ div_
         [ class_ "page_heading" ]
         [ h1_ [] [ text "Search" ]
-        , time_ [] [ text $ Search.searchTerm $ search_model m ]
+        , time_ [] [ text $ searchTerm m ]
         ]
-    , Search.view iSearch (search_model m)
-    , Grid.view iGrid $ (grid_model m)
-            { Grid.display_items = (Search.displayResults (search_model m))
-            }
+    , component Search.app []
+    , component gc []
     ]
+
+threadView :: Thread.ThreadComponent -> Text -> Text -> BoardThreadId -> Model -> View Action
+threadView threadComponent site_name board_pathpart board_thread_id m =
+    component threadComponent []
 
 page404 :: View Action
 page404 = h1_ [] [ text "404 Not Found" ]

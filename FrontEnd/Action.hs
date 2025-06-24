@@ -3,7 +3,6 @@
 module Common.FrontEnd.Action where
 
 import Data.Text (Text)
-import Data.Aeson (FromJSON)
 import Data.Int (Int64)
 import Data.Time.Clock (UTCTime)
 import Miso.String (MisoString)
@@ -13,8 +12,6 @@ import Common.Network.CatalogPostType (CatalogPost)
 import qualified Common.Network.CatalogPostType as CatalogPost
 import Common.Network.HttpTypes (HttpResult)
 import Common.Network.SiteType (Site)
-import qualified Common.Component.ThreadView as Thread
-import qualified Common.Component.TimeControl as TC
 import qualified Common.Component.Search.SearchTypes as Search
 
 data GetThreadArgs = GetThreadArgs
@@ -28,12 +25,10 @@ data Action
     | HaveLatest (HttpResult [ CatalogPost ])
     | HaveThread (HttpResult [ Site ])
     -- | forall n m a b. (FromJSON a) => ClientAction (HttpResult a -> Action) (C.Action n m a b)
-    | ThreadAction Thread.Action
-    | TimeAction TC.Time
-    | SearchAction Search.Action
     | GoToTime UTCTime
     | ChangeURI URI
     | SearchResults MisoString
+    | NotifySearch Search.Action
     | NoAction
 
 
