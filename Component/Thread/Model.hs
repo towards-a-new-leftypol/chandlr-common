@@ -8,10 +8,12 @@ import Common.Parsing.PostPartType (PostPart)
 
 type PostWithBody = (Post, [ PostPart ])
 
-data Model = Model
-  { site :: Site
-  , media_root :: MisoString
-  , post_bodies :: [ PostWithBody ]
-  , current_time :: UTCTime
-  } deriving Eq
+data Model
+  = Uninitialized
+  | Model
+    { site :: Site
+    , media_root :: MisoString
+    , post_bodies :: [ PostWithBody ]
+    , current_time :: UTCTime
+    } deriving Eq
 

@@ -68,15 +68,15 @@ data Action
     | UpdatePostBodies UTCTime [ PostWithBody ]
 
 
-app :: MisoString -> Site -> ThreadComponent
-app m_root s = M.Component
-    { M.model = initialModel m_root s
+app :: ThreadComponent
+app = M.Component
+    { M.model = Uninitialized
     , M.update = update
     , M.view = view
     , M.subs = []
     , M.events = defaultEvents
     , M.styles = []
-    , M.initialAction = Just $ RenderSite s
+    , M.initialAction = Nothing
     , M.mountPoint = Nothing
     , M.logLevel = M.DebugAll
     }

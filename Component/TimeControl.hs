@@ -44,11 +44,6 @@ data Time
   | SlideChange MisoString
   deriving Show
 
-data Interface a = Interface
-    { passAction :: Time -> a
-    , goTo :: UTCTime -> a
-    }
-
 data Model = Model
   { whereAt :: Integer
   } deriving Eq
@@ -72,14 +67,14 @@ view m =
             ]
         ]
 
-type TimeChangeCallback name = forall model action.
+type TimeChangeCallback name model action =
     ( Component name model action
     , UTCTime -> action
     )
 
 update
     :: (KnownSymbol name)
-    => TimeChangeCallback name
+    => TimeChangeCallback name model action
     -> Time
     -> Effect Model Time
 update _ (SlideInput nstr) = io_ $
@@ -128,7 +123,7 @@ interpolateTimeHours n currentTime
 app
     :: (KnownSymbol name)
     => Integer
-    -> TimeChangeCallback name
+    -> TimeChangeCallback name model action
     -> TimeControl
 app t callback_info = M.Component
     { M.model = Model t
