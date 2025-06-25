@@ -81,7 +81,7 @@ app mc m_root =
 
 -- Custom event handler with preventDefault set to True
 onClick_ :: a -> Attribute a
-onClick_ action = onWithOptions defaultOptions { preventDefault = True } "click" emptyDecoder (const action)
+onClick_ action = onWithOptions defaultOptions { preventDefault = True } "click" emptyDecoder (const $ const action)
 
 
 update

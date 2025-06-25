@@ -1,7 +1,7 @@
 module Common.Network.HttpTypes where
 
 import Control.Concurrent.MVar (MVar)
-import Miso (JSM)
+import Language.Javascript.JSaddle.Monad (JSM)
 
 data HttpMethod = GET | PUT | POST | DELETE | PATCH
     deriving Show

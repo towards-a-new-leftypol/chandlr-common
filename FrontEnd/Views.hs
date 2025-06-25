@@ -14,7 +14,7 @@ import Miso
     , h1_
     , time_
     , text
-    , component
+    , component_
     )
 import Miso.String (toMisoString)
 import Data.Text (Text)
@@ -34,9 +34,9 @@ catalogView tc gc m = div_ []
         [ h1_ [] [ text "Overboard Catalog" ]
         , time_ [] [ text $ toMisoString $ show $ current_time m ]
         ]
-    , component tc []
-    , component Search.app []
-    , component gc []
+    , component_ tc []
+    , component_ Search.app []
+    , component_ gc []
     ]
 
 searchView :: Grid.GridComponent -> Maybe Text -> Model -> View Action
@@ -46,13 +46,13 @@ searchView gc _ m = div_ []
         [ h1_ [] [ text "Search" ]
         , time_ [] [ text $ searchTerm m ]
         ]
-    , component Search.app []
-    , component gc []
+    , component_ Search.app []
+    , component_ gc []
     ]
 
 threadView :: Thread.ThreadComponent -> Text -> Text -> BoardThreadId -> Model -> View Action
 threadView threadComponent site_name board_pathpart board_thread_id m =
-    component threadComponent []
+    component_ threadComponent []
 
 page404 :: View Action
 page404 = h1_ [] [ text "404 Not Found" ]
