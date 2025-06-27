@@ -8,5 +8,5 @@ data Model = Model
     { current_uri :: URI
     , media_root_ :: MisoString
     , current_time :: UTCTime
-    , searchTerm :: MisoString
+    , search_term :: MisoString
     } deriving Eq

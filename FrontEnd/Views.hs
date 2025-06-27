@@ -44,7 +44,7 @@ searchView gc _ m = div_ []
     [ div_
         [ class_ "page_heading" ]
         [ h1_ [] [ text "Search" ]
-        , time_ [] [ text $ searchTerm m ]
+        , time_ [] [ text $ search_term m ]
         ]
     , component_ Search.app []
     , component_ gc []
