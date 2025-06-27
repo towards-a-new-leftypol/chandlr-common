@@ -23,6 +23,7 @@ data ActionVerb where
     FetchLatest :: UTCTime -> ActionVerb
     GetThread :: A.GetThreadArgs -> ActionVerb
     Search :: MisoString -> ActionVerb
+    InitModel :: Model -> ActionVerb
 
 data Model = Uninitialized | Model
   { pgApiRoot :: MisoString

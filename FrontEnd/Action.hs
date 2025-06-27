@@ -18,7 +18,7 @@ data GetThreadArgs = GetThreadArgs
     { website         :: Text
     , board_pathpart  :: Text
     , board_thread_id :: Int64
-    }
+    } deriving Eq
 
 data Action
     = GetThread GetThreadArgs
@@ -29,7 +29,9 @@ data Action
     | ChangeURI URI
     | SearchResults MisoString
     | NotifySearch Search.Action
+    | ClientMounted
     | NoAction
+    deriving Eq
 
 
 mkGetThread :: CatalogPost -> Action

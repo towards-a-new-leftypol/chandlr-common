@@ -14,5 +14,6 @@ data HttpResult a
         , status_text :: String
         , body        :: Maybe a
         }
+    deriving Eq
 
 type HttpActionResult a = (JSM (), MVar (HttpResult a)) -- (abort, result)

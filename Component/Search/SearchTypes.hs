@@ -9,6 +9,7 @@ data Action
     | OnSubmit
     | ChangeAndSubmit MisoString
     | SearchResult (HttpResult [ CatalogPost ])
+    deriving Eq
 
 data Model = Model
     { searchTerm :: MisoString
