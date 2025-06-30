@@ -64,8 +64,9 @@ initialModel m_root s = Model
 type ThreadComponent = Component "thread-view" Model Action
 
 data Action
-    = RenderSite Site
+    = RenderSite MisoString Site
     | UpdatePostBodies UTCTime [ PostWithBody ]
+    deriving Eq
 
 
 app :: ThreadComponent
@@ -97,16 +98,22 @@ getPostWithBodies site = do
 
 
 update :: Action -> Effect Model Action
-update (RenderSite s) = do
-    modify $ \m -> (m { site = s })
+update (RenderSite m_root s) = do
+    modify changeModel
 
     io $ do
         pwbs <- liftIO $ getPostWithBodies s
         now <- liftIO $ getCurrentTime
         return $ UpdatePostBodies now pwbs
 
+    where
+        changeModel :: Model -> Model
+        changeModel Uninitialized = initialModel m_root s
+        changeModel m = m { site = s }
+
 
 view :: Model -> View a
+view Uninitialized = text ""
 view m =
   div_
     []

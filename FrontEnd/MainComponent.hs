@@ -9,4 +9,4 @@ import Miso
 import Common.FrontEnd.Model (Model)
 import Common.FrontEnd.Action (Action)
 
-type MainComponent = Component "main" Model Action
+type MainComponent = Component "body" Model Action

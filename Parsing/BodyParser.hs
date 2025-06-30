@@ -68,7 +68,6 @@ treeToPostParts Node { rootLabel = (TagOpen "a" attrs) } =
                 _ ->
                     [ Quote $ parseURL $ JStr.unpack href ]
 
-
 treeToPostParts Node { rootLabel = (TagOpen "span" attrs), subForest } =
     maybe [] (:[]) $ foldr foldfunc Nothing classList
 

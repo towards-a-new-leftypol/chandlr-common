@@ -15,12 +15,13 @@ import Miso
     , time_
     , text
     , component_
+    , onMountedWith
     )
 import Miso.String (toMisoString)
 import Data.Text (Text)
 
 import Common.FrontEnd.Model
-import Common.FrontEnd.Action (Action)
+import Common.FrontEnd.Action (Action (..))
 import qualified Component.Search as Search
 import qualified Common.Component.CatalogGrid as Grid
 import qualified Common.Component.Thread as Thread
@@ -52,7 +53,7 @@ searchView gc _ m = div_ []
 
 threadView :: Thread.ThreadComponent -> Text -> Text -> BoardThreadId -> Model -> View Action
 threadView threadComponent site_name board_pathpart board_thread_id m =
-    component_ threadComponent []
+    component_ threadComponent [ onMountedWith (const ThreadViewMounted) ]
 
 page404 :: View Action
 page404 = h1_ [] [ text "404 Not Found" ]

@@ -4,6 +4,7 @@ import Miso (URI)
 import Miso.String (MisoString)
 import Data.Time.Clock (UTCTime)
 import Common.FrontEnd.Action (Action)
+import qualified Common.Component.Thread  as Thread
 
 data Model = Model
     { current_uri :: URI
@@ -11,6 +12,7 @@ data Model = Model
     , current_time :: UTCTime
     , search_term :: MisoString
     , initial_action :: Action
+    , thread_action :: Maybe Thread.Action
     , pg_api_root :: MisoString
     , client_fetch_count :: Int
     } deriving Eq
