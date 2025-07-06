@@ -26,6 +26,7 @@ import Miso
     , Attribute, emptyDecoder
     , notify
     , io_
+    , consoleLog
     , Component
     )
 import Miso.String (toMisoString, MisoString)
@@ -36,30 +37,13 @@ import qualified Common.Network.CatalogPostType as CatalogPost
 import Common.Parsing.EmbedParser (extractVideoId)
 import Common.FrontEnd.Action (mkGetThread)
 import qualified Common.FrontEnd.MainComponent as MC
-
-data Model = Model
-  { display_items :: [ CatalogPost ]
-  , media_root :: MisoString
-  } deriving Eq
-
-type GridComponent = Component "catalog-grid" Model Action
+import Common.Component.Grid.Types
 
 initialModel :: MisoString -> Model
 initialModel media_root_ = Model
     { display_items = []
     , media_root = toMisoString media_root_
     }
-
-data Action
-    = DisplayItems [ CatalogPost ]
-    | ThreadSelected CatalogPost
-
-
-data Interface a = Interface
-    { passAction :: Action -> a -- We're not using this.
-    , threadSelected :: CatalogPost -> a
-    }
-
 
 app
     :: MC.MainComponent
@@ -88,7 +72,9 @@ update
     :: MC.MainComponent
     -> Action
     -> Effect Model Action
-update _ (DisplayItems xs) = modify $ \m -> (m { display_items = xs })
+update _ (DisplayItems xs) = do
+    io_ $ consoleLog "CatalogGrid - DisplayItems"
+    modify $ \m -> (m { display_items = xs })
 update mc (ThreadSelected post) = io_ $ notify mc $ mkGetThread post
 
 

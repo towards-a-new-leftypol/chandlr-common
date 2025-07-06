@@ -28,26 +28,32 @@ import qualified Common.Component.CatalogGrid as Grid
 import qualified Common.Component.Thread as Thread
 import Common.Component.TimeControl (TimeControl)
 import Common.FrontEnd.Routes (BoardThreadId)
+import qualified Network.Client as Client
 
 timeControl :: TimeControl -> View Action
 timeControl tc = component_ tc [ key_ "time-control" ]
 
 grid :: Grid.GridComponent -> View Action
-grid gc = component_ gc [ key_ "grid" ]
+grid gc = component_ gc [ key_ "grid", onMountedWith (const GridMounted) ]
 
 search :: View Action
 search = component_ Search.app [ key_ "search" ]
 
 catalogView :: TimeControl -> Grid.GridComponent -> Model -> View Action
-catalogView tc gc m = div_ []
+catalogView _ gc m = div_ []
     [ div_
         [ class_ "page_heading" ]
         [ h1_ [] [ text "Overboard Catalog" ]
         , time_ [] [ text $ toMisoString $ show $ current_time m ]
         ]
-    , timeControl tc
-    , search
+    -- , timeControl tc
+    -- , search
     , grid gc
+    -- , component_
+    --     Client.app
+    --     [ key_ "http-client"
+    --     , onMountedWith (const ClientMounted)
+    --     ]
     ]
 
 searchView :: Grid.GridComponent -> Maybe Text -> Model -> View Action
@@ -63,12 +69,11 @@ searchView gc _ m = div_ []
 
 threadView :: Thread.ThreadComponent -> Text -> Text -> BoardThreadId -> Model -> View Action
 threadView threadComponent site_name board_pathpart board_thread_id m =
-    -- component_
-    --     threadComponent
-    --     [ key_ "thread-view"
-    --     , onMountedWith (const ThreadViewMounted)
-    --     ]
-    h1_ [] [ text "THREAD VIEW" ]
+    component_
+        threadComponent
+        [ key_ "thread-view"
+        , onMountedWith (const ThreadViewMounted)
+        ]
 
 page404 :: View Action
 page404 = h1_ [] [ text "404 Not Found" ]

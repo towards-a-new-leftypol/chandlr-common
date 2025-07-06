@@ -30,6 +30,7 @@ data Action
     | SearchResults MisoString
     | NotifySearch Search.Action
     | ClientMounted
+    | GridMounted
     | ThreadViewMounted
     | NoAction
     deriving Eq

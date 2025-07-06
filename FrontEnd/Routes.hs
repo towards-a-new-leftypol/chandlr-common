@@ -12,8 +12,8 @@ import Common.FrontEnd.Action
 
 type Route
     =    R_Latest
-    :<|> R_Thread
-    :<|> R_SearchResults
+    -- :<|> R_Thread
+    -- :<|> R_SearchResults
 
 type R_Latest = View Action
 
