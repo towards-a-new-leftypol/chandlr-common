@@ -63,11 +63,12 @@ searchView gc _ m = div_ []
 
 threadView :: Thread.ThreadComponent -> Text -> Text -> BoardThreadId -> Model -> View Action
 threadView threadComponent site_name board_pathpart board_thread_id m =
-    component_
-        threadComponent
-        [ key_ "thread-view"
-        , onMountedWith (const ThreadViewMounted)
-        ]
+    -- component_
+    --     threadComponent
+    --     [ key_ "thread-view"
+    --     , onMountedWith (const ThreadViewMounted)
+    --     ]
+    h1_ [] [ text "THREAD VIEW" ]
 
 page404 :: View Action
 page404 = h1_ [] [ text "404 Not Found" ]

@@ -26,6 +26,8 @@ import Miso
   , Component
   , defaultEvents
   , io
+  , io_
+  , consoleLog
   )
 import qualified Miso as M
 import Data.List.NonEmpty (head, toList)
@@ -84,7 +86,7 @@ app = M.Component
 
 
 getPostWithBodies :: Site -> IO [ PostWithBody ]
-getPostWithBodies site = do
+getPostWithBodies site_ = do
     bodies <- mapM getBody (map Post.body posts)
     return $ zip posts bodies
 
@@ -94,22 +96,31 @@ getPostWithBodies site = do
         getBody (Just b) = parsePostBody $ JStr.textToJSString b
 
         posts :: [ Post ]
-        posts = toList $ Thread.posts $ head $ Board.threads $ head $ Site.boards site
+        posts = toList $ Thread.posts $ head $ Board.threads $ head $ Site.boards site_
 
 
 update :: Action -> Effect Model Action
-update (RenderSite m_root s) = do
-    modify changeModel
+update _ = io_ $ consoleLog "Thread - update"
+-- update (RenderSite m_root s) = do
+--     modify changeModel
+-- 
+--     io $ do
+--         pwbs <- liftIO $ getPostWithBodies s
+--         now <- liftIO $ getCurrentTime
+--         return $ UpdatePostBodies now pwbs
+-- 
+--     where
+--         changeModel :: Model -> Model
+--         changeModel Uninitialized = initialModel m_root s
+--         changeModel m = m { site = s }
+-- 
+-- update (UpdatePostBodies t pwbs) = modify f
+-- 
+--     where
+--         f :: Model -> Model
+--         f Uninitialized = Uninitialized
+--         f m = m { post_bodies = pwbs, current_time = t }
 
-    io $ do
-        pwbs <- liftIO $ getPostWithBodies s
-        now <- liftIO $ getCurrentTime
-        return $ UpdatePostBodies now pwbs
-
-    where
-        changeModel :: Model -> Model
-        changeModel Uninitialized = initialModel m_root s
-        changeModel m = m { site = s }
 
 
 view :: Model -> View a
