@@ -33,6 +33,7 @@ data Action
     | GridMounted
     | ThreadViewMounted
     | NoAction
+    | TestAction
     deriving Eq
 
 

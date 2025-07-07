@@ -4,6 +4,7 @@ module Common.FrontEnd.Views
     ( catalogView
     , searchView
     , threadView
+    , testView
     , page404
     ) where
 
@@ -17,6 +18,8 @@ import Miso
     , component_
     , onMountedWith
     , key_
+    , button_
+    , onClick
     )
 import Miso.String (toMisoString)
 import Data.Text (Text)
@@ -55,6 +58,14 @@ catalogView _ gc m = div_ []
     --     , onMountedWith (const ClientMounted)
     --     ]
     ]
+
+testView :: Model -> View Action
+testView _ =
+    div_
+        [ class_ "page_heading" ]
+        [ h1_ [] [ text "Overboard Catalog" ]
+        , button_ [ onClick TestAction ] [ text "Click Me" ]
+        ]
 
 searchView :: Grid.GridComponent -> Maybe Text -> Model -> View Action
 searchView gc _ m = div_ []
