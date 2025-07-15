@@ -1,5 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE DataKinds #-}
+{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE DeriveAnyClass #-}
 
 module Common.Component.Thread
 ( Model (..)
@@ -10,9 +12,13 @@ module Common.Component.Thread
 , getPostWithBodies
 , app
 , ThreadComponent
+, Message (..)
+, threadTopic
 ) where
 
 import Prelude hiding (head)
+import GHC.Generics (Generic)
+import Data.Aeson (ToJSON, FromJSON, Result(..))
 import Miso
   ( View
   , Effect
@@ -26,6 +32,11 @@ import Miso
   , Component
   , defaultEvents
   , io
+  , io_
+  , Topic
+  , topic
+  , consoleError
+  , subscribe
   )
 import qualified Miso as M
 import Data.List.NonEmpty (head, toList)
@@ -61,13 +72,19 @@ initialModel m_root s = Model
     , current_time = UTCTime (ModifiedJulianDay 0) (secondsToDiffTime 0)
     }
 
-type ThreadComponent = Component "thread-view" Model Action
+type ThreadComponent = Component Model Action
 
 data Action
-    = RenderSite MisoString Site
+    = OnMessage (Result Message)
     | UpdatePostBodies UTCTime [ PostWithBody ]
+    | Initialize
     deriving Eq
 
+data Message = RenderSite MisoString Site
+    deriving (Eq, Generic, ToJSON, FromJSON)
+
+threadTopic :: Topic Message
+threadTopic = topic "thread"
 
 app :: ThreadComponent
 app = M.Component
@@ -77,7 +94,7 @@ app = M.Component
     , M.subs = []
     , M.events = defaultEvents
     , M.styles = []
-    , M.initialAction = Nothing
+    , M.initialAction = Just Initialize
     , M.mountPoint = Nothing
     , M.logLevel = M.DebugAll
     }
@@ -98,7 +115,8 @@ getPostWithBodies site = do
 
 
 update :: Action -> Effect Model Action
-update (RenderSite m_root s) = do
+update Initialize = subscribe threadTopic OnMessage
+update (OnMessage (Success (RenderSite m_root s))) = do
     modify changeModel
 
     io $ do
@@ -110,6 +128,9 @@ update (RenderSite m_root s) = do
         changeModel :: Model -> Model
         changeModel Uninitialized = initialModel m_root s
         changeModel m = m { site = s }
+
+update (OnMessage (Error msg)) =
+    io_ $ consoleError ("Thread Component Message decode failure: " <> toMisoString msg)
 
 
 view :: Model -> View a

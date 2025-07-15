@@ -1,6 +1,6 @@
 module Common.FrontEnd.Model where
 
-import Miso (URI)
+import Miso (URI, ComponentId)
 import Miso.String (MisoString)
 import Data.Time.Clock (UTCTime)
 import Common.FrontEnd.Action (Action)
@@ -12,7 +12,8 @@ data Model = Model
     , current_time :: UTCTime
     , search_term :: MisoString
     , initial_action :: Action
-    , thread_action :: Maybe Thread.Action
+    , thread_message :: Maybe Thread.Message
     , pg_api_root :: MisoString
     , client_fetch_count :: Int
+    , my_component_id :: ComponentId
     } deriving Eq

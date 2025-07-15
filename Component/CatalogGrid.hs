@@ -1,17 +1,24 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE DataKinds #-}
+{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE DeriveAnyClass #-}
 
 module Common.Component.CatalogGrid
 ( Model (..)
 , initialModel
 , Action (..)
-, Interface (..)
 , view
 , update
 , app
 , GridComponent
+, InMessage (..)
+, OutMessage (..)
+, catalogInTopic
+, catalogOutTopic
 ) where
 
+import GHC.Generics (Generic)
+import Data.Aeson (ToJSON, FromJSON, Result(..))
 import Control.Monad.State (modify)
 import Data.Maybe (maybeToList)
 import Data.Either (fromRight)
@@ -24,9 +31,13 @@ import Miso
     , text, rawHtml, onWithOptions
     , defaultOptions, preventDefault
     , Attribute, emptyDecoder
-    , notify
-    , io_
     , Component
+    , publish
+    , topic
+    , Topic
+    , subscribe
+    , io_
+    , consoleError
     )
 import Miso.String (toMisoString, MisoString)
 import qualified Miso as M
@@ -35,14 +46,14 @@ import Common.Network.CatalogPostType (CatalogPost)
 import qualified Common.Network.CatalogPostType as CatalogPost
 import Common.Parsing.EmbedParser (extractVideoId)
 import Common.FrontEnd.Action (mkGetThread)
-import qualified Common.FrontEnd.MainComponent as MC
+import Common.Network.ClientTypes (GetThreadArgs)
 
 data Model = Model
   { display_items :: [ CatalogPost ]
   , media_root :: MisoString
   } deriving Eq
 
-type GridComponent = Component "catalog-grid" Model Action
+type GridComponent = Component Model Action
 
 initialModel :: MisoString -> Model
 initialModel media_root_ = Model
@@ -51,29 +62,39 @@ initialModel media_root_ = Model
     }
 
 data Action
+    = ThreadSelected CatalogPost
+    | OnMessage (Result InMessage)
+    | Initialize
+
+data OutMessage
+    = GetThread GetThreadArgs
+    deriving (Generic, ToJSON, FromJSON)
+
+data InMessage
     = DisplayItems [ CatalogPost ]
-    | ThreadSelected CatalogPost
+    deriving (Generic, ToJSON, FromJSON)
 
 
-data Interface a = Interface
-    { passAction :: Action -> a -- We're not using this.
-    , threadSelected :: CatalogPost -> a
-    }
+catalogOutTopic :: Topic OutMessage
+catalogOutTopic = topic "catalog-out"
+
+
+catalogInTopic :: Topic InMessage
+catalogInTopic = topic "catalog-in"
 
 
 app
-    :: MC.MainComponent
-    -> MisoString
+    ::MisoString
     -> GridComponent
-app mc m_root =
+app m_root =
     M.Component
         { M.model = initialModel m_root
-        , M.update = update mc
+        , M.update = update
         , M.view = view
         , M.subs = []
         , M.events = M.defaultEvents
         , M.styles = []
-        , M.initialAction = Nothing
+        , M.initialAction = Just Initialize
         , M.mountPoint = Nothing
         , M.logLevel = M.DebugAll
         }
@@ -85,11 +106,13 @@ onClick_ action = onWithOptions defaultOptions { preventDefault = True } "click"
 
 
 update
-    :: MC.MainComponent
-    -> Action
+    :: Action
     -> Effect Model Action
-update _ (DisplayItems xs) = modify $ \m -> (m { display_items = xs })
-update mc (ThreadSelected post) = io_ $ notify mc $ mkGetThread post
+update Initialize = subscribe catalogInTopic OnMessage
+update (OnMessage (Success (DisplayItems xs))) = modify $ \m -> (m { display_items = xs })
+update (OnMessage (Error msg)) =
+    io_ $ consoleError ("CatalogGrid Message decode failure: " <> toMisoString msg)
+update (ThreadSelected post) = publish catalogOutTopic $ GetThread (mkGetThread post)
 
 
 view :: Model -> View Action

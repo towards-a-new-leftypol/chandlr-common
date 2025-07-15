@@ -22,11 +22,13 @@ import Miso
     , Component
     , defaultEvents
     , modify
+    , io
     , io_
-    , notify
+    , Topic
+    , topic
+    , publish
     )
 
-import GHC.TypeLits (KnownSymbol)
 import qualified Miso as M
 import Miso.String (MisoString, toMisoString, fromMisoString)
 import Data.Time.Clock
@@ -42,13 +44,19 @@ data Time
   = Now
   | SlideInput MisoString
   | SlideChange MisoString
+  | Publish Message
   deriving Show
 
 data Model = Model
   { whereAt :: Integer
   } deriving Eq
 
-type TimeControl = Component "time-controls" Model Time
+type TimeControl = Component Model Time
+
+type Message = UTCTime
+
+timeControlTopic :: Topic Message
+timeControlTopic = topic "time-control"
 
 view :: Model -> View Time
 view m =
@@ -67,35 +75,29 @@ view m =
             ]
         ]
 
-type TimeChangeCallback name model action =
-    ( Component name model action
-    , UTCTime -> action
-    )
-
 update
-    :: (KnownSymbol name)
-    => TimeChangeCallback name model action
-    -> Time
+    :: Time
     -> Effect Model Time
-update _ (SlideInput nstr) = io_ $
+update (SlideInput nstr) = io_ $
   consoleLog $ "Input: " <> nstr
 
-update (callback_component, callback_action) (SlideChange nstr) = do
+update (SlideChange nstr) = do
   modify (\model ->  model { whereAt = n })
 
-  io_ $ do
-      consoleLog $ "Change: " <> nstr
+  io $ do
+    consoleLog $ "Change: " <> nstr
 
-      now <- liftIO getCurrentTime
+    now <- liftIO getCurrentTime
 
-      let newTime = interpolateTimeHours n now
+    let newTime = interpolateTimeHours n now
 
-      notify callback_component $ callback_action newTime
+    return $ Publish newTime
 
   where
     n :: Integer
     n = read $ fromMisoString nstr
 
+update (Publish t) = publish timeControlTopic t
 
 earliest :: UTCTime
 --earliest = UTCTime (fromGregorian 2020 12 20) (secondsToDiffTime 82643)
@@ -121,13 +123,11 @@ interpolateTimeHours n currentTime
     secondsInHour = 3600
 
 app
-    :: (KnownSymbol name)
-    => Integer
-    -> TimeChangeCallback name model action
+    :: Integer
     -> TimeControl
-app t callback_info = M.Component
+app t = M.Component
     { M.model = Model t
-    , M.update = update callback_info
+    , M.update = update
     , M.view = view
     , M.subs = []
     , M.events = defaultEvents

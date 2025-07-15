@@ -30,13 +30,13 @@ import Common.Component.TimeControl (TimeControl)
 import Common.FrontEnd.Routes (BoardThreadId)
 
 timeControl :: TimeControl -> View Action
-timeControl tc = component_ tc [ key_ "time-control" ]
+timeControl tc = component_ [ key_ "time-control" ] tc
 
 grid :: Grid.GridComponent -> View Action
-grid gc = component_ gc [ key_ "grid" ]
+grid gc = component_ [ key_ "grid" ] gc
 
 search :: View Action
-search = component_ Search.app [ key_ "search" ]
+search = component_ [ key_ "search" ] Search.app
 
 catalogView :: TimeControl -> Grid.GridComponent -> Model -> View Action
 catalogView tc gc m = div_ []
@@ -64,10 +64,10 @@ searchView gc _ m = div_ []
 threadView :: Thread.ThreadComponent -> Text -> Text -> BoardThreadId -> Model -> View Action
 threadView threadComponent site_name board_pathpart board_thread_id m =
     component_
-        threadComponent
         [ key_ "thread-view"
         , onMountedWith (const ThreadViewMounted)
         ]
+        threadComponent
 
 page404 :: View Action
 page404 = h1_ [] [ text "404 Not Found" ]

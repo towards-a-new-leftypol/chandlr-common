@@ -1,45 +1,29 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DeriveAnyClass #-}
-{-# LANGUAGE ExistentialQuantification #-}
-{-# LANGUAGE GADTs #-}
+{-# LANGUAGE OverloadedStrings  #-}
 
 module Common.Network.ClientTypes where
 
 import GHC.Generics (Generic)
-import Data.Aeson (ToJSON, FromJSON)
+import Data.Text (Text)
+import Data.Int (Int64)
+import Data.Aeson (ToJSON, FromJSON, Result)
 import Data.Time.Clock (UTCTime)
 import Miso.String (MisoString)
-import Miso (Component)
-import GHC.TypeLits (KnownSymbol)
-import Data.Typeable (Typeable)
+import Miso (Topic, topic)
 
 import qualified Common.Network.HttpTypes as Http
-import qualified Common.FrontEnd.Action as A
 
-type Action = (SomeInterface, ActionVerb)
-
-data ActionVerb where
-    Connect :: (FromJSON a, Typeable a) => Http.HttpActionResult a -> ActionVerb
-    FetchLatest :: UTCTime -> ActionVerb
-    GetThread :: A.GetThreadArgs -> ActionVerb
-    Search :: MisoString -> ActionVerb
-    InitModel :: Model -> ActionVerb
+data Action
+    = Connect Sender Http.HttpActionResult
+    | OnMessage (Result MessageIn)
+    | Publish MessageOut
+    | Initialize
 
 data Model = Uninitialized | Model
   { pgApiRoot :: MisoString
   , fetchCount :: Int
-  } deriving Eq
-
-data SomeInterface = forall a. (FromJSON a, Typeable a) =>
-    SomeInterface (Interface a)
-
-data Interface a = forall name model action.
-  (KnownSymbol name) =>
-  Interface
-    -- { returnResult :: forall b. (FromJSON b) => Http.HttpResult b -> action
-    { returnResult :: Http.HttpResult a -> action
-    , notifyComponent :: Component name model action
-    }
+  } deriving (Eq, Generic, ToJSON, FromJSON)
 
 data FetchCatalogArgs = FetchCatalogArgs
   { max_time :: UTCTime
@@ -50,3 +34,30 @@ data SearchPostsArgs = SearchPostsArgs
   { search_text :: MisoString
   , max_rows :: Int
   } deriving (Generic, ToJSON)
+
+type Sender = MisoString
+
+type MessageIn = (Sender, Query)
+
+data Query
+    = FetchLatest UTCTime
+    | GetThread GetThreadArgs
+    | Search MisoString
+    | InitModel Model
+    deriving (Generic, ToJSON, FromJSON)
+
+data MessageOut = ReturnResult Sender Http.HttpResult
+    deriving (Eq, Generic, ToJSON, FromJSON)
+
+clientInTopic :: Topic MessageIn
+clientInTopic = topic "client-in"
+
+clientOutTopic :: Topic MessageOut
+clientOutTopic = topic "client-out"
+
+
+data GetThreadArgs = GetThreadArgs
+    { website         :: Text
+    , board_pathpart  :: Text
+    , board_thread_id :: Int64
+    } deriving (Eq, Generic, ToJSON, FromJSON)
