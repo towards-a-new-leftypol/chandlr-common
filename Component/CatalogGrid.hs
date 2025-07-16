@@ -97,6 +97,8 @@ app m_root =
         , M.initialAction = Just Initialize
         , M.mountPoint = Nothing
         , M.logLevel = M.DebugAll
+        , M.scripts = []
+        , M.mailbox = const Nothing
         }
 
 

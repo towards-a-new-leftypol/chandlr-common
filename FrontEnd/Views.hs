@@ -16,7 +16,6 @@ import Miso
     , text
     , component_
     , onMountedWith
-    , key_
     )
 import Miso.String (toMisoString)
 import Data.Text (Text)
@@ -30,13 +29,13 @@ import Common.Component.TimeControl (TimeControl)
 import Common.FrontEnd.Routes (BoardThreadId)
 
 timeControl :: TimeControl -> View Action
-timeControl tc = component_ [ key_ "time-control" ] tc
+timeControl tc = component_ [] tc
 
 grid :: Grid.GridComponent -> View Action
-grid gc = component_ [ key_ "grid" ] gc
+grid gc = component_ [] gc
 
 search :: View Action
-search = component_ [ key_ "search" ] Search.app
+search = component_ [] Search.app
 
 catalogView :: TimeControl -> Grid.GridComponent -> Model -> View Action
 catalogView tc gc m = div_ []
@@ -64,9 +63,7 @@ searchView gc _ m = div_ []
 threadView :: Thread.ThreadComponent -> Text -> Text -> BoardThreadId -> Model -> View Action
 threadView threadComponent site_name board_pathpart board_thread_id m =
     component_
-        [ key_ "thread-view"
-        , onMountedWith (const ThreadViewMounted)
-        ]
+        [onMountedWith (const ThreadViewMounted)]
         threadComponent
 
 page404 :: View Action

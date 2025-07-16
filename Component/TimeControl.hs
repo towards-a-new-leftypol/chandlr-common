@@ -135,4 +135,6 @@ app t = M.Component
     , M.initialAction = Nothing
     , M.mountPoint = Nothing
     , M.logLevel = M.DebugAll
+    , M.scripts = []
+    , M.mailbox = const Nothing
     }

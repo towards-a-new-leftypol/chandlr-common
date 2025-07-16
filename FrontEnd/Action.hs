@@ -9,17 +9,14 @@ import Common.Network.CatalogPostType (CatalogPost)
 import qualified Common.Network.CatalogPostType as CatalogPost
 import qualified Common.Component.Search.SearchTypes as Search
 import qualified Common.Network.ClientTypes as Client
-import Common.Network.HttpTypes (HttpResult)
 
 data Action
     = GetThread Client.GetThreadArgs
-    -- | HaveLatest (HttpResult [ CatalogPost ])
-    -- | HaveThread (HttpResult [ Site ])
     | ClientResponse (Result Client.MessageOut)
     | GoToTime UTCTime
     | ChangeURI URI
     | SearchResults MisoString
-    | NotifySearch Search.Action
+    | NotifySearch Search.Message
     | ClientMounted
     | ThreadViewMounted
     | NoAction

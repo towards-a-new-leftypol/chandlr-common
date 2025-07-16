@@ -97,11 +97,13 @@ app = M.Component
     , M.initialAction = Just Initialize
     , M.mountPoint = Nothing
     , M.logLevel = M.DebugAll
+    , M.scripts = []
+    , M.mailbox = const Nothing
     }
 
 
 getPostWithBodies :: Site -> IO [ PostWithBody ]
-getPostWithBodies site = do
+getPostWithBodies s = do
     bodies <- mapM getBody (map Post.body posts)
     return $ zip posts bodies
 
@@ -111,7 +113,7 @@ getPostWithBodies site = do
         getBody (Just b) = parsePostBody $ JStr.textToJSString b
 
         posts :: [ Post ]
-        posts = toList $ Thread.posts $ head $ Board.threads $ head $ Site.boards site
+        posts = toList $ Thread.posts $ head $ Board.threads $ head $ Site.boards s
 
 
 update :: Action -> Effect Model Action
@@ -132,6 +134,12 @@ update (OnMessage (Success (RenderSite m_root s))) = do
 update (OnMessage (Error msg)) =
     io_ $ consoleError ("Thread Component Message decode failure: " <> toMisoString msg)
 
+update (UpdatePostBodies t pwbs) = modify changeModel
+
+    where
+        changeModel :: Model -> Model
+        changeModel Uninitialized = Uninitialized
+        changeModel m = m { post_bodies = pwbs, current_time = t }
 
 view :: Model -> View a
 view Uninitialized = text ""
