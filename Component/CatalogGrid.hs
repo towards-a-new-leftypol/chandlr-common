@@ -38,6 +38,7 @@ import Miso
     , subscribe
     , io_
     , consoleError
+    , consoleLog
     )
 import Miso.String (toMisoString, MisoString)
 import qualified Miso as M
@@ -46,42 +47,13 @@ import Common.Network.CatalogPostType (CatalogPost)
 import qualified Common.Network.CatalogPostType as CatalogPost
 import Common.Parsing.EmbedParser (extractVideoId)
 import Common.FrontEnd.Action (mkGetThread)
-import Common.Network.ClientTypes (GetThreadArgs)
-
-data Model = Model
-  { display_items :: [ CatalogPost ]
-  , media_root :: MisoString
-  } deriving Eq
-
-type GridComponent = Component Model Action
+import Common.Component.CatalogGrid.GridTypes
 
 initialModel :: MisoString -> Model
 initialModel media_root_ = Model
     { display_items = []
     , media_root = toMisoString media_root_
     }
-
-data Action
-    = ThreadSelected CatalogPost
-    | OnMessage (Result InMessage)
-    | Initialize
-
-data OutMessage
-    = GetThread GetThreadArgs
-    deriving (Generic, ToJSON, FromJSON)
-
-data InMessage
-    = DisplayItems [ CatalogPost ]
-    deriving (Generic, ToJSON, FromJSON)
-
-
-catalogOutTopic :: Topic OutMessage
-catalogOutTopic = topic "catalog-out"
-
-
-catalogInTopic :: Topic InMessage
-catalogInTopic = topic "catalog-in"
-
 
 app
     ::MisoString
@@ -107,14 +79,17 @@ onClick_ :: a -> Attribute a
 onClick_ action = onWithOptions defaultOptions { preventDefault = True } "click" emptyDecoder (const $ const action)
 
 
-update
-    :: Action
-    -> Effect Model Action
+update :: Action -> Effect Model Action
 update Initialize = subscribe catalogInTopic OnMessage
+
 update (OnMessage (Success (DisplayItems xs))) = modify $ \m -> (m { display_items = xs })
+
 update (OnMessage (Error msg)) =
     io_ $ consoleError ("CatalogGrid Message decode failure: " <> toMisoString msg)
-update (ThreadSelected post) = publish catalogOutTopic $ GetThread (mkGetThread post)
+
+update (ThreadSelected post) = do
+    io_ $ consoleLog $ "ThreadSelected - " <> toMisoString (show post)
+    publish catalogOutTopic $ GetThread (mkGetThread post)
 
 
 view :: Model -> View Action

@@ -9,9 +9,11 @@ import Common.Network.CatalogPostType (CatalogPost)
 import qualified Common.Network.CatalogPostType as CatalogPost
 import qualified Common.Component.Search.SearchTypes as Search
 import qualified Common.Network.ClientTypes as Client
+import qualified Common.Component.CatalogGrid.GridTypes as Grid
 
 data Action
     = GetThread Client.GetThreadArgs
+    | GridMessage (Result Grid.OutMessage)
     | ClientResponse (Result Client.MessageOut)
     | GoToTime UTCTime
     | ChangeURI URI

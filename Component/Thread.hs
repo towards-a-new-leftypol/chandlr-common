@@ -36,6 +36,7 @@ import Miso
   , Topic
   , topic
   , consoleError
+  , consoleLog
   , subscribe
   )
 import qualified Miso as M
@@ -122,6 +123,7 @@ update (OnMessage (Success (RenderSite m_root s))) = do
     modify changeModel
 
     io $ do
+        consoleLog "Thread - received RenderSite message"
         pwbs <- liftIO $ getPostWithBodies s
         now <- liftIO $ getCurrentTime
         return $ UpdatePostBodies now pwbs
@@ -134,7 +136,9 @@ update (OnMessage (Success (RenderSite m_root s))) = do
 update (OnMessage (Error msg)) =
     io_ $ consoleError ("Thread Component Message decode failure: " <> toMisoString msg)
 
-update (UpdatePostBodies t pwbs) = modify changeModel
+update (UpdatePostBodies t pwbs) = do
+    io_ $ consoleLog "Thread - update UpdatePostBodies case"
+    modify changeModel
 
     where
         changeModel :: Model -> Model
