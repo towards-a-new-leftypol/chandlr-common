@@ -20,6 +20,7 @@ data Action
     | SearchResults MisoString
     | NotifySearch Search.Message
     | ClientMounted
+    | ClientUnmounted
     | ThreadViewMounted
     | NoAction
     | HaveOwnComponentId ComponentId

@@ -145,6 +145,7 @@ update (UpdatePostBodies t pwbs) = do
         changeModel Uninitialized = Uninitialized
         changeModel m = m { post_bodies = pwbs, current_time = t }
 
+
 view :: Model -> View a
 view Uninitialized = text ""
 view m =
