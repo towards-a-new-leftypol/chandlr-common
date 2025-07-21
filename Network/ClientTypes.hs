@@ -18,6 +18,8 @@ data Action
     = Connect Sender Http.HttpActionResult
     | OnMessage (Result MessageIn)
     | Publish MessageOut
+    | OnMount
+    | OnUnmount
     | Initialize
 
 data Model = Uninitialized | Model
@@ -46,7 +48,10 @@ data Query
     | InitModel Model
     deriving (Generic, ToJSON, FromJSON)
 
-data MessageOut = ReturnResult Sender Http.HttpResult
+data MessageOut
+    = ReturnResult Sender Http.HttpResult
+    | Mounted
+    | Unmounted
     deriving (Eq, Generic, ToJSON, FromJSON)
 
 clientInTopic :: Topic MessageIn

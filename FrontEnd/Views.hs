@@ -29,13 +29,13 @@ import Common.Component.TimeControl (TimeControl)
 import Common.FrontEnd.Routes (BoardThreadId)
 
 timeControl :: TimeControl -> View Action
-timeControl tc = component_ [] tc
+timeControl tc = component_ tc
 
 grid :: Grid.GridComponent -> View Action
-grid gc = component_ [] gc
+grid gc = component_ gc
 
 search :: View Action
-search = component_ [] Search.app
+search = component_ Search.app
 
 catalogView :: TimeControl -> Grid.GridComponent -> Model -> View Action
 catalogView tc gc m = div_ []

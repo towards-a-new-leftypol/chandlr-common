@@ -14,7 +14,7 @@ import qualified Common.Component.CatalogGrid.GridTypes as Grid
 data Action
     = GetThread Client.GetThreadArgs
     | GridMessage (Result Grid.OutMessage)
-    | ClientResponse (Result Client.MessageOut)
+    | ClientMessage (Result Client.MessageOut)
     | GoToTime UTCTime
     | ChangeURI URI
     | SearchResults MisoString

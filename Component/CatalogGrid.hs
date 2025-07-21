@@ -1,7 +1,4 @@
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE DataKinds #-}
-{-# LANGUAGE DeriveGeneric #-}
-{-# LANGUAGE DeriveAnyClass #-}
 
 module Common.Component.CatalogGrid
 ( Model (..)
@@ -17,8 +14,7 @@ module Common.Component.CatalogGrid
 , catalogOutTopic
 ) where
 
-import GHC.Generics (Generic)
-import Data.Aeson (ToJSON, FromJSON, Result(..))
+import Data.Aeson (Result(..))
 import Control.Monad.State (modify)
 import Data.Maybe (maybeToList)
 import Data.Either (fromRight)
@@ -31,10 +27,7 @@ import Miso
     , text, rawHtml, onWithOptions
     , defaultOptions, preventDefault
     , Attribute, emptyDecoder
-    , Component
     , publish
-    , topic
-    , Topic
     , subscribe
     , io_
     , consoleError
