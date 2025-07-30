@@ -1,6 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE DataKinds #-}
-{-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DeriveAnyClass #-}
 
 module Common.Component.CatalogGrid
@@ -17,8 +16,7 @@ module Common.Component.CatalogGrid
 , catalogOutTopic
 ) where
 
-import GHC.Generics (Generic)
-import Data.Aeson (ToJSON, FromJSON, Result(..))
+import Data.Aeson (Result(..))
 import Control.Monad.State (modify)
 import Data.Maybe (maybeToList)
 import Data.Either (fromRight)
@@ -31,10 +29,7 @@ import Miso
     , text, rawHtml, onWithOptions
     , defaultOptions, preventDefault
     , Attribute, emptyDecoder
-    , Component
     , publish
-    , topic
-    , Topic
     , subscribe
     , io_
     , consoleError
@@ -46,7 +41,6 @@ import qualified Miso as M
 import Common.Network.CatalogPostType (CatalogPost)
 import qualified Common.Network.CatalogPostType as CatalogPost
 import Common.Parsing.EmbedParser (extractVideoId)
-import Common.FrontEnd.Action (mkGetThread)
 import Common.Component.CatalogGrid.GridTypes
 
 initialModel :: MisoString -> Model
@@ -89,7 +83,7 @@ update (OnMessage (Error msg)) =
 
 update (ThreadSelected post) = do
     io_ $ consoleLog $ "ThreadSelected - " <> toMisoString (show post)
-    publish catalogOutTopic $ GetThread (mkGetThread post)
+    publish catalogOutTopic $ SelectThread post
 
 
 view :: Model -> View Action

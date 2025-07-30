@@ -1,5 +1,3 @@
-{-# LANGUAGE DataKinds #-}
-
 module Common.FrontEnd.MainComponent where
 
 import Miso

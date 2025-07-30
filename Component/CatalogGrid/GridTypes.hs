@@ -11,7 +11,6 @@ import Miso (Topic, topic, Component)
 import Miso.String (MisoString)
 
 import Common.Network.CatalogPostType (CatalogPost)
-import Common.Network.ClientTypes (GetThreadArgs)
 
 data Model = Model
   { display_items :: [ CatalogPost ]
@@ -26,7 +25,7 @@ data Action
     | Initialize
 
 data OutMessage
-    = GetThread GetThreadArgs
+    = SelectThread CatalogPost
     deriving (Eq, Generic, ToJSON, FromJSON)
 
 data InMessage

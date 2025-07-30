@@ -10,7 +10,7 @@ import Data.Aeson (FromJSON, ToJSON)
 import Data.Time.Clock (UTCTime) -- Required for timestamp with time zone
 import Data.Int (Int64)
 import Data.Text (Text)
--- import Common.AttachmentType (Dimension)
+import Common.AttachmentType (Dimension)
 
 data CatalogPost = CatalogPost
     { post_id              :: Maybe Int64
@@ -28,10 +28,10 @@ data CatalogPost = CatalogPost
     , estimated_post_count :: Int
     , site_name            :: Text
     , pathpart             :: Text
-    -- , site_id              :: Int
+    , site_id              :: Int
     , file_mimetype        :: Maybe Text
     , file_illegal         :: Maybe Bool
-    -- , file_resolution      :: Maybe Dimension
+    , file_resolution      :: Maybe Dimension
     , file_name            :: Maybe Text
     , file_extension       :: Maybe Text
     , file_thumb_extension :: Maybe Text
