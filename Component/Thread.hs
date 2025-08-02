@@ -18,7 +18,7 @@ module Common.Component.Thread
 
 import Prelude hiding (head)
 import GHC.Generics (Generic)
-import Data.Aeson (ToJSON, FromJSON, Result(..))
+import Data.Aeson (ToJSON, FromJSON)
 import Miso
   ( View
   , Effect
@@ -75,7 +75,8 @@ initialModel m_root s = Model
 type ThreadComponent = Component Model Action
 
 data Action
-    = OnMessage (Result Message)
+    = OnMessage Message
+    | OnMessageError MisoString
     | UpdatePostBodies UTCTime [ PostWithBody ]
     | Initialize
     deriving Eq
@@ -117,8 +118,8 @@ getPostWithBodies s = do
 
 
 update :: Action -> Effect Model Action
-update Initialize = subscribe threadTopic OnMessage
-update (OnMessage (Success (RenderSite m_root s))) = do
+update Initialize = subscribe threadTopic OnMessage OnMessageError
+update (OnMessage (RenderSite m_root s)) = do
     modify changeModel
 
     io $ do
@@ -132,7 +133,7 @@ update (OnMessage (Success (RenderSite m_root s))) = do
         changeModel Uninitialized = initialModel m_root s
         changeModel m = m { site = s }
 
-update (OnMessage (Error msg)) =
+update (OnMessageError msg) =
     io_ $ consoleError ("Thread Component Message decode failure: " <> toMisoString msg)
 
 update (UpdatePostBodies t pwbs) = do

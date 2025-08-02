@@ -1,12 +1,11 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE DeriveGeneric #-}
-{-# LANGUAGE DeriveAnyClass #-}
 
 module Common.Component.CatalogGrid.GridTypes where
 
 import GHC.Generics (Generic)
-import Data.Aeson (ToJSON, FromJSON, Result(..))
+import Data.Aeson (ToJSON, FromJSON)
 import Miso (Topic, topic, Component)
 import Miso.String (MisoString)
 
@@ -21,14 +20,15 @@ type GridComponent = Component Model Action
 
 data Action
     = ThreadSelected CatalogPost
-    | OnMessage (Result InMessage)
+    | OnMessage InMessage
+    | OnMessageError MisoString
     | Initialize
 
-data OutMessage
+newtype OutMessage
     = SelectThread CatalogPost
     deriving (Eq, Generic, ToJSON, FromJSON)
 
-data InMessage
+newtype InMessage
     = DisplayItems [ CatalogPost ]
     deriving (Generic, ToJSON, FromJSON)
 

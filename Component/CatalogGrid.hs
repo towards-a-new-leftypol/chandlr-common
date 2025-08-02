@@ -74,11 +74,11 @@ onClick_ action = onWithOptions defaultOptions { preventDefault = True } "click"
 
 
 update :: Action -> Effect Model Action
-update Initialize = subscribe catalogInTopic OnMessage
+update Initialize = subscribe catalogInTopic OnMessage OnMessageError
 
-update (OnMessage (Success (DisplayItems xs))) = modify $ \m -> (m { display_items = xs })
+update (OnMessage (DisplayItems xs)) = modify $ \m -> (m { display_items = xs })
 
-update (OnMessage (Error msg)) =
+update (OnMessageError msg) =
     io_ $ consoleError ("CatalogGrid Message decode failure: " <> toMisoString msg)
 
 update (ThreadSelected post) = do

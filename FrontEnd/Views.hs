@@ -14,10 +14,10 @@ import Miso
     , h1_
     , time_
     , text
-    , component_
     , onMountedWith
     , onUnmountedWith
     , key_
+    , mount
     )
 import Miso.String (MisoString, toMisoString)
 import Data.Text (Text)
@@ -32,25 +32,27 @@ import Common.FrontEnd.Routes (BoardThreadId)
 import qualified Network.Client as Client
 
 timeControl :: TimeControl -> View Action
-timeControl tc = component_ [] tc
+timeControl = mount (div_ [])
 
 
 grid :: Grid.GridComponent -> View Action
-grid gc = component_ [] gc
+grid = mount (div_ [])
 
 
 search :: View Action
-search = component_ [] Search.app
+search = mount (div_ []) Search.app
 
 
 pageWrapperWithDefaults :: View Action -> View Action
 pageWrapperWithDefaults inner_content =
     div_ []
-        [ component_
-            [ onMountedWith (const ClientMounted)
-            , onUnmountedWith (const ClientUnmounted)
-            , key_ ("http-client" :: MisoString)
-            ]
+        [ mount
+            (div_
+                [ onMountedWith (const ClientMounted)
+                , onUnmountedWith (const ClientUnmounted)
+                , key_ ("http-client" :: MisoString)
+                ]
+            )
             Client.app
         , inner_content
         ]
@@ -83,8 +85,8 @@ searchView gc _ m = pageWrapperWithDefaults $ div_ []
 
 threadView :: Text -> Text -> BoardThreadId -> Model -> View Action
 threadView site_name board_pathpart board_thread_id m =
-    pageWrapperWithDefaults $ component_
-        [onMountedWith (const ThreadViewMounted)]
+    pageWrapperWithDefaults $ mount
+        (div_ [onMountedWith (const ThreadViewMounted)])
         Thread.app
 
 
