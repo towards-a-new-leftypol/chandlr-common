@@ -24,7 +24,7 @@ import Data.Text (Text)
 
 import Common.FrontEnd.Model
 import Common.FrontEnd.Action (Action (..))
-import qualified Component.Search as Search
+import qualified Common.Component.Search as Search
 import qualified Common.Component.CatalogGrid as Grid
 import qualified Common.Component.Thread as Thread
 import Common.Component.TimeControl (TimeControl)

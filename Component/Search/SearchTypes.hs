@@ -2,7 +2,6 @@
 
 module Common.Component.Search.SearchTypes where
 
-import Data.Aeson (Result)
 import Miso.String (MisoString)
 import Miso (Topic, topic)
 
@@ -13,8 +12,9 @@ data Action
     = SearchChange MisoString
     | OnSubmit
     | ChangeAndSubmit MisoString
-    | SearchResult (Result Client.MessageOut)
-    | OnMessage (Result Message)
+    | SearchResult Client.MessageOut
+    | OnMessage Message
+    | OnMessageError MisoString
     | Initialize
     deriving Eq
 

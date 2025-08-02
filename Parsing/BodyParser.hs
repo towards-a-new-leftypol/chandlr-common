@@ -9,9 +9,8 @@ module Common.Parsing.BodyParser
     , Backlinks
     ) where
 
-import Miso.String (MisoString)
-import qualified Data.JSString as JStr
-import qualified Data.JSString.Text as JStr
+import Miso.String (MisoString, toMisoString)
+import qualified Miso.String as MS
 import Text.HTML.Parser
     ( parseTokens
     , canonicalizeTokens
@@ -33,12 +32,12 @@ getAttr attrName (Attr x y:xs)
     | otherwise = getAttr attrName xs
 
     where
-        x_str = JStr.textToJSString x
-        y_str = JStr.textToJSString y
+        x_str = toMisoString x
+        y_str = toMisoString y
 
 
 parsePostBody :: MisoString -> IO [ PostPart ]
-parsePostBody html =
+parsePostBody htmltxt =
     case tokensToForest $ canonicalizeTokens $ parseTokens htmltxt of
         Left err -> do
             print err
@@ -46,8 +45,6 @@ parsePostBody html =
 
         Right forest -> return $ forestToPostParts forest
 
-    where
-        htmltxt = JStr.textFromJSString html
 
 
 forestToPostParts :: Forest Token -> [ PostPart ]
@@ -66,14 +63,14 @@ treeToPostParts Node { rootLabel = (TagOpen "a" attrs) } =
                 Just "_blank" ->
                     [ PostedUrl href ]
                 _ ->
-                    [ Quote $ parseURL $ JStr.unpack href ]
+                    [ Quote $ parseURL $ show href ]
 
 treeToPostParts Node { rootLabel = (TagOpen "span" attrs), subForest } =
     maybe [] (:[]) $ foldr foldfunc Nothing classList
 
     where
         classList :: [ MisoString ]
-        classList = maybe [] JStr.words $ getAttr "class" attrs
+        classList = maybe [] MS.words $ getAttr "class" attrs
 
         foldfunc :: MisoString -> Maybe PostPart -> Maybe PostPart
         foldfunc cls Nothing = (>>= \p -> Just $ p $ forestToPostParts subForest) $ matchPart cls
@@ -106,7 +103,7 @@ treeToPostParts Node { rootLabel = (TagOpen "br" _) } =
 
 treeToPostParts Node { rootLabel = (ContentText txt) } = [ SimpleText str ]
     where
-        str = JStr.textToJSString txt
+        str = toMisoString txt
 
 treeToPostParts _ = [ Skip ]
 

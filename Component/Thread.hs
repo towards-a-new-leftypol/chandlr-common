@@ -46,7 +46,6 @@ import Data.Text (Text)
 import Miso.String (toMisoString, MisoString)
 import Data.Time.Clock (UTCTime (..), secondsToDiffTime, getCurrentTime)
 import Data.Time.Calendar (Day (..))
-import qualified Data.JSString.Text as JStr
 import Control.Monad.IO.Class (liftIO)
 import Control.Monad.State (modify)
 
@@ -111,7 +110,7 @@ getPostWithBodies s = do
     where
         getBody :: Maybe Text -> IO [ PostPart ]
         getBody Nothing = return []
-        getBody (Just b) = parsePostBody $ JStr.textToJSString b
+        getBody (Just b) = parsePostBody b
 
         posts :: [ Post ]
         posts = toList $ Thread.posts $ head $ Board.threads $ head $ Site.boards s
