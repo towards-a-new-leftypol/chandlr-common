@@ -9,7 +9,7 @@ module Common.Parsing.BodyParser
     , Backlinks
     ) where
 
-import Miso.String (MisoString, toMisoString)
+import Miso.String (MisoString, toMisoString, fromMisoString)
 import qualified Miso.String as MS
 import Text.HTML.Parser
     ( parseTokens
@@ -63,7 +63,7 @@ treeToPostParts Node { rootLabel = (TagOpen "a" attrs) } =
                 Just "_blank" ->
                     [ PostedUrl href ]
                 _ ->
-                    [ Quote $ parseURL $ show href ]
+                    [ Quote $ parseURL $ fromMisoString href ]
 
 treeToPostParts Node { rootLabel = (TagOpen "span" attrs), subForest } =
     maybe [] (:[]) $ foldr foldfunc Nothing classList
