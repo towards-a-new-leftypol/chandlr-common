@@ -33,20 +33,20 @@ import Common.FrontEnd.Routes (BoardThreadId)
 import qualified Network.Client as Client
 
 timeControl :: TimeControl -> View Action
-timeControl = mount (div_ [])
+timeControl = mount (div_ [ key_ ("time-control" :: MisoString) ])
 
 
 grid :: Grid.GridComponent -> View Action
-grid = mount (div_ [])
+grid = mount (div_ [ key_ ("catalog-grid" :: MisoString) ])
 
 
 search :: View Action
-search = mount (div_ []) Search.app
+search = mount (div_ [ key_ ("search" :: MisoString) ]) Search.app
 
 
 pageWrapperWithDefaults :: View Action -> View Action
 pageWrapperWithDefaults inner_content =
-    div_ []
+    div_ [ key_ ("top-level" :: MisoString) ]
         [ mount
             (div_
                 [ onMountedWith (const ClientMounted)
@@ -88,7 +88,7 @@ searchView gc _ m = pageWrapperWithDefaults $ div_ []
 mkThreadView :: Thread.Model -> Text -> Text -> BoardThreadId -> Model -> View Action
 mkThreadView thread_model site_name board_pathpart board_thread_id m =
     pageWrapperWithDefaults $ mount
-        (div_ [onMountedWith (const ThreadViewMounted)])
+        (div_ [ onMountedWith (const ThreadViewMounted), key_ ("thread-view" :: MisoString) ])
         (Thread.app thread_model)
 
 
