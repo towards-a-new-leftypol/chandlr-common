@@ -1,4 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
+{-# HLINT ignore "Move brackets to avoid $" #-}
+{-# HLINT ignore "Redundant bracket" #-}
 
 module Common.Component.Thread.Intro where
 
@@ -15,10 +18,8 @@ import Miso
   )
 
 import qualified Data.Map as Map
-import Data.Text (Text, pack)
-import Miso.String (MisoString)
+import Miso.String (MisoString, toMisoString)
 import Data.Foldable (toList)
-import Miso.String (toMisoString)
 import Data.Time.Clock (UTCTime, diffUTCTime)
 import Data.Time.Format (formatTime, defaultTimeLocale)
 
@@ -44,32 +45,32 @@ intro site board thread post backlinks current_time = span_
   ( subject ++
     [ " "
     , span_
-        [ class_ "name" ][ text name ]
+        [ class_ "name" ] [ text name ]
     -- TODO: Add flags (don't have that data in the db yet)
     , " "
     , time_
         [ textProp "datetime" $ toMisoString $ show $ creation_time
         , title_ $ toMisoString $ timeAgo current_time creation_time
-        ][ text $ formatUTC creation_time ]
+        ] [ text $ formatUTC creation_time ]
     , " "
     , a_
         [ class_ "post_no"
         , href_ $ toMisoString $ post_url <> "#" <> b_post_id
-        ][ "No." ]
+        ] [ "No." ]
     , a_
         [ class_ "post_no"
         , href_ $ toMisoString $ post_url <> "#q" <> b_post_id
-        ][ text $ toMisoString $ b_post_id ]
+        ] [ text $ toMisoString $ b_post_id ]
     ]
     ++ mentions
   )
 
   where
-    post_url :: Text
+    post_url :: MisoString
     post_url
-        =  "/" <> Site.name site
-        <> "/" <> Board.pathpart board
-        <> "/" <> pack (show $ Thread.board_thread_id thread)
+        =  "/" <> (Site.name site)
+        <> "/" <> (Board.pathpart board)
+        <> "/" <> (toMisoString $ show $ Thread.board_thread_id thread)
 
     creation_time :: UTCTime
     creation_time = Post.creation_time post
@@ -81,12 +82,12 @@ intro site board thread post backlinks current_time = span_
     name = maybe "Anonymous" toMisoString $ Post.name post
 
     mkSubject :: MisoString -> View a
-    mkSubject s = span_ 
+    mkSubject s = span_
       [ class_ "subject" ]
       [ text s ]
 
-    b_post_id :: Text
-    b_post_id = pack $ show $ Post.board_post_id post
+    b_post_id :: MisoString
+    b_post_id = toMisoString $ show $ Post.board_post_id post
 
     mentions :: [ View a ]
     mentions =

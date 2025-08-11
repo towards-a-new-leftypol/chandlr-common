@@ -16,8 +16,7 @@ import Miso
   )
 
 import Data.Maybe (fromJust)
-import Data.Text (unpack)
-import Miso.String (MisoString, toMisoString)
+import Miso.String (MisoString, toMisoString, fromMisoString)
 import Data.Either (fromRight)
 
 import qualified Common.Network.PostType as Post
@@ -45,4 +44,4 @@ embed post = div_
     where
       video_id :: MisoString
       video_id = toMisoString $ fromJust $
-          (Post.embed post) >>= Just . (fromRight "") . extractVideoId . unpack
+          (Post.embed post) >>= Just . (fromRight "") . extractVideoId . fromMisoString

@@ -9,7 +9,7 @@ module Common.AttachmentType
 import GHC.Generics
 import Data.Int (Int64)
 import Data.Aeson (FromJSON, ToJSON)
-import Data.Text (Text)
+import Miso.String (MisoString)
 import Data.Time.Clock (UTCTime)
 
 data Dimension = Dimension
@@ -23,17 +23,17 @@ data Paths = Paths
   } deriving (Show)
 
 data Attachment = Attachment
-    { mimetype          :: Text
+    { mimetype          :: MisoString
     , creation_time     :: UTCTime
-    , sha256_hash       :: Text
+    , sha256_hash       :: MisoString
     , phash             :: Maybe Int64
     , illegal           :: Bool
     , post_id           :: Int64
     , resolution        :: Maybe Dimension
-    , file_extension    :: Maybe Text
-    , thumb_extension   :: Maybe Text
-    , original_filename :: Maybe Text
-    , board_filename    :: Text
+    , file_extension    :: Maybe MisoString
+    , thumb_extension   :: Maybe MisoString
+    , original_filename :: Maybe MisoString
+    , board_filename    :: MisoString
     , spoiler           :: Bool
     , file_size_bytes   :: Int
     , attachment_idx    :: Int

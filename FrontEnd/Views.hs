@@ -72,7 +72,7 @@ catalogView tc gc m = pageWrapperWithDefaults $ div_ []
     ]
 
 
-searchView :: Grid.GridComponent -> Maybe Text -> Model -> View Action
+searchView :: Grid.GridComponent -> Maybe String -> Model -> View Action
 searchView gc _ m = pageWrapperWithDefaults $ div_ []
     [ div_
         [ class_ "page_heading" ]

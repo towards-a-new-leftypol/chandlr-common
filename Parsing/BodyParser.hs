@@ -38,7 +38,7 @@ getAttr attrName (Attr x y:xs)
 
 parsePostBody :: MisoString -> IO [ PostPart ]
 parsePostBody htmltxt =
-    case tokensToForest $ canonicalizeTokens $ parseTokens htmltxt of
+    case tokensToForest $ canonicalizeTokens $ parseTokens $ fromMisoString htmltxt of
         Left err -> do
             print err
             return []

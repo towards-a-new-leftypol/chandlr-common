@@ -3,7 +3,6 @@ module Common.FrontEnd.Action where
 import Data.Time.Clock (UTCTime)
 import Miso.String (MisoString)
 import Miso (URI, ComponentId)
-import Data.Aeson (Result)
 
 import Common.Network.CatalogPostType (CatalogPost)
 import qualified Common.Network.CatalogPostType as CatalogPost
@@ -13,8 +12,9 @@ import qualified Common.Component.CatalogGrid.GridTypes as Grid
 
 data Action
     = GetThread Client.GetThreadArgs
-    | GridMessage (Result Grid.OutMessage)
-    | ClientResponse (Result Client.MessageOut)
+    | GridMessage Grid.OutMessage
+    | ClientResponse Client.MessageOut
+    | OnErrorMessage MisoString
     | GoToTime UTCTime
     | ChangeURI URI
     | SearchResults MisoString

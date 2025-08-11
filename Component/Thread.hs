@@ -42,7 +42,6 @@ import Miso
 import qualified Miso as M
 import Data.List.NonEmpty (head, toList)
 import qualified Data.List as L
-import Data.Text (Text)
 import Miso.String (toMisoString, MisoString)
 import Data.Time.Clock (UTCTime (..), secondsToDiffTime, getCurrentTime)
 import Data.Time.Calendar (Day (..))
@@ -109,7 +108,7 @@ getPostWithBodies s = do
     return $ zip posts bodies
 
     where
-        getBody :: Maybe Text -> IO [ PostPart ]
+        getBody :: Maybe MisoString -> IO [ PostPart ]
         getBody Nothing = return []
         getBody (Just b) = parsePostBody b
 

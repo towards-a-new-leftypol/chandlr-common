@@ -5,9 +5,8 @@
 module Common.Network.ClientTypes where
 
 import GHC.Generics (Generic)
-import Data.Text (Text)
 import Data.Int (Int64)
-import Data.Aeson (ToJSON, FromJSON, Result)
+import Data.Aeson (ToJSON, FromJSON)
 import Data.Time.Clock (UTCTime)
 import Miso.String (MisoString)
 import Miso (Topic, topic)
@@ -16,7 +15,8 @@ import qualified Common.Network.HttpTypes as Http
 
 data Action
     = Connect Sender Http.HttpActionResult
-    | OnMessage (Result MessageIn)
+    | OnMessage MessageIn
+    | OnErrorMessage MisoString
     | Publish MessageOut
     | Initialize
 
@@ -57,7 +57,7 @@ clientOutTopic = topic "client-out"
 
 
 data GetThreadArgs = GetThreadArgs
-    { website         :: Text
-    , board_pathpart  :: Text
+    { website         :: MisoString
+    , board_pathpart  :: MisoString
     , board_thread_id :: Int64
     } deriving (Eq, Generic, ToJSON, FromJSON)

@@ -22,8 +22,6 @@ module Common.Component.CatalogGrid
 import Control.Monad.State (modify)
 import Data.Maybe (maybeToList)
 import Data.Either (fromRight)
-import Data.Text (pack, Text)
-import qualified Data.Text as T
 import Miso
     ( View, div_ , class_ , img_ , href_ , a_
     , src_ , title_ , b_ , span_
@@ -37,7 +35,8 @@ import Miso
     , consoleError
     , consoleLog
     )
-import Miso.String (toMisoString, MisoString)
+import Miso.String (toMisoString, fromMisoString, MisoString)
+import qualified Data.JSString as JStr
 import qualified Miso as M
 
 import Common.Network.CatalogPostType (CatalogPost)
@@ -148,7 +147,7 @@ gridItem m post =
 
     embed_url :: Maybe String
     embed_url =
-        (CatalogPost.embed post) >>= Just . (fromRight "") . extractVideoId . T.unpack
+        (CatalogPost.embed post) >>= Just . (fromRight "") . extractVideoId . fromMisoString
 
     thumb_url :: MisoString
     thumb_url  =
@@ -160,7 +159,7 @@ gridItem m post =
                     Just thumb_path -> (media_root m) <> (toMisoString thumb_path)
             Just u -> "https://leftychan.net/vi/" <> toMisoString u <> "/0.jpg"
 
-    mthumb_path :: Maybe Text
+    mthumb_path :: Maybe MisoString
     mthumb_path = do
         file_name <- CatalogPost.file_name post
         thumb_ext <- CatalogPost.file_thumb_extension post
@@ -168,13 +167,13 @@ gridItem m post =
         return $
             "/" <> CatalogPost.site_name post
             <> "/" <> CatalogPost.pathpart post
-            <> "/" <> (pack $ show $ CatalogPost.board_thread_id post)
+            <> "/" <> (toMisoString $ show $ CatalogPost.board_thread_id post)
             <> "/thumbnail_" <> file_name
             <> "." <> thumb_ext
 
     thread_url :: MisoString
-    thread_url = toMisoString $ T.intercalate "/"
+    thread_url = toMisoString $ JStr.intercalate "/" $ map fromMisoString $
       [ CatalogPost.site_name post
       , CatalogPost.pathpart post
-      , pack $ show $ CatalogPost.board_thread_id post
+      , toMisoString $ show $ CatalogPost.board_thread_id post
       ]

@@ -26,7 +26,7 @@ type R_Thread a
 
 type R_SearchResults a
     = "search"
-    :> QueryParam "search" Text
+    :> QueryParam "search" String
     :> a
 
 type BoardThreadId = Int64

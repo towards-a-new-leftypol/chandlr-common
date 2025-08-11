@@ -25,9 +25,9 @@ import Miso
   )
 import Data.List.NonEmpty (head)
 import Data.Foldable (toList)
-import qualified Data.Text as Text
-import Miso.String (append, toMisoString)
-import Miso.String (MisoString)
+import Miso.String (MisoString, append, toMisoString, fromMisoString)
+import qualified Data.JSString as JStr
+
 import Common.Network.SiteType (Site)
 import qualified Common.Network.SiteType as Site
 import qualified Common.Network.BoardType as Board
@@ -37,6 +37,7 @@ import Common.Network.PostType (Post)
 import Common.AttachmentType (Attachment, Dimension (..))
 import qualified Common.AttachmentType as Attachment
 import Common.Network.Units (bytesToHumanReadable)
+import Data.Maybe (fromMaybe)
 
 max_thumbnail_width :: Int
 max_thumbnail_width = 255
@@ -69,7 +70,7 @@ file media_root site multifile a = div_
       [ span_ [] [ "File: " ]
       , a_
           [ href_ file_url
-          ][ text $ toMisoString board_filename]
+          ] [ text $ toMisoString board_filename]
       , text " "
       , span_
           [ class_ "details" ]
@@ -78,7 +79,7 @@ file media_root site multifile a = div_
               [ download_ orig_file_name
               , href_ file_url
               , title_ $ "Save as original filename (" `append` orig_file_name `append` ")"
-              ][ text filename_text ]
+              ] [ text filename_text ]
           , ")"
           ]
       ]
@@ -114,18 +115,18 @@ file media_root site multifile a = div_
 
     filename_text :: MisoString
     filename_text
-      | Text.length fname > max_original_filename_display_length =
-          toMisoString (Text.take max_original_filename_display_length fname)
+      | JStr.length fname > max_original_filename_display_length =
+          toMisoString (JStr.take max_original_filename_display_length fname)
           `append` "…" `append` toMisoString file_ext
       | otherwise = toMisoString fname
 
-    fname :: Text.Text
-    fname = maybe board_filename id $ Attachment.original_filename a
+    fname :: JStr.JSString
+    fname = fromMisoString $ fromMaybe board_filename $ Attachment.original_filename a
 
-    file_ext :: Text.Text
-    file_ext = maybe "" ((<>) ".") $ Attachment.file_extension a
+    file_ext :: MisoString
+    file_ext = maybe "" ("." <>) $ Attachment.file_extension a
 
-    board_filename :: Text.Text
+    board_filename :: MisoString
     board_filename = Attachment.board_filename a <> file_ext
 
     thumb_url :: MisoString
