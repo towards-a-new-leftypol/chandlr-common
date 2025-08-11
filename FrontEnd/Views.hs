@@ -4,6 +4,7 @@ module Common.FrontEnd.Views
     ( catalogView
     , searchView
     , threadView
+    , mkThreadView
     , page404
     ) where
 
@@ -83,11 +84,16 @@ searchView gc _ m = pageWrapperWithDefaults $ div_ []
     ]
 
 
-threadView :: Text -> Text -> BoardThreadId -> Model -> View Action
-threadView site_name board_pathpart board_thread_id m =
+
+mkThreadView :: Thread.Model -> Text -> Text -> BoardThreadId -> Model -> View Action
+mkThreadView thread_model site_name board_pathpart board_thread_id m =
     pageWrapperWithDefaults $ mount
         (div_ [onMountedWith (const ThreadViewMounted)])
-        Thread.app
+        (Thread.app thread_model)
+
+
+threadView :: Text -> Text -> BoardThreadId -> Model -> View Action
+threadView = mkThreadView Thread.Uninitialized
 
 
 page404 :: View Action

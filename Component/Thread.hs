@@ -87,9 +87,9 @@ data Message = RenderSite MisoString Site
 threadTopic :: Topic Message
 threadTopic = topic "thread"
 
-app :: ThreadComponent
-app = M.Component
-    { M.model = Uninitialized
+app :: Model -> ThreadComponent
+app m = M.Component
+    { M.model = m
     , M.update = update
     , M.view = view
     , M.subs = []
@@ -151,15 +151,13 @@ view Uninitialized = text ""
 view m =
   div_
     []
-    (
-        [ h1_ [] [ text title ]
-        , div_
-            [ class_ "thread" ]
-            (  (op_post thread_posts)
-            ++ map (reply m backlinks) (drop 1 (post_bodies m))
-            )
-        ]
-    )
+    [ h1_ [] [ text title ]
+    , div_
+        [ class_ "thread" ]
+        (  (op_post thread_posts)
+        ++ map (reply m backlinks) (drop 1 (post_bodies m))
+        )
+    ]
 
     where
         thread_posts :: [ Post ]

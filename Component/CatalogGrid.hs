@@ -1,6 +1,8 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE DataKinds #-}
-{-# LANGUAGE DeriveAnyClass #-}
+{-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
+{-# HLINT ignore "Redundant bracket" #-}
+{-# HLINT ignore "Move brackets to avoid $" #-}
 
 module Common.Component.CatalogGrid
 ( Model (..)
@@ -9,6 +11,7 @@ module Common.Component.CatalogGrid
 , view
 , update
 , app
+, mkApp
 , GridComponent
 , InMessage (..)
 , OutMessage (..)
@@ -16,7 +19,6 @@ module Common.Component.CatalogGrid
 , catalogOutTopic
 ) where
 
-import Data.Aeson (Result(..))
 import Control.Monad.State (modify)
 import Data.Maybe (maybeToList)
 import Data.Either (fromRight)
@@ -46,15 +48,13 @@ import Common.Component.CatalogGrid.GridTypes
 initialModel :: MisoString -> Model
 initialModel media_root_ = Model
     { display_items = []
-    , media_root = toMisoString media_root_
+    , media_root = media_root_
     }
 
-app
-    ::MisoString
-    -> GridComponent
-app m_root =
+mkApp :: Model -> GridComponent
+mkApp model =
     M.Component
-        { M.model = initialModel m_root
+        { M.model = model
         , M.update = update
         , M.view = view
         , M.subs = []
@@ -67,6 +67,8 @@ app m_root =
         , M.mailbox = const Nothing
         }
 
+app :: MisoString -> GridComponent
+app m_root = mkApp (initialModel m_root)
 
 -- Custom event handler with preventDefault set to True
 onClick_ :: a -> Attribute a
