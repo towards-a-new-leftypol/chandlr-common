@@ -6,12 +6,10 @@
 
 module Common.Component.CatalogGrid
 ( Model (..)
-, initialModel
 , Action (..)
 , view
 , update
 , app
-, mkApp
 , GridComponent
 , InMessage (..)
 , OutMessage (..)
@@ -44,14 +42,8 @@ import qualified Common.Network.CatalogPostType as CatalogPost
 import Common.Parsing.EmbedParser (extractVideoId)
 import Common.Component.CatalogGrid.GridTypes
 
-initialModel :: MisoString -> Model
-initialModel media_root_ = Model
-    { display_items = []
-    , media_root = media_root_
-    }
-
-mkApp :: Model -> GridComponent
-mkApp model =
+app :: Model -> GridComponent
+app model =
     M.Component
         { M.model = model
         , M.update = update
@@ -65,9 +57,6 @@ mkApp model =
         , M.scripts = []
         , M.mailbox = const Nothing
         }
-
-app :: MisoString -> GridComponent
-app m_root = mkApp (initialModel m_root)
 
 -- Custom event handler with preventDefault set to True
 onClick_ :: a -> Attribute a

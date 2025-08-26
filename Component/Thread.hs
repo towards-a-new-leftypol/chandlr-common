@@ -5,6 +5,7 @@
 
 module Common.Component.Thread
 ( Model (..)
+, PostWithBody
 , initialModel
 , Action (..)
 , update
