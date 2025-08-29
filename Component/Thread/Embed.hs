@@ -2,16 +2,18 @@
 
 module Common.Component.Thread.Embed where
 
-import Miso
-  ( View
-  , div_
-  , class_
+import Miso (View)
+import Miso.Html
+  ( div_
   , a_
+  , img_
+  , span_
+  )
+import Miso.Html.Property
+  ( class_
   , href_
   , target_
-  , img_
   , src_
-  , span_
   , data_
   )
 
@@ -23,7 +25,7 @@ import qualified Common.Network.PostType as Post
 import Common.Network.PostType (Post)
 import Common.Parsing.EmbedParser (extractVideoId)
 
-embed :: Post -> View a
+embed :: Post -> View model a
 embed post = div_
     [ class_ "video-container" ]
     [ a_

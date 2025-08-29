@@ -2,23 +2,27 @@
 
 module Common.Component.Search.View where
 
-import Common.Component.Search.SearchTypes
-
 import Miso
   ( View
-  , class_
+  )
+import Miso.Html.Property
+  ( class_
   , action_
   , method_
-  , input_
   , type_
   , value_
   , name_
+  )
+import Miso.Html
+  ( input_
   , form
   , onChange
   , onSubmit
   )
 
-view :: Model -> View Action
+import Common.Component.Search.SearchTypes
+
+view :: Model -> View Model Action
 view = const $ form
     [ class_ "search_form"
     , action_ "/search"

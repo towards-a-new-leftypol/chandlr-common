@@ -21,17 +21,35 @@ import Control.Monad.State (modify)
 import Data.Maybe (maybeToList)
 import Data.Either (fromRight)
 import Miso
-    ( View, div_ , class_ , img_ , href_ , a_
-    , src_ , title_ , b_ , span_
-    , p_ , id_ , Effect
-    , text, rawHtml, onWithOptions
-    , defaultOptions, preventDefault
-    , Attribute, emptyDecoder
+    ( View
+    , Effect
+    , text
+    , rawHtml
+    , onWithOptions
+    , defaultOptions
+    , Options (_preventDefault)
+    , Attribute
+    , emptyDecoder
     , publish
     , subscribe
     , io_
     , consoleError
     , consoleLog
+    )
+import Miso.Html
+    ( div_
+    , img_
+    , a_
+    , b_
+    , span_
+    , p_
+    )
+import Miso.Html.Property
+    ( src_
+    , title_
+    , id_
+    , class_
+    , href_
     )
 import Miso.String (toMisoString, fromMisoString, MisoString)
 import qualified Data.JSString as JStr
@@ -42,7 +60,7 @@ import qualified Common.Network.CatalogPostType as CatalogPost
 import Common.Parsing.EmbedParser (extractVideoId)
 import Common.Component.CatalogGrid.GridTypes
 
-app :: Model -> GridComponent
+app :: Model -> GridComponent parent
 app model =
     M.Component
         { M.model = model
@@ -56,14 +74,15 @@ app model =
         , M.logLevel = M.DebugAll
         , M.scripts = []
         , M.mailbox = const Nothing
+        , M.bindings = []
         }
 
 -- Custom event handler with preventDefault set to True
 onClick_ :: a -> Attribute a
-onClick_ action = onWithOptions defaultOptions { preventDefault = True } "click" emptyDecoder (const $ const action)
+onClick_ action = onWithOptions defaultOptions { _preventDefault = True } "click" emptyDecoder (const $ const action)
 
 
-update :: Action -> Effect Model Action
+update :: Action -> Effect parent Model Action
 update Initialize = subscribe catalogInTopic OnMessage OnMessageError
 
 update (OnMessage (DisplayItems xs)) = modify $ \m -> (m { display_items = xs })
@@ -76,7 +95,7 @@ update (ThreadSelected post) = do
     publish catalogOutTopic $ SelectThread post
 
 
-view :: Model -> View Action
+view :: Model -> View model Action
 view model =
     div_
         [ class_ "theme-catalog" ]
@@ -88,7 +107,7 @@ view model =
             ]
         ]
 
-gridItem :: Model -> CatalogPost -> View Action
+gridItem :: Model -> CatalogPost -> View model Action
 gridItem m post =
     div_
         [ class_ "thread grid-li grid-size-small" ]
@@ -116,10 +135,10 @@ gridItem m post =
         ]
 
   where
-    subject :: [ View a ]
+    subject :: [ View model a ]
     subject = map (text . toMisoString) $ maybeToList $ CatalogPost.subject post
 
-    intro :: [ View a ] -> [ View a ]
+    intro :: [ View model a ] -> [ View model a ]
     intro [] = []
     intro x = (: []) $ p_
         [ class_ "intro" ]
@@ -128,7 +147,7 @@ gridItem m post =
             x
         ]
 
-    body :: [ View a ]
+    body :: [ View model a ]
     body = map (rawHtml . toMisoString) $ maybeToList $ CatalogPost.body post
 
     post_count_str :: MisoString

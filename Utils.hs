@@ -10,9 +10,10 @@ import qualified Common.Network.HttpTypes as Http
 
 helper
     :: (FromJSON a)
-    => Http.HttpResult
-    -> (a -> Effect model action)
-    -> Effect model action
+    => forall parent
+    . Http.HttpResult
+    -> (a -> Effect parent model action)
+    -> Effect parent model action
 helper Http.Error _ = io_ $ consoleError "Http Error"
 helper (Http.HttpResponse status_code status_text (Just body)) continue = do
     io_ $ do

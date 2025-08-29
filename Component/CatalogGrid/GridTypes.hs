@@ -1,7 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE DeriveGeneric #-}
-{-# LANGUAGE DeriveAnyClass #-}
 
 module Common.Component.CatalogGrid.GridTypes where
 
@@ -17,7 +16,7 @@ data Model = Model
   , media_root :: MisoString
   } deriving Eq
 
-type GridComponent = Component Model Action
+type GridComponent parent = Component parent Model Action
 
 data Action
     = ThreadSelected CatalogPost

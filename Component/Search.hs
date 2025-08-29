@@ -33,7 +33,7 @@ import qualified Common.Utils as Utils
 pattern Sender :: Client.Sender
 pattern Sender = "search"
 
-update :: Action -> Effect Model Action
+update :: Action -> Effect parent Model Action
 update Initialize = do
     subscribe Client.clientOutTopic SearchResult OnMessageError
     subscribe searchTopic OnMessage OnMessageError
@@ -66,7 +66,7 @@ update (OnMessageError msg) =
 
 update (OnMessage query) = issue $ ChangeAndSubmit query
 
-app :: Component Model Action
+app :: Component parent Model Action
 app = M.Component
     { M.model = Model "" []
     , M.update = update
@@ -79,4 +79,5 @@ app = M.Component
     , M.logLevel = M.DebugAll
     , M.scripts = []
     , M.mailbox = const Nothing
+    , M.bindings = []
     }

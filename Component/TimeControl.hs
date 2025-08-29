@@ -7,18 +7,8 @@ module Common.Component.TimeControl where
 import Control.Monad.IO.Class (liftIO)
 import Miso
     ( View
-    , div_
-    , class_
-    , input_
-    , step_
-    , min_
-    , max_
-    , type_
-    , value_
     , consoleLog
     , Effect
-    , onInput
-    , onChange
     , Component
     , defaultEvents
     , modify
@@ -27,6 +17,20 @@ import Miso
     , Topic
     , topic
     , publish
+    )
+import Miso.Html
+    ( div_
+    , input_
+    , onInput
+    , onChange
+    )
+import Miso.Html.Property
+    ( class_
+    , step_
+    , min_
+    , max_
+    , type_
+    , value_
     )
 
 import qualified Miso as M
@@ -51,14 +55,14 @@ data Model = Model
   { whereAt :: Integer
   } deriving Eq
 
-type TimeControl = Component Model Time
+type TimeControl parent = Component parent Model Time
 
 type Message = UTCTime
 
 timeControlTopic :: Topic Message
 timeControlTopic = topic "time-control"
 
-view :: Model -> View Time
+view :: Model -> View model Time
 view m =
     div_
         [ class_ "time-control"
@@ -77,7 +81,7 @@ view m =
 
 update
     :: Time
-    -> Effect Model Time
+    -> Effect parent Model Time
 update (SlideInput nstr) = io_ $
   consoleLog $ "Input: " <> nstr
 
@@ -124,7 +128,7 @@ interpolateTimeHours n currentTime
 
 app
     :: Integer
-    -> TimeControl
+    -> TimeControl parent
 app t = M.Component
     { M.model = Model t
     , M.update = update
@@ -137,4 +141,5 @@ app t = M.Component
     , M.logLevel = M.DebugAll
     , M.scripts = []
     , M.mailbox = const Nothing
+    , M.bindings = []
     }

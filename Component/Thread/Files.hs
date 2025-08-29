@@ -6,20 +6,24 @@ module Common.Component.Thread.Files where
 import Prelude hiding (head)
 import Miso
   ( View
-  , div_
-  , href_
+  , Attribute
+  , text
+  )
+import Miso.Html
+  ( div_
   , a_
+  , img_
+  , span_
+  , p_
+  )
+import Miso.Html.Property
+  ( href_
   , class_
   , title_
   , alt_
   , src_
-  , img_
-  , span_
   , loading_
   , download_
-  , p_
-  , Attribute
-  , text
   , target_
   , data_
   )
@@ -48,7 +52,7 @@ max_thumbnail_height = 255
 max_original_filename_display_length :: Int
 max_original_filename_display_length = 25
 
-files :: MisoString -> Site -> Post -> View a
+files :: MisoString -> Site -> Post -> View model a
 files media_root site post = div_
   [ class_ "files" ]
   ( map (file media_root site multi) as )
@@ -58,7 +62,7 @@ files media_root site post = div_
 
     as = Post.attachments post
 
-file :: MisoString -> Site -> Bool -> Attachment -> View a
+file :: MisoString -> Site -> Bool -> Attachment -> View model a
 file media_root site multifile a = div_
   ( [ class_ "file" ] ++
     if multifile then

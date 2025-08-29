@@ -9,15 +9,17 @@ module Common.FrontEnd.Views
 
 import Miso
     ( View
-    , div_
-    , class_
-    , h1_
-    , time_
     , text
     , onMountedWith
     , onUnmountedWith
     , key_
     , mount
+    )
+import Miso.Html.Property (class_)
+import Miso.Html
+    ( h1_
+    , time_
+    , div_
     )
 import Miso.String (MisoString, toMisoString)
 import Data.Text (Text)
@@ -31,19 +33,19 @@ import Common.Component.TimeControl (TimeControl)
 import Common.FrontEnd.Routes (BoardThreadId)
 import qualified Network.Client as Client
 
-timeControl :: TimeControl -> View Action
+timeControl :: TimeControl model -> View model Action
 timeControl = mount (div_ [ key_ ("time-control" :: MisoString) ])
 
 
-grid :: Grid.GridComponent -> View Action
+grid :: Grid.GridComponent model -> View model Action
 grid = mount (div_ [ key_ ("catalog-grid" :: MisoString) ])
 
 
-search :: View Action
+search :: View model Action
 search = mount (div_ [ key_ ("search" :: MisoString) ]) Search.app
 
 
-pageWrapperWithDefaults :: View Action -> View Action
+pageWrapperWithDefaults :: View model Action -> View model Action
 pageWrapperWithDefaults inner_content =
     div_ [ key_ ("top-level" :: MisoString) ]
         [ mount
@@ -58,7 +60,7 @@ pageWrapperWithDefaults inner_content =
         ]
 
 
-catalogView :: TimeControl -> Grid.GridComponent -> Model -> View Action
+catalogView :: TimeControl model -> Grid.GridComponent model -> Model -> View model Action
 catalogView tc gc m = pageWrapperWithDefaults $ div_ []
     [ div_
         [ class_ "page_heading" ]
@@ -71,7 +73,7 @@ catalogView tc gc m = pageWrapperWithDefaults $ div_ []
     ]
 
 
-searchView :: Grid.GridComponent -> Maybe String -> Model -> View Action
+searchView :: Grid.GridComponent model -> Maybe String -> Model -> View model Action
 searchView gc _ m = pageWrapperWithDefaults $ div_ []
     [ div_
         [ class_ "page_heading" ]
@@ -84,12 +86,12 @@ searchView gc _ m = pageWrapperWithDefaults $ div_ []
 
 
 
-threadView :: Thread.Model -> Text -> Text -> BoardThreadId -> Model -> View Action
+threadView :: Thread.Model -> Text -> Text -> BoardThreadId -> Model -> View model Action
 threadView thread_model site_name board_pathpart board_thread_id m =
     pageWrapperWithDefaults $ mount
         (div_ [ onMountedWith (const ThreadViewMounted), key_ ("thread-view" :: MisoString) ])
         (Thread.app thread_model)
 
 
-page404 :: View Action
+page404 :: View model Action
 page404 = h1_ [] [ text "404 Not Found" ]

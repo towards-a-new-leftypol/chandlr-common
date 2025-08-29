@@ -23,12 +23,7 @@ import Data.Aeson (ToJSON, FromJSON)
 import Miso
   ( View
   , Effect
-  , div_
   , text
-  , h1_
-  , class_
-  , id_
-  , h2_
   , Attribute
   , Component
   , defaultEvents
@@ -39,6 +34,15 @@ import Miso
   , consoleError
   , consoleLog
   , subscribe
+  )
+import Miso.Html
+  ( div_
+  , h1_
+  , h2_
+  )
+import Miso.Html.Property
+  ( class_
+  , id_
   )
 import qualified Miso as M
 import Data.List.NonEmpty (head, toList)
@@ -72,7 +76,7 @@ initialModel m_root s = Model
     , current_time = UTCTime (ModifiedJulianDay 0) (secondsToDiffTime 0)
     }
 
-type ThreadComponent = Component Model Action
+type ThreadComponent parent = Component parent Model Action
 
 data Action
     = OnMessage Message
@@ -87,7 +91,7 @@ data Message = RenderSite MisoString Site
 threadTopic :: Topic Message
 threadTopic = topic "thread"
 
-app :: Model -> ThreadComponent
+app :: Model -> ThreadComponent parent
 app m = M.Component
     { M.model = m
     , M.update = update
@@ -100,6 +104,7 @@ app m = M.Component
     , M.logLevel = M.DebugAll
     , M.scripts = []
     , M.mailbox = const Nothing
+    , M.bindings = []
     }
 
 
@@ -117,7 +122,7 @@ getPostWithBodies s = do
         posts = toList $ Thread.posts $ head $ Board.threads $ head $ Site.boards s
 
 
-update :: Action -> Effect Model Action
+update :: Action -> Effect parent Model Action
 update Initialize = subscribe threadTopic OnMessage OnMessageError
 update (OnMessage (RenderSite m_root s)) = do
     modify changeModel
@@ -146,7 +151,7 @@ update (UpdatePostBodies t pwbs) = do
         changeModel m = m { post_bodies = pwbs, current_time = t }
 
 
-view :: Model -> View a
+view :: Model -> View model a
 view Uninitialized = text ""
 view m =
   div_
@@ -169,7 +174,7 @@ view m =
         backlinks :: Backlinks
         backlinks = collectBacklinks (post_bodies m)
 
-        op_post :: [ Post ] -> [ View a ]
+        op_post :: [ Post ] -> [ View model a ]
         op_post [] = [ h2_ [] [ "There's nothing here" ] ]
         op_post (x:_) = op m x backlinks
 
@@ -179,7 +184,7 @@ view m =
         board = Board.pathpart $ head $ Site.boards (site m)
 
 
-op :: Model -> Post -> Backlinks -> [ View a ]
+op :: Model -> Post -> Backlinks -> [ View model a ]
 op m op_post backlinks =
     [ files_or_embed_view
     , div_
@@ -196,7 +201,7 @@ op m op_post backlinks =
     ]
 
     where
-        files_or_embed_view :: View a
+        files_or_embed_view :: View model a
         files_or_embed_view =
           case (Post.embed op_post) of
             Just _ -> embed op_post
@@ -212,7 +217,7 @@ op m op_post backlinks =
         thread :: Thread
         thread = head $ Board.threads board
 
-        body :: [ PostWithBody ] -> [ View a ]
+        body :: [ PostWithBody ] -> [ View model a ]
         body [] = []
         body x = Body.render m $ snd $ L.head x
 
@@ -223,7 +228,7 @@ multi post
     | otherwise = []
 
 
-reply :: Model -> Backlinks -> PostWithBody -> View a
+reply :: Model -> Backlinks -> PostWithBody -> View model a
 reply m backlinks (post, parts) = div_
     [ class_ "postcontainer"
     , id_ $ toMisoString $ show $ Post.board_post_id post
@@ -245,7 +250,7 @@ reply m backlinks (post, parts) = div_
     ]
 
     where
-        files_or_embed_view :: View a
+        files_or_embed_view :: View model a
         files_or_embed_view =
           case (Post.embed post) of
             Just _ -> embed post

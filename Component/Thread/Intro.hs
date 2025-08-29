@@ -8,13 +8,17 @@ module Common.Component.Thread.Intro where
 import Miso
   ( View
   , text
-  , href_
-  , a_
-  , class_
   , textProp
-  , title_
+  )
+import Miso.Html
+  ( a_
   , span_
   , time_
+  )
+import Miso.Html.Property
+  ( href_
+  , class_
+  , title_
   )
 
 import qualified Data.Map as Map
@@ -39,7 +43,7 @@ formatUTC time = toMisoString $
     formatTime defaultTimeLocale "%Y-%m-%d (%a) %T" time
 
 
-intro :: Site -> Board -> Thread -> Post -> Backlinks -> UTCTime -> View a
+intro :: Site -> Board -> Thread -> Post -> Backlinks -> UTCTime -> View model a
 intro site board thread post backlinks current_time = span_
   [ class_ "intro" ]
   ( subject ++
@@ -75,13 +79,13 @@ intro site board thread post backlinks current_time = span_
     creation_time :: UTCTime
     creation_time = Post.creation_time post
 
-    subject :: [ View a ]
+    subject :: [ View model a ]
     subject = map (mkSubject . toMisoString) $ toList $ Post.subject post
 
     name :: MisoString
     name = maybe "Anonymous" toMisoString $ Post.name post
 
-    mkSubject :: MisoString -> View a
+    mkSubject :: MisoString -> View model a
     mkSubject s = span_
       [ class_ "subject" ]
       [ text s ]
@@ -89,7 +93,7 @@ intro site board thread post backlinks current_time = span_
     b_post_id :: MisoString
     b_post_id = toMisoString $ show $ Post.board_post_id post
 
-    mentions :: [ View a ]
+    mentions :: [ View model a ]
     mentions =
         case Map.lookup (Post.board_post_id post) backlinks of
             Nothing -> []
@@ -99,7 +103,7 @@ intro site board thread post backlinks current_time = span_
                 (map mention xs)
                 : []
 
-    mention :: Post -> View a
+    mention :: Post -> View model a
     mention p =
         a_
             [ href_ $ "#" <> bpid

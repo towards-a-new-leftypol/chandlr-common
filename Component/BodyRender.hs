@@ -6,13 +6,12 @@ module Common.Component.BodyRender where
 import Prelude hiding (head)
 import Miso
     ( text
-    , href_
-    , a_
     , View
-    , target_
+    )
+import Miso.Html
+    ( a_
     , br_
     , span_
-    , class_
     , strong_
     , u_
     , em_
@@ -20,10 +19,14 @@ import Miso
     , small_
     , pre_
     )
-import Miso.String (toMisoString)
+import Miso.Html.Property
+    ( href_
+    , target_
+    , class_
+    )
+import Miso.String ( toMisoString, MisoString )
 import System.FilePath ((</>))
 import Text.Parsec (ParseError)
-import Miso.String (MisoString)
 import Data.Maybe (fromJust)
 import Data.List.NonEmpty (head)
 
@@ -45,10 +48,10 @@ import qualified Common.Network.PostType as Post
  - (is there an easy way to render a miso View?, that's what's missing
  - a f :: View a -> Text)
  -}
-render :: Model.Model -> [ PostPart ] -> [ View a ]
+render :: Model.Model -> [ PostPart ] -> [ View model a ]
 render m = map (renderPostPart m)
 
-renderPostPart :: Model.Model -> PostPart -> View a
+renderPostPart :: Model.Model -> PostPart -> View model a
 renderPostPart _ (SimpleText txt) = text txt
 renderPostPart _ (PostedUrl u) =
     a_
@@ -61,7 +64,7 @@ renderPostPart _ Skip = br_ []
 
 renderPostPart m (Quote parse_result) = elems parse_result
     where
-        elems :: Either ParseError ParsedURL -> View a
+        elems :: Either ParseError ParsedURL -> View model a
         elems (Left err) =
             a_
                 []
