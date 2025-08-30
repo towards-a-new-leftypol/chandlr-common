@@ -1,6 +1,6 @@
 module Common.FrontEnd.Model where
 
-import Miso (URI, ComponentId)
+import Miso (URI)
 import Miso.String (MisoString)
 import Data.Time.Clock (UTCTime)
 import Common.FrontEnd.Action (Action)
