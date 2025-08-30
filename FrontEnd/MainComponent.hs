@@ -1,10 +1,10 @@
 module Common.FrontEnd.MainComponent where
 
 import Miso
-    ( Component
+    ( App
     )
 
 import Common.FrontEnd.Model (Model)
 import Common.FrontEnd.Action (Action)
 
-type MainComponent = Component Model Action
+type MainComponent = App Model Action

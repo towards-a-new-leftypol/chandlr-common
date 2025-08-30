@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE ExplicitForAll #-}
 
 module Common.Utils where
 

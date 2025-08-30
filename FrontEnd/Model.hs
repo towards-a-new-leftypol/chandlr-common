@@ -15,5 +15,4 @@ data Model = Model
     , thread_message :: Maybe Thread.Message
     , pg_api_root :: MisoString
     , client_fetch_count :: Int
-    , my_component_id :: ComponentId
     } deriving Eq

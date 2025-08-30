@@ -23,7 +23,6 @@ data Action
     | ClientUnmounted
     | ThreadViewMounted
     | NoAction
-    | HaveOwnComponentId ComponentId
     | Initialize
     deriving Eq
 
