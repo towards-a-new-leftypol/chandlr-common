@@ -28,15 +28,16 @@ import Miso.String ( toMisoString, MisoString )
 import System.FilePath ((</>))
 import Text.Parsec (ParseError)
 import Data.Maybe (fromJust)
-import Data.List.NonEmpty (head)
+import Data.List.NonEmpty (head, toList)
 
 import Common.Parsing.PostPartType (PostPart (..))
 import Common.Parsing.QuoteLinkParser
-import qualified Common.Component.Thread.Model as Model
 import qualified Common.Network.SiteType as Site
 import qualified Common.Network.BoardType as Board
 import qualified Common.Network.ThreadType as Thread
 import qualified Common.Network.PostType as Post
+import Common.Component.Thread.Model (PostWithBody)
+import Common.Parsing.BodyParser (parsePostBody)
 
 {-
  - This is the inverse of parsePostBody from BodyParser except
@@ -48,10 +49,10 @@ import qualified Common.Network.PostType as Post
  - (is there an easy way to render a miso View?, that's what's missing
  - a f :: View a -> Text)
  -}
-render :: Model.Model -> [ PostPart ] -> [ View model a ]
-render m = map (renderPostPart m)
+render :: Site.Site -> [ PostPart ] -> [ View model a ]
+render s = map (renderPostPart s)
 
-renderPostPart :: Model.Model -> PostPart -> View model a
+renderPostPart :: Site.Site -> PostPart -> View model a
 renderPostPart _ (SimpleText txt) = text txt
 renderPostPart _ (PostedUrl u) =
     a_
@@ -62,7 +63,7 @@ renderPostPart _ (PostedUrl u) =
 
 renderPostPart _ Skip = br_ []
 
-renderPostPart m (Quote parse_result) = elems parse_result
+renderPostPart site (Quote parse_result) = elems parse_result
     where
         elems :: Either ParseError ParsedURL -> View model a
         elems (Left err) =
@@ -100,9 +101,9 @@ renderPostPart m (Quote parse_result) = elems parse_result
 
                 post_id = toMisoString $ show pid
 
-                current_board = toMisoString $ Board.pathpart $ head $ Site.boards (Model.site m)
+                current_board = toMisoString $ Board.pathpart $ head $ Site.boards site
 
-                op_id = Post.board_post_id $ head $ Thread.posts $ head $ Board.threads $ head $ Site.boards (Model.site m)
+                op_id = Post.board_post_id $ head $ Thread.posts $ head $ Board.threads $ head $ Site.boards site
 
 
         full_url :: ParsedURL -> Maybe MisoString
@@ -112,7 +113,7 @@ renderPostPart m (Quote parse_result) = elems parse_result
 
             return $ "/" <> site_name <> "/" <> (toMisoString $ boardName </> show tid ++ "#" ++ show pid)
 
-        site_name = toMisoString $ Site.name $ Model.site m
+        site_name = toMisoString $ Site.name site
 
         -- cases of urls:
         -- url:
@@ -127,29 +128,46 @@ renderPostPart m (Quote parse_result) = elems parse_result
         -- if only board:
         -- >>>/b/
 
-renderPostPart m (GreenText parts) =
-    span_ [ class_ "quote" ] (render m parts)
+renderPostPart site (GreenText parts) =
+    span_ [ class_ "quote" ] (render site parts)
 
-renderPostPart m (OrangeText parts) =
-    span_ [ class_ "orangeQuote" ] (render m parts)
+renderPostPart site (OrangeText parts) =
+    span_ [ class_ "orangeQuote" ] (render site parts)
 
-renderPostPart m (RedText parts) =
-    span_ [ class_ "heading" ] (render m parts)
+renderPostPart site (RedText parts) =
+    span_ [ class_ "heading" ] (render site parts)
 
-renderPostPart m (Spoiler parts) =
-    span_ [ class_ "spoiler" ] (render m parts)
+renderPostPart site (Spoiler parts) =
+    span_ [ class_ "spoiler" ] (render site parts)
 
-renderPostPart m (Bold parts) =
-    strong_ [] (render m parts)
+renderPostPart site (Bold parts) =
+    strong_ [] (render site parts)
 
-renderPostPart m (Underlined parts) =
-    u_ [] (render m parts)
+renderPostPart site (Underlined parts) =
+    u_ [] (render site parts)
 
-renderPostPart m (Italics parts) =
-    em_ [] (render m parts)
+renderPostPart site (Italics parts) =
+    em_ [] (render site parts)
 
-renderPostPart m (Strikethrough parts) =
-    s_ [] (render m parts)
+renderPostPart site (Strikethrough parts) =
+    s_ [] (render site parts)
 
-renderPostPart m (Code parts) =
-    pre_ [ class_ "code" ] (render m parts)
+renderPostPart site (Code parts) =
+    pre_ [ class_ "code" ] (render site parts)
+
+
+getPostWithBodies :: Site.Site -> [ PostWithBody ]
+getPostWithBodies s = zip posts bodies
+
+    where
+        bodies :: [[ PostPart ]]
+        bodies = map (getBody . Post.body) posts
+
+        getBody :: Maybe MisoString -> [ PostPart ]
+        getBody Nothing = []
+        getBody (Just b) = parsePostBody b
+
+        posts :: [ Post.Post ]
+        posts = toList $ Thread.posts $ head $ Board.threads $ head $ Site.boards s
+
+

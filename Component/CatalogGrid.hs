@@ -24,7 +24,7 @@ import Miso
     ( View
     , Effect
     , text
-    , rawHtml
+    -- , rawHtml
     , onWithOptions
     , defaultOptions
     , Options (_preventDefault)
@@ -59,6 +59,8 @@ import Common.Network.CatalogPostType (CatalogPost)
 import qualified Common.Network.CatalogPostType as CatalogPost
 import Common.Parsing.EmbedParser (extractVideoId)
 import Common.Component.CatalogGrid.GridTypes
+import qualified Common.Network.SiteType as Site
+import qualified Common.Component.BodyRender as Body
 
 app :: Model -> GridComponent parent
 app model =
@@ -148,7 +150,11 @@ gridItem m post =
         ]
 
     body :: [ View model a ]
-    body = map (rawHtml . toMisoString) $ maybeToList $ CatalogPost.body post
+    -- body = map (rawHtml . toMisoString) $ maybeToList $ CatalogPost.body post
+    body =
+        let site = Site.fromCatalogPost post
+        in
+            concatMap ((Body.render site) . snd) (Body.getPostWithBodies site)
 
     post_count_str :: MisoString
     post_count_str = toMisoString $ (CatalogPost.estimated_post_count post) - 1

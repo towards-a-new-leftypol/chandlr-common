@@ -10,7 +10,6 @@ module Common.Component.Thread
 , Action (..)
 , update
 , view
-, getPostWithBodies
 , app
 , ThreadComponent
 , Message (..)
@@ -108,20 +107,6 @@ app m = M.Component
     }
 
 
-getPostWithBodies :: Site -> IO [ PostWithBody ]
-getPostWithBodies s = do
-    bodies <- mapM getBody (map Post.body posts)
-    return $ zip posts bodies
-
-    where
-        getBody :: Maybe MisoString -> IO [ PostPart ]
-        getBody Nothing = return []
-        getBody (Just b) = parsePostBody b
-
-        posts :: [ Post ]
-        posts = toList $ Thread.posts $ head $ Board.threads $ head $ Site.boards s
-
-
 update :: Action -> Effect parent Model Action
 update Initialize = subscribe threadTopic OnMessage OnMessageError
 update (OnMessage (RenderSite m_root s)) = do
@@ -129,7 +114,7 @@ update (OnMessage (RenderSite m_root s)) = do
 
     io $ do
         consoleLog "Thread - received RenderSite message"
-        pwbs <- liftIO $ getPostWithBodies s
+        let pwbs = Body.getPostWithBodies s
         now <- liftIO $ getCurrentTime
         return $ UpdatePostBodies now pwbs
 
@@ -219,7 +204,7 @@ op m op_post backlinks =
 
         body :: [ PostWithBody ] -> [ View model a ]
         body [] = []
-        body x = Body.render m $ snd $ L.head x
+        body x = Body.render site_ $ snd $ L.head x
 
 
 multi :: Post -> [ Attribute a ]
@@ -245,7 +230,7 @@ reply m backlinks (post, parts) = div_
         , files_or_embed_view
         , div_
             [ class_ "body" ]
-            (Body.render m parts)
+            (Body.render site_ parts)
         ]
     ]
 

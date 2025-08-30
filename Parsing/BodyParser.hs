@@ -1,4 +1,3 @@
--- DEPRECATED
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE NamedFieldPuns #-}
 
@@ -19,6 +18,7 @@ import Text.HTML.Parser
     )
 import Text.HTML.Tree (tokensToForest)
 import Data.Tree (Forest, Tree (..))
+import System.IO.Unsafe (unsafePerformIO)
 
 import Common.Parsing.PostPartType
 import Common.Parsing.QuoteLinkParser
@@ -36,15 +36,13 @@ getAttr attrName (Attr x y:xs)
         y_str = toMisoString y
 
 
-parsePostBody :: MisoString -> IO [ PostPart ]
+parsePostBody :: MisoString -> [ PostPart ]
 parsePostBody htmltxt =
     case tokensToForest $ canonicalizeTokens $ parseTokens $ fromMisoString htmltxt of
-        Left err -> do
-            print err
-            return []
+        Left err ->
+            unsafePerformIO (print err >> return [])
 
-        Right forest -> return $ forestToPostParts forest
-
+        Right forest -> forestToPostParts forest
 
 
 forestToPostParts :: Forest Token -> [ PostPart ]
