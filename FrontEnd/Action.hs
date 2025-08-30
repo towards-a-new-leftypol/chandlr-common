@@ -2,7 +2,7 @@ module Common.FrontEnd.Action where
 
 import Data.Time.Clock (UTCTime)
 import Miso.String (MisoString)
-import Miso (URI, ComponentId)
+import Miso (URI)
 
 import Common.Network.CatalogPostType (CatalogPost)
 import qualified Common.Network.CatalogPostType as CatalogPost
