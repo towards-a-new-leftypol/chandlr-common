@@ -10,8 +10,8 @@ module Common.FrontEnd.Views
 import Miso
     ( View
     , text
-    , onMountedWith
-    , onUnmountedWith
+    , onMounted
+    , onUnmounted
     , key_
     , mount
     )
@@ -50,8 +50,8 @@ pageWrapperWithDefaults inner_content =
     div_ [ key_ ("top-level" :: MisoString) ]
         [ mount
             (div_
-                [ onMountedWith (const ClientMounted)
-                , onUnmountedWith (const ClientUnmounted)
+                [ onMounted ClientMounted
+                , onUnmounted ClientUnmounted
                 , key_ ("http-client" :: MisoString)
                 ]
             )
@@ -89,7 +89,11 @@ searchView gc _ m = pageWrapperWithDefaults $ div_ []
 threadView :: Thread.Model -> Text -> Text -> BoardThreadId -> Model -> View model Action
 threadView thread_model site_name board_pathpart board_thread_id m =
     pageWrapperWithDefaults $ mount
-        (div_ [ onMountedWith (const ThreadViewMounted), key_ ("thread-view" :: MisoString) ])
+        ( div_
+            [ onMounted ThreadViewMounted
+            , key_ ("thread-view" :: MisoString)
+            ]
+        )
         (Thread.app thread_model)
 
 
