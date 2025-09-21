@@ -1,18 +1,28 @@
+{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE OverloadedStrings #-}
+
 module Common.Parsing.QuoteLinkParser
     ( parseURL
     , ParsedURL (..)
+    , UrlParseError
     )
     where
 
 import Text.Parsec
 import Text.Parsec.String (Parser)
+import Data.Bifunctor (first)
+import GHC.Generics
+import Data.Aeson (FromJSON, ToJSON)
+
+type UrlParseError = String
 
 -- Define a data type to hold the extracted components
 data ParsedURL = ParsedURL
   { boardName   :: String
   , threadId    :: Maybe Integer
   , postId      :: Maybe Integer
-  } deriving (Show, Eq)
+  } deriving (Show, Eq, Generic, FromJSON, ToJSON)
 
 -- Parser for a segment of the path
 segment :: Parser String
@@ -59,5 +69,5 @@ postIdParser :: Parser (Maybe Integer)
 postIdParser = optionMaybe $ char '#' >> integer
 
 -- Function to run the parser
-parseURL :: String -> Either ParseError ParsedURL
-parseURL = parse urlParser ""
+parseURL :: String -> Either UrlParseError ParsedURL
+parseURL = (first show) . (parse urlParser "")

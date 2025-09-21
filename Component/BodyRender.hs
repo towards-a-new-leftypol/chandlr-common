@@ -26,7 +26,6 @@ import Miso.Html.Property
     )
 import Miso.String ( toMisoString, MisoString )
 import System.FilePath ((</>))
-import Text.Parsec (ParseError)
 import Data.Maybe (fromJust)
 import Data.List.NonEmpty (head, toList)
 
@@ -65,11 +64,11 @@ renderPostPart _ Skip = br_ []
 
 renderPostPart site (Quote parse_result) = elems parse_result
     where
-        elems :: Either ParseError ParsedURL -> View model a
+        elems :: Either UrlParseError ParsedURL -> View model a
         elems (Left err) =
             a_
                 []
-                [ text $ toMisoString $ show err ]
+                [ text $ toMisoString err ]
 
         elems (Right p) =
             case full_url p of
