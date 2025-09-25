@@ -85,7 +85,6 @@ searchView gc _ m = pageWrapperWithDefaults $ div_ []
     ]
 
 
-
 threadView :: Thread.Model -> Text -> Text -> BoardThreadId -> Model -> View model Action
 threadView thread_model site_name board_pathpart board_thread_id m =
     pageWrapperWithDefaults $ mount

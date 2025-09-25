@@ -1,4 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE DeriveGeneric #-}
 
 module Common.FrontEnd.JSONSettings where
 
@@ -6,7 +8,7 @@ import Miso
     ( View
     , consoleLog
     )
-import Miso.String (toMisoString)
+import Miso.String (MisoString, toMisoString, fromMisoString)
 import Miso.Html
     ( meta_
     )
@@ -16,12 +18,22 @@ import Miso.Html.Property
     )
 import GHC.Generics
 import Data.Aeson (FromJSON)
+import Language.Javascript.JSaddle.Monad (JSM)
+
+import JSFFI.Saddle
+    ( getDocument
+    , Element (..)
+    , Document (..)
+    , ParentNode (..)
+    , querySelector
+    , getAttribute
+    )
 
 data JSONSettings = JSONSettings
-    { postgrest_url :: String
+    { postgrest_url :: MisoString
     , jwt :: String
     , postgrest_fetch_count :: Int
-    , media_root :: String
+    , media_root :: MisoString
     , static_serve_path :: String
     , static_serve_url_root :: String
     } deriving (Show, Generic)
@@ -71,4 +83,4 @@ getMetadata key = do
     case mElem of
         Nothing -> return Nothing
         Just (Element el) ->
-            (toMisoString <$>) <$> getAttribute el ("content" :: JSString)
+            (toMisoString <$>) <$> getAttribute el ("content" :: MisoString)
