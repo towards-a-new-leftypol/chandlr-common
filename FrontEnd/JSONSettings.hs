@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE DeriveGeneric #-}
@@ -20,6 +21,7 @@ import GHC.Generics
 import Data.Aeson (FromJSON)
 import Language.Javascript.JSaddle.Monad (JSM)
 
+#if defined(FRONT_END)
 import JSFFI.Saddle
     ( getDocument
     , Element (..)
@@ -28,6 +30,7 @@ import JSFFI.Saddle
     , querySelector
     , getAttribute
     )
+#endif
 
 data JSONSettings = JSONSettings
     { postgrest_url :: MisoString
@@ -40,6 +43,7 @@ data JSONSettings = JSONSettings
 
 instance FromJSON JSONSettings
 
+
 asHtml :: JSONSettings -> [ View model action ]
 asHtml settings =
     [ meta "postgrest-url" (toMisoString $ postgrest_url settings)
@@ -50,6 +54,8 @@ asHtml settings =
     where
         meta name value = meta_ [ name_ name, content_ value ]
 
+
+#if defined(FRONT_END)
 fromHtml :: JSM JSONSettings
 fromHtml = do
     postgrestUrl <- getMetadata "postgrest-url" >>=
@@ -84,3 +90,4 @@ getMetadata key = do
         Nothing -> return Nothing
         Just (Element el) ->
             (toMisoString <$>) <$> getAttribute el ("content" :: MisoString)
+#endif
