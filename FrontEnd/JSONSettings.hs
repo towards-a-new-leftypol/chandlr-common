@@ -19,9 +19,10 @@ import Miso.Html.Property
     )
 import GHC.Generics
 import Data.Aeson (FromJSON)
-import Language.Javascript.JSaddle.Monad (JSM)
 
 #if defined(FRONT_END)
+import Language.Javascript.JSaddle.Monad (JSM)
+
 import JSFFI.Saddle
     ( getDocument
     , Element (..)
