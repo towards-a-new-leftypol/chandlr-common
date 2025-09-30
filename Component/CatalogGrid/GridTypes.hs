@@ -27,11 +27,17 @@ data Action
 
 newtype OutMessage
     = SelectThread CatalogPost
-    deriving (Eq, Generic, ToJSON, FromJSON)
+    deriving (Eq, Generic)
+
+instance ToJSON OutMessage
+instance FromJSON OutMessage
 
 newtype InMessage
     = DisplayItems [ CatalogPost ]
-    deriving (Generic, ToJSON, FromJSON)
+    deriving (Generic)
+
+instance ToJSON InMessage
+instance FromJSON InMessage
 
 
 catalogOutTopic :: Topic OutMessage

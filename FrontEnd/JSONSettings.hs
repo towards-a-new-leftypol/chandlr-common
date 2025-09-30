@@ -7,9 +7,8 @@ module Common.FrontEnd.JSONSettings where
 
 import Miso
     ( View
-    , consoleLog
     )
-import Miso.String (MisoString, toMisoString, fromMisoString)
+import Miso.String (MisoString, toMisoString)
 import Miso.Html
     ( meta_
     )
