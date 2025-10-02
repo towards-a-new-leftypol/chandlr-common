@@ -21,6 +21,8 @@ import Data.Aeson (FromJSON)
 
 #if defined(FRONT_END)
 import Language.Javascript.JSaddle.Monad (JSM)
+import Miso (consoleLog)
+import Miso.String (fromMisoString)
 
 import JSFFI.Saddle
     ( getDocument

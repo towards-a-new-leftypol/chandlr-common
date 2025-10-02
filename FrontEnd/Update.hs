@@ -80,6 +80,8 @@ mainUpdate ThreadViewMounted = do
         (thread_message model)
 
 mainUpdate (GridMessage (Grid.SelectThread catalog_post)) = do
+    io_ $ consoleLog "GridMessage!"
+
     modify
         ( \m -> m
             { thread_message = Just $
