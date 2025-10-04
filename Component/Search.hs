@@ -35,8 +35,9 @@ pattern Sender = "search"
 
 update :: Action -> Effect parent Model Action
 update Initialize = do
+    io_ $ consoleLog "Search component Initialize!"
     subscribe Client.clientOutTopic SearchResult OnMessageError
-    subscribe searchTopic OnMessage OnMessageError
+    subscribe searchInTopic OnMessage OnMessageError
 
 update (SearchChange q) =
     modify (\m -> m { searchTerm = q })
@@ -49,15 +50,16 @@ update OnSubmit = do
     io_ $ consoleLog $ "Submit! " <> search_query
 
     publish Client.clientInTopic (Sender, Client.Search search_query)
-    -- notify Client.app (Client.Search search_query)
 
 update (ChangeAndSubmit search_query) = do
     issue $ SearchChange search_query
     issue OnSubmit
 
-update (SearchResult (Client.ReturnResult Sender result)) =
-    Utils.helper result $ \search_results ->
-        modify (\m -> m { displayResults = search_results })
+update (SearchResult (Client.ReturnResult Sender result)) = do
+    io_ $ consoleLog "Search - SearchResult action handler"
+    Utils.helper result $ \searchResults -> do
+        model <- get
+        publish searchOutTopic (searchTerm model, searchResults)
 
 update (SearchResult (Client.ReturnResult _ _)) = return ()
 
@@ -68,7 +70,7 @@ update (OnMessage query) = issue $ ChangeAndSubmit query
 
 app :: Component parent Model Action
 app = M.Component
-    { M.model = Model "" []
+    { M.model = Model ""
     , M.update = update
     , M.view = view
     , M.subs = []

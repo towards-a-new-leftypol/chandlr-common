@@ -49,6 +49,7 @@ mainUpdate NoAction = return ()
 mainUpdate Initialize = do
     subscribe Client.clientOutTopic ClientResponse OnErrorMessage
     subscribe Grid.catalogOutTopic GridMessage OnErrorMessage
+    subscribe Search.searchOutTopic SearchResults OnErrorMessage
 
 mainUpdate ClientMounted = do
     model <- get
@@ -95,21 +96,19 @@ mainUpdate (OnErrorMessage msg) =
     io_ $ consoleError ("Main Component OnErrorMessage decode failure: " <> toMisoString msg)
 
 mainUpdate (ClientResponse (Client.ReturnResult SenderLatest result)) =
-    Utils.helper result $ \catalog_posts ->
-        publish Grid.catalogInTopic $ Grid.DisplayItems catalog_posts
+    Utils.helper result $ \catalogPosts ->
+        publish Grid.catalogInTopic $ Grid.DisplayItems catalogPosts
 
-mainUpdate (ClientResponse (Client.ReturnResult SenderThread result)) =
-    do
-        io_ $ consoleLog $ SenderThread <> " - Has result. Storing result in model."
+mainUpdate (ClientResponse (Client.ReturnResult SenderThread result)) = do
+    io_ $ consoleLog $ SenderThread <> " - Has result. Storing result in model."
 
-        Utils.helper result $ \sites ->
-            modify
-                ( \m -> m
-                    { thread_message = Just $
-                        Thread.RenderSite (media_root_ m) (head sites)
-                    }
-                )
-
+    Utils.helper result $ \sites -> do
+        modify
+            ( \m -> m
+                { thread_message = Just $
+                    Thread.RenderSite (media_root_ m) (head sites)
+                }
+            )
         issue ThreadViewMounted
 
 mainUpdate (ClientResponse (Client.ReturnResult _ _)) = return ()
@@ -141,28 +140,29 @@ mainUpdate (ChangeURI uri) = do
     io_ $ consoleLog $ "ChangeURI! " <> (toMisoString $ show uri)
 
 
-mainUpdate (SearchResults query) = do
+mainUpdate (SearchResults (searchTerm, catalogPosts)) = do
     model <- get
 
     let new_uri :: URI = new_current_uri model
 
-    io_ $ do
-        consoleLog $ "SearchResults new uri: " <> (toMisoString $ show new_uri)
-        pushURI new_uri
+    publish Grid.catalogInTopic $ Grid.DisplayItems catalogPosts
 
-    put model { current_uri = new_uri }
+    io_ $ do
+        consoleLog $ "Old URI:" <> (toMisoString $ show $ current_uri model)
+        consoleLog $ "SearchResults new uri: " <> (toMisoString $ show new_uri)
+        -- pushURI new_uri
 
     where
         new_current_uri :: Model -> URI
         new_current_uri m = (current_uri m)
-            { uriPath = "/search"
+            { uriPath = "search"
             , uriQueryString = Map.singleton
                 "search"
                 $ Just
-                    (toMisoString $ escapeURIString isAllowedInURI $ fromMisoString query)
+                    (toMisoString $ escapeURIString isAllowedInURI $ fromMisoString searchTerm)
             }
 
-mainUpdate (NotifySearch query) = publish Search.searchTopic query
+mainUpdate (NotifySearch searchTerm) = publish Search.searchInTopic searchTerm
 
 
 (</>) :: MisoString -> MisoString -> MisoString

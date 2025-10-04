@@ -13,17 +13,20 @@ data Action
     | OnSubmit
     | ChangeAndSubmit MisoString
     | SearchResult Client.MessageOut
-    | OnMessage Message
+    | OnMessage MessageIn
     | OnMessageError MisoString
     | Initialize
     deriving Eq
 
-data Model = Model
+newtype Model = Model
     { searchTerm :: MisoString
-    , displayResults :: [ CatalogPost ]
     } deriving Eq
 
-type Message = MisoString
+type MessageIn = MisoString
+type MessageOut = (MisoString, [ CatalogPost ])
 
-searchTopic :: Topic Message
-searchTopic = topic "search"
+searchInTopic :: Topic MessageIn
+searchInTopic = topic "search-in"
+
+searchOutTopic :: Topic MessageOut
+searchOutTopic = topic "search-out"

@@ -24,7 +24,8 @@ import Miso.Html.Property
     , target_
     , class_
     )
-import Miso.String ( toMisoString, MisoString )
+import Miso.String (toMisoString, MisoString)
+import Data.JSString (replace)
 import System.FilePath ((</>))
 import Data.Maybe (fromJust)
 import Data.List.NonEmpty (head, toList)
@@ -49,10 +50,10 @@ import Common.Parsing.BodyParser (parsePostBody)
  - a f :: View a -> Text)
  -}
 render :: Site.Site -> [ PostPart ] -> [ View model a ]
-render s = map (renderPostPart s)
+render = map . renderPostPart
 
 renderPostPart :: Site.Site -> PostPart -> View model a
-renderPostPart _ (SimpleText txt) = text txt
+renderPostPart _ (SimpleText txt) = text $ getRidOfCarriageReturn txt
 renderPostPart _ (PostedUrl u) =
     a_
         [ href_ u
@@ -170,3 +171,5 @@ getPostWithBodies s = zip posts bodies
         posts = toList $ Thread.posts $ head $ Board.threads $ head $ Site.boards s
 
 
+getRidOfCarriageReturn :: MisoString -> MisoString
+getRidOfCarriageReturn = (replace "\r" "\n") . (replace "\r\n" "\n")

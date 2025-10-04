@@ -17,8 +17,8 @@ data Action
     | OnErrorMessage MisoString
     | GoToTime UTCTime
     | ChangeURI URI
-    | SearchResults MisoString
-    | NotifySearch Search.Message
+    | SearchResults Search.MessageOut
+    | NotifySearch Search.MessageIn
     | ClientMounted
     | ClientUnmounted
     | ThreadViewMounted
