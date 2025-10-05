@@ -1,18 +1,30 @@
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE ExplicitForAll #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
 module Common.Utils where
 
 import Data.Aeson
-    ( FromJSON, fromJSON, Result(..), eitherDecodeStrict )
-import Miso (Effect, consoleError, consoleLog, io_)
+    ( FromJSON
+    , fromJSON
+    , Result(..)
+    , eitherDecodeStrict
+    )
+import Miso
+    ( Effect
+    , consoleError
+    , consoleLog
+    , io_
+    , View
+    , URI
+    )
 import Miso.String
-    ( MisoString,
-      toMisoString,
-      MisoString,
-      toMisoString,
-      fromMisoString )
+    ( MisoString
+    , toMisoString
+    , MisoString
+    , toMisoString
+    , fromMisoString
+    )
+import Servant.Miso.Router (route)
 import Language.Javascript.JSaddle.Monad (JSM)
 import Data.Time.Clock (getCurrentTime)
 import JSFFI.Saddle
@@ -26,9 +38,15 @@ import JSFFI.Saddle
 import qualified Data.ByteString.Base64 as B64
 import Control.Monad.IO.Class (liftIO)
 import Data.Maybe (fromMaybe)
+import Data.Proxy (Proxy (..))
+import Servant.API hiding (URI)
+import Data.Either (fromRight)
 
 import qualified Common.Network.HttpTypes as Http
 import Common.FrontEnd.Types
+import Common.FrontEnd.Routes (Route)
+import Common.FrontEnd.Model (Model)
+import Common.FrontEnd.Action (Action)
 
 helper
     :: (FromJSON a)
@@ -79,3 +97,26 @@ getInitialDataPayload = do
             return json
         )
         rawData
+
+
+data PageType = Catalog | Search | Thread
+
+
+pageTypeFromURI :: URI -> PageType
+pageTypeFromURI = do
+    -- default to Catalog in case of routing error.
+    fromRight Catalog . routeResult
+
+    where
+        routeResult uri = route (Proxy :: Proxy (Route (View Model Action))) handlers (const uri) undefined
+
+        handlers = hLatest :<|> hThread :<|> hSearch
+
+        hLatest :: m -> PageType
+        hLatest = const Catalog
+
+        hThread :: a -> a -> b -> m -> PageType
+        hThread = const $ const $ const $ const Thread
+
+        hSearch :: Maybe a -> m -> PageType
+        hSearch = const $ const Search

@@ -27,4 +27,3 @@ data InitialData
 
 instance FromJSON InitialData
 instance ToJSON InitialData
-
