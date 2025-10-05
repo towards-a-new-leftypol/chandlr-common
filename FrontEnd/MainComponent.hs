@@ -57,6 +57,7 @@ app :: JSONSettings -> URI -> InitialDataPayload -> MainComponent
 app settings url pagePayload =
     M.Component
         { M.model         = initialModel
+        , M.initialModel  = Nothing
         , M.update        = mainUpdate
         , M.view          = mainView (initialData pagePayload)
         , M.subs          = [ uriSub ChangeURI ]

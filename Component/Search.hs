@@ -71,6 +71,7 @@ update (OnMessage query) = issue $ ChangeAndSubmit query
 app :: Component parent Model Action
 app = M.Component
     { M.model = Model ""
+    , M.initialModel = Nothing
     , M.update = update
     , M.view = view
     , M.subs = []

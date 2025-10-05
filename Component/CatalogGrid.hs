@@ -66,6 +66,7 @@ app :: Model -> GridComponent parent
 app model =
     M.Component
         { M.model = model
+        , M.initialModel = Nothing
         , M.update = update
         , M.view = view
         , M.subs = []

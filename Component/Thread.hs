@@ -93,6 +93,7 @@ threadTopic = topic "thread"
 app :: Model -> ThreadComponent parent
 app m = M.Component
     { M.model = m
+    , M.initialModel = Nothing
     , M.update = update
     , M.view = view
     , M.subs = []
