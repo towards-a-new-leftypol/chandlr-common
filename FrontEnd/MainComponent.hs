@@ -13,10 +13,7 @@ import Miso
     )
 import qualified Miso as M
 import Miso.String (toMisoString)
-import GHC.Generics
 import Data.Proxy
-import Data.Time.Clock (UTCTime)
-import Data.Aeson (FromJSON, ToJSON)
 import Servant.API hiding (URI)
 import Servant.Miso.Router (route)
 
@@ -26,32 +23,14 @@ import qualified Common.Component.CatalogGrid.GridTypes as Grid
 import qualified Common.Component.CatalogGrid as Grid
 import qualified Common.Component.Thread as Thread
 import qualified Common.Component.TimeControl as TC
-import Common.Network.SiteType (Site)
 import Common.FrontEnd.Routes
 import Common.FrontEnd.Model
 import Common.FrontEnd.Views
 import Common.FrontEnd.Action
 import Common.FrontEnd.Update
+import Common.FrontEnd.Types
 
 type MainComponent = App Model Action
-
-data InitialDataPayload = InitialDataPayload
-    { timestamp :: UTCTime
-    , initialData :: InitialData
-    } deriving (Generic)
-
-instance FromJSON InitialDataPayload
-instance ToJSON InitialDataPayload
-
-data InitialData
-    = CatalogData [ CatalogPost ]
-    | SearchData [ CatalogPost ]
-    | ThreadData Site [ Thread.PostWithBody ]
-    | Nil
-    deriving (Generic)
-
-instance FromJSON InitialData
-instance ToJSON InitialData
 
 app :: JSONSettings -> URI -> InitialDataPayload -> MainComponent
 app settings url pagePayload =
