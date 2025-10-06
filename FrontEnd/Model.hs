@@ -4,7 +4,7 @@ import Miso (URI)
 import Miso.String (MisoString)
 import Data.Time.Clock (UTCTime)
 import Common.FrontEnd.Action (Action)
-import qualified Common.Component.Thread  as Thread
+import qualified Common.Component.Thread.Types  as Thread
 
 data Model = Model
     { current_uri :: URI

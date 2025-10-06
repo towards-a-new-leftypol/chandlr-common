@@ -1,7 +1,6 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE DataKinds #-}
-{-# LANGUAGE DeriveGeneric #-}
-{-# LANGUAGE DeriveAnyClass #-}
 
 module Common.Component.Thread
 ( Model (..)
@@ -17,8 +16,6 @@ module Common.Component.Thread
 ) where
 
 import Prelude hiding (head)
-import GHC.Generics (Generic)
-import Data.Aeson (ToJSON, FromJSON)
 import Miso
   ( View
   , Effect
@@ -33,6 +30,8 @@ import Miso
   , consoleError
   , consoleLog
   , subscribe
+  , JSM
+  , getURI
   )
 import Miso.Html
   ( div_
@@ -66,6 +65,14 @@ import Common.Component.Thread.Embed (embed)
 import Common.Component.Thread.Model
 import Common.Parsing.BodyParser
 import qualified Common.Component.BodyRender as Body
+import Common.Component.Thread.Types
+import Common.FrontEnd.Types
+import Common.Utils
+    ( pageTypeFromURI
+    , PageType (..)
+    , getInitialDataPayload
+    , getMediaRoot
+    )
 
 initialModel :: MisoString -> Site -> Model
 initialModel m_root s = Model
@@ -77,23 +84,18 @@ initialModel m_root s = Model
 
 type ThreadComponent parent = Component parent Model Action
 
-data Action
-    = OnMessage Message
-    | OnMessageError MisoString
-    | UpdatePostBodies UTCTime [ PostWithBody ]
-    | Initialize
-    deriving Eq
-
-data Message = RenderSite MisoString Site
-    deriving (Eq, Generic, ToJSON, FromJSON)
-
 threadTopic :: Topic Message
 threadTopic = topic "thread"
 
 app :: Model -> ThreadComponent parent
+#if defined(FRONT_END)
+app _ = M.Component
+    { M.model = Uninitialized
+#else
 app m = M.Component
     { M.model = m
-    , M.initialModel = Nothing
+#endif
+    , M.initialModel = Just getInitialModel
     , M.update = update
     , M.view = view
     , M.subs = []
@@ -106,6 +108,26 @@ app m = M.Component
     , M.mailbox = const Nothing
     , M.bindings = []
     }
+
+getInitialModel :: JSM Model
+getInitialModel = do
+    pageType <- pageTypeFromURI <$> getURI
+
+    if pageType == Thread then do
+        initialPayload <- getInitialDataPayload
+        case initialPayload of
+            (InitialDataPayload t (ThreadData s posts)) -> do
+                mediaRoot <- getMediaRoot
+
+                return Model
+                    { site = s
+                    , media_root = mediaRoot
+                    , post_bodies = posts
+                    , current_time = t
+                    }
+            _ -> return Uninitialized
+    else
+        return Uninitialized
 
 
 update :: Action -> Effect parent Model Action

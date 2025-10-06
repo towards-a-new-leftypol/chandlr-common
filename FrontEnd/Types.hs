@@ -7,7 +7,7 @@ import Data.Aeson (FromJSON, ToJSON)
 import Data.Time.Clock (UTCTime)
 
 import Common.Network.CatalogPostType (CatalogPost)
-import qualified Common.Component.Thread as Thread
+import qualified Common.Component.Thread.Model as Thread
 import Common.Network.SiteType (Site)
 
 data InitialDataPayload = InitialDataPayload

@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE DataKinds #-}
 {-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
@@ -10,6 +11,7 @@ module Common.Component.CatalogGrid
 , view
 , update
 , app
+, initialItems
 , GridComponent
 , InMessage (..)
 , OutMessage (..)
@@ -61,12 +63,28 @@ import Common.Parsing.EmbedParser (extractVideoId)
 import Common.Component.CatalogGrid.GridTypes
 import qualified Common.Network.SiteType as Site
 import qualified Common.Component.BodyRender as Body
+import Common.Utils
+    ( pageTypeFromURI
+    , PageType (..)
+    , getInitialDataPayload
+    )
+import Common.FrontEnd.Types
 
-app :: Model -> GridComponent parent
-app model =
+
+emptyModel :: MisoString -> Model
+emptyModel = Model []
+
+app :: MisoString -> Model -> GridComponent parent
+#if defined(FRONT_END)
+app mediaRoot _ =
+    M.Component
+        { M.model = emptyModel mediaRoot
+#else
+app mediaRoot model =
     M.Component
         { M.model = model
-        , M.initialModel = Nothing
+#endif
+        , M.initialModel = Just $ getInitialModel mediaRoot
         , M.update = update
         , M.view = view
         , M.subs = []
@@ -79,6 +97,26 @@ app model =
         , M.mailbox = const Nothing
         , M.bindings = []
         }
+
+initialItems :: InitialData -> [ CatalogPost ]
+initialItems (CatalogData catalog_posts) = catalog_posts
+initialItems (SearchData catalog_posts) = catalog_posts
+initialItems _ = []
+
+getInitialModel :: MisoString -> M.JSM Model
+getInitialModel mediaRoot = do
+    pageType <- pageTypeFromURI <$> M.getURI
+
+    if pageType == Catalog || pageType == Search then do
+        initialPayload <- getInitialDataPayload
+
+        return $ Model (initialItems $ initialData initialPayload) mediaRoot
+
+    else
+        return e
+
+    where
+        e = emptyModel mediaRoot
 
 -- Custom event handler with preventDefault set to True
 onClick_ :: a -> Attribute a

@@ -23,15 +23,7 @@ import Data.Aeson (FromJSON)
 import Language.Javascript.JSaddle.Monad (JSM)
 import Miso (consoleLog)
 import Miso.String (fromMisoString)
-
-import JSFFI.Saddle
-    ( getDocument
-    , Element (..)
-    , Document (..)
-    , ParentNode (..)
-    , querySelector
-    , getAttribute
-    )
+import Common.Utils (getMetadata, getMediaRoot)
 #endif
 
 data JSONSettings = JSONSettings
@@ -67,8 +59,7 @@ fromHtml = do
     postgrestFetchCount <- getMetadata "postgrest-fetch-count" >>=
         return . maybe 1000 fromMisoString
 
-    mediaRoot <- getMetadata "media-root" >>=
-        return . maybe "undefined" id
+    mediaRoot <- getMediaRoot
 
     consoleLog $ "media_root: " <> mediaRoot
 
@@ -80,16 +71,4 @@ fromHtml = do
         , static_serve_path = ""
         , static_serve_url_root = ""
         }
-
-
-getMetadata :: MisoString -> JSM (Maybe MisoString)
-getMetadata key = do
-    doc <- (\(Document d) -> ParentNode d) <$> getDocument
-
-    mElem :: Maybe Element <- querySelector doc $ "meta[name='" <> (fromMisoString key) <> "']"
-
-    case mElem of
-        Nothing -> return Nothing
-        Just (Element el) ->
-            (toMisoString <$>) <$> getAttribute el ("content" :: MisoString)
 #endif

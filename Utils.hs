@@ -34,6 +34,7 @@ import JSFFI.Saddle
     , ParentNode (..)
     , querySelector
     , textContent
+    , getAttribute
     )
 import qualified Data.ByteString.Base64 as B64
 import Control.Monad.IO.Class (liftIO)
@@ -100,6 +101,7 @@ getInitialDataPayload = do
 
 
 data PageType = Catalog | Search | Thread
+    deriving Eq
 
 
 pageTypeFromURI :: URI -> PageType
@@ -120,3 +122,20 @@ pageTypeFromURI = do
 
         hSearch :: Maybe a -> m -> PageType
         hSearch = const $ const Search
+
+
+getMetadata :: MisoString -> JSM (Maybe MisoString)
+getMetadata key = do
+    doc <- (\(Document d) -> ParentNode d) <$> getDocument
+
+    mElem :: Maybe Element <- querySelector doc $ "meta[name='" <> fromMisoString key <> "']"
+
+    case mElem of
+        Nothing -> return Nothing
+        Just (Element el) ->
+            (toMisoString <$>) <$> getAttribute el ("content" :: MisoString)
+
+
+getMediaRoot :: JSM MisoString
+getMediaRoot = getMetadata "media-root" >>=
+    return . maybe "undefined" id

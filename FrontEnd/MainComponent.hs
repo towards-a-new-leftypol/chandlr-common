@@ -18,7 +18,6 @@ import Servant.API hiding (URI)
 import Servant.Miso.Router (route)
 
 import Common.FrontEnd.JSONSettings (JSONSettings (..))
-import Common.Network.CatalogPostType (CatalogPost)
 import qualified Common.Component.CatalogGrid.GridTypes as Grid
 import qualified Common.Component.CatalogGrid as Grid
 import qualified Common.Component.Thread as Thread
@@ -90,14 +89,9 @@ mainView initial_data model = mainView_
         thread_model _ = Thread.Uninitialized
 
         grid :: InitialData -> Grid.GridComponent Model
-        grid initial_data_ = Grid.app initialModel
+        grid initial_data_ = Grid.app (media_root_ model) initialModel
             where
                 initialModel = Grid.Model
-                    { Grid.display_items = initialItems initial_data_
+                    { Grid.display_items = Grid.initialItems initial_data_
                     , Grid.media_root = media_root_ model
                     }
-
-                initialItems :: InitialData -> [ CatalogPost ]
-                initialItems (CatalogData catalog_posts) = catalog_posts
-                initialItems (SearchData catalog_posts) = catalog_posts
-                initialItems _ = []
