@@ -10,7 +10,6 @@ import Miso
     , Effect
     , ROOT
     , publish
-    , put
     , pushURI
     , consoleLog
     , consoleError

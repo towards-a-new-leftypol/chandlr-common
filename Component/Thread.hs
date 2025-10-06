@@ -67,7 +67,7 @@ import Common.Parsing.BodyParser
 import qualified Common.Component.BodyRender as Body
 import Common.Component.Thread.Types
 import Common.FrontEnd.Types
-import Common.Utils
+import Utils
     ( pageTypeFromURI
     , PageType (..)
     , getInitialDataPayload

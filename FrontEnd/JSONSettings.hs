@@ -23,7 +23,7 @@ import Data.Aeson (FromJSON)
 import Language.Javascript.JSaddle.Monad (JSM)
 import Miso (consoleLog)
 import Miso.String (fromMisoString)
-import Common.Utils (getMetadata, getMediaRoot)
+import Utils (getMetadata, getMediaRoot)
 #endif
 
 data JSONSettings = JSONSettings
