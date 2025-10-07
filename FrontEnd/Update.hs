@@ -18,10 +18,16 @@ import Miso
     , modify
     , issue
     , subscribe
+    , View
     )
-
+import Servant.Miso.Router (route)
 import Miso.String (MisoString, toMisoString)
 import qualified Data.Map.Strict as Map
+import Data.Proxy
+import Data.Text (Text)
+import Data.Either (fromRight)
+import Servant.API hiding (URI)
+import Network.URI (unEscapeString)
 
 import Common.FrontEnd.Action
 import Common.FrontEnd.Model
@@ -32,6 +38,7 @@ import qualified Common.Utils as Utils
 import qualified Common.Component.CatalogGrid.GridTypes as Grid
 import Common.Network.SiteType (fromCatalogPost)
 import JSFFI.Saddle (encodeURIComponent)
+import Common.FrontEnd.Routes
 
 pattern Sender :: Client.Sender
 pattern Sender = "main"
@@ -86,6 +93,7 @@ mainUpdate (GridMessage (Grid.SelectThread catalog_post)) = do
         ( \m -> m
             { thread_message = Just $
                 Thread.RenderSite (media_root_ m) (fromCatalogPost catalog_post)
+            , between_pages = True
             }
         )
 
@@ -113,11 +121,13 @@ mainUpdate (ClientResponse (Client.ReturnResult SenderThread result)) = do
 mainUpdate (ClientResponse (Client.ReturnResult _ _)) = return ()
 
 mainUpdate (GoToTime t) = do
-    modify (\m -> m { current_time = t })
+    modify (\m -> m { current_time = t, between_pages = True })
     publish Client.clientInTopic (SenderLatest, Client.FetchLatest t)
 
 mainUpdate (GetThread Client.GetThreadArgs {..}) = do
     io_ $ consoleLog $ "Thread " <> (toMisoString $ show board_thread_id)
+
+    modify (\m -> m { between_pages = True })
 
     model <- get
 
@@ -137,12 +147,17 @@ mainUpdate (GetThread Client.GetThreadArgs {..}) = do
 mainUpdate (ChangeURI uri) = do
     modify (\m -> m { current_uri = uri })
     io_ $ consoleLog $ "ChangeURI! " <> (toMisoString $ show uri)
+    model <- get
 
+    if not $ between_pages model then
+        issue $ initialActionFromRoute model uri
+    else
+        modify (\m -> m { between_pages = False })
 
 mainUpdate (SearchResults (searchTerm, catalogPosts)) = do
     model <- get
 
-    modify (\m -> m { catalog_posts = catalogPosts })
+    modify (\m -> m { catalog_posts = catalogPosts, between_pages = True })
 
     io_ $ do
         consoleLog $ "Old URI:" <> (toMisoString $ show $ current_uri model)
@@ -165,3 +180,38 @@ mainUpdate (NotifySearch searchTerm) = publish Search.searchInTopic searchTerm
 
 (</>) :: MisoString -> MisoString -> MisoString
 (</>) a b = a <> "/" <> b
+
+
+initialActionFromRoute :: Model -> URI -> Action
+initialActionFromRoute model uri = fromRight NoAction routing_result
+    where
+        routing_result =
+            route
+                (Proxy :: Proxy (Route (View Model Action)))
+                handlers
+                (const uri)
+                model
+
+        handlers = h_latest :<|> h_thread :<|> h_search
+
+        h_latest :: Model -> Action
+        h_latest = const $ GoToTime $ current_time model
+
+        h_thread :: Text -> Text -> BoardThreadId -> Model -> Action
+        h_thread website board_pathpart board_thread_id _ =
+            GetThread Client.GetThreadArgs
+                { Client.website = toMisoString website
+                , Client.board_pathpart = toMisoString board_pathpart
+                , Client.board_thread_id = board_thread_id
+                }
+
+        h_search :: Maybe String -> Model -> Action
+        h_search Nothing m = GoToTime $ current_time m
+        h_search (Just search_query) m
+            | search_term m == unescaped_search_query =
+                SearchResults (unescaped_search_query, [])
+            | otherwise = NotifySearch $ unescaped_search_query
+
+            where
+                unescaped_search_query =
+                    toMisoString $ unEscapeString $ search_query

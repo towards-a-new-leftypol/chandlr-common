@@ -19,6 +19,7 @@ data Model = Model
     , pg_api_root :: MisoString
     , client_fetch_count :: Int
     , catalog_posts :: [ CatalogPost ]
+    , between_pages :: Bool
     } deriving Eq
 
 getSetCatalogPosts :: Lens Model [ CatalogPost ]

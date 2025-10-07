@@ -63,7 +63,6 @@ import qualified Common.FrontEnd.Model as FE
 
 import Debug.Trace (trace)
 
-
 app :: MisoString -> GridComponent FE.Model
 app mediaRoot =
     M.Component

@@ -76,6 +76,7 @@ app settings url pagePayload =
               , pg_api_root = toMisoString $ postgrest_url settings
               , client_fetch_count = postgrest_fetch_count settings
               , catalog_posts = []
+              , between_pages = False
               }
 
 #if defined(FRONT_END)
