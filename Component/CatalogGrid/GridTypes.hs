@@ -9,6 +9,7 @@ import GHC.Generics (Generic)
 import Data.Aeson (ToJSON, FromJSON)
 import Miso (Topic, topic, Component)
 import Miso.String (MisoString)
+import Miso.Lens (Lens (..))
 
 import Common.Network.CatalogPostType (CatalogPost)
 
@@ -17,13 +18,16 @@ data Model = Model
   , media_root :: MisoString
   } deriving Eq
 
+getSetDisplayItems :: Lens Model [ CatalogPost ]
+getSetDisplayItems =
+    Lens
+        display_items
+        (\x model -> model { display_items = x })
+
 type GridComponent parent = Component parent Model Action
 
 data Action
     = ThreadSelected CatalogPost
-    | OnMessage InMessage
-    | OnMessageError MisoString
-    | Initialize
 
 newtype OutMessage
     = SelectThread CatalogPost
@@ -32,17 +36,5 @@ newtype OutMessage
 instance ToJSON OutMessage
 instance FromJSON OutMessage
 
-newtype InMessage
-    = DisplayItems [ CatalogPost ]
-    deriving (Generic)
-
-instance ToJSON InMessage
-instance FromJSON InMessage
-
-
 catalogOutTopic :: Topic OutMessage
 catalogOutTopic = topic "catalog-out"
-
-
-catalogInTopic :: Topic InMessage
-catalogInTopic = topic "catalog-in"

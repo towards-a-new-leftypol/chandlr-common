@@ -1,4 +1,3 @@
-{-# LANGUAGE CPP #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE DataKinds #-}
 {-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
@@ -13,13 +12,10 @@ module Common.Component.CatalogGrid
 , app
 , initialItems
 , GridComponent
-, InMessage (..)
 , OutMessage (..)
-, catalogInTopic
 , catalogOutTopic
 ) where
 
-import Control.Monad.State (modify)
 import Data.Maybe (maybeToList)
 import Data.Either (fromRight)
 import Miso
@@ -33,9 +29,7 @@ import Miso
     , Attribute
     , emptyDecoder
     , publish
-    , subscribe
     , io_
-    , consoleError
     , consoleLog
     )
 import Miso.Html
@@ -56,6 +50,7 @@ import Miso.Html.Property
 import Miso.String (toMisoString, fromMisoString, MisoString)
 import qualified Data.JSString as JStr
 import qualified Miso as M
+import Miso.Binding ((-->))
 
 import Common.Network.CatalogPostType (CatalogPost)
 import qualified Common.Network.CatalogPostType as CatalogPost
@@ -63,41 +58,28 @@ import Common.Parsing.EmbedParser (extractVideoId)
 import Common.Component.CatalogGrid.GridTypes
 import qualified Common.Network.SiteType as Site
 import qualified Common.Component.BodyRender as Body
-#if defined(FRONT_END)
-import Utils
-    ( pageTypeFromURI
-    , PageType (..)
-    , getInitialDataPayload
-    )
-#endif
 import Common.FrontEnd.Types
+import qualified Common.FrontEnd.Model as FE
 
 import Debug.Trace (trace)
 
 
-app :: MisoString -> Model -> GridComponent parent
-#if defined(FRONT_END)
-app mediaRoot _ =
+app :: MisoString -> GridComponent FE.Model
+app mediaRoot =
     M.Component
-        { M.model = emptyModel mediaRoot
-        , M.hydrateModel = Just $ getInitialModel mediaRoot
-#else
-app _ model =
-    M.Component
-        { M.model = model
+        { M.model = Model [] mediaRoot
         , M.hydrateModel = Nothing
-#endif
         , M.update = update
         , M.view = view
         , M.subs = []
         , M.events = M.defaultEvents
         , M.styles = []
-        , M.initialAction = Just Initialize
+        , M.initialAction = Nothing
         , M.mountPoint = Nothing
         , M.logLevel = M.DebugAll
         , M.scripts = []
         , M.mailbox = const Nothing
-        , M.bindings = []
+        , M.bindings = [ FE.getSetCatalogPosts --> getSetDisplayItems ]
         }
 
 initialItems :: InitialData -> [ CatalogPost ]
@@ -105,28 +87,6 @@ initialItems (CatalogData catalog_posts) = catalog_posts
 initialItems (SearchData catalog_posts) = catalog_posts
 initialItems _ = []
 
-#if defined(FRONT_END)
-emptyModel :: MisoString -> Model
-emptyModel = Model []
-
-getInitialModel :: MisoString -> M.URI -> M.JSM Model
-getInitialModel mediaRoot uri = do
-    consoleLog "Hey CatalogGrid getInitialModel"
-
-    if pageType == Catalog || pageType == Search then do
-        initialPayload <- getInitialDataPayload
-
-        consoleLog $ "Found " <> toMisoString (show $ length $ initialItems $ initialData initialPayload) <> " catalog posts in page data."
-
-        return $ Model (initialItems $ initialData initialPayload) mediaRoot
-
-    else
-        return e
-
-    where
-        e = emptyModel mediaRoot
-        pageType = pageTypeFromURI uri
-#endif
 
 -- Custom event handler with preventDefault set to True
 onClick_ :: a -> Attribute a
@@ -134,17 +94,6 @@ onClick_ action = onWithOptions defaultOptions { _preventDefault = True } "click
 
 
 update :: Action -> Effect parent Model Action
-update Initialize = do
-    io_ $ consoleLog "CatalogGrid component Initialize!"
-    subscribe catalogInTopic OnMessage OnMessageError
-
-update (OnMessage (DisplayItems xs)) = do
-    io_ $ consoleLog "CatalogGrid - DisplayItems message"
-    modify (\m -> m { display_items = xs })
-
-update (OnMessageError msg) =
-    io_ $ consoleError ("CatalogGrid Message decode failure: " <> toMisoString msg)
-
 update (ThreadSelected post) = do
     io_ $ consoleLog $ "ThreadSelected - " <> toMisoString (CatalogPost.thread_id post)
     publish catalogOutTopic $ SelectThread post

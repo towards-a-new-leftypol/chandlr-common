@@ -10,6 +10,8 @@ import Miso
     , LogLevel (DebugAll)
     , defaultEvents
     , uriSub
+    , JSM
+    , consoleLog
     )
 import qualified Miso as M
 import Miso.String (toMisoString)
@@ -29,6 +31,11 @@ import Common.FrontEnd.Action
 import Common.FrontEnd.Types
 #if defined(FRONT_END)
 import Common.FrontEnd.Update
+import Utils
+    ( pageTypeFromURI
+    , PageType (..)
+    , getInitialDataPayload
+    )
 #endif
 
 type MainComponent = App Model Action
@@ -37,10 +44,11 @@ app :: JSONSettings -> URI -> InitialDataPayload -> MainComponent
 app settings url pagePayload =
     M.Component
         { M.model         = initialModel
-        , M.hydrateModel  = Nothing
 #if defined(FRONT_END)
+        , M.hydrateModel  = Just $ getInitCatalogPosts initialModel
         , M.update        = mainUpdate
 #else
+        , M.hydrateModel  = Nothing
         , M.update        = undefined
 #endif
         , M.view          = mainView (initialData pagePayload)
@@ -67,7 +75,25 @@ app settings url pagePayload =
               , thread_message = Nothing
               , pg_api_root = toMisoString $ postgrest_url settings
               , client_fetch_count = postgrest_fetch_count settings
+              , catalog_posts = []
               }
+
+#if defined(FRONT_END)
+getInitCatalogPosts :: Model -> URI -> JSM Model
+getInitCatalogPosts m uri = do
+    consoleLog "MainComponent getInitCatalogPosts"
+
+    if pageType == Catalog || pageType == Search then do
+        initialPayload <- getInitialDataPayload
+        consoleLog $ "Found " <> toMisoString (show $ length $ Grid.initialItems $ initialData initialPayload) <> " catalog posts in page data."
+        return $ m { catalog_posts = Grid.initialItems $ initialData initialPayload }
+
+    else
+        return m
+
+    where
+        pageType = pageTypeFromURI uri
+#endif
 
 
 mainView :: InitialData -> Model -> View Model Action
@@ -77,9 +103,9 @@ mainView initial_data model = mainView_
             route (Proxy :: Proxy (Route (View Model Action))) handlers current_uri model
 
         handlers
-            =    (catalogView tc (grid initial_data))
+            =    (catalogView tc grid)
             :<|> (threadView $ thread_model initial_data)
-            :<|> (searchView (grid initial_data))
+            :<|> (searchView grid)
 
         tc :: TC.TimeControl Model
         tc = TC.app 0
@@ -94,10 +120,5 @@ mainView initial_data model = mainView_
                 }
         thread_model _ = Thread.Uninitialized
 
-        grid :: InitialData -> Grid.GridComponent Model
-        grid initial_data_ = Grid.app (media_root_ model) initialModel
-            where
-                initialModel = Grid.Model
-                    { Grid.display_items = Grid.initialItems initial_data_
-                    , Grid.media_root = media_root_ model
-                    }
+        grid :: Grid.GridComponent Model
+        grid = Grid.app (media_root_ model)

@@ -96,7 +96,7 @@ mainUpdate (OnErrorMessage msg) =
 
 mainUpdate (ClientResponse (Client.ReturnResult SenderLatest result)) =
     Utils.helper result $ \catalogPosts ->
-        publish Grid.catalogInTopic $ Grid.DisplayItems catalogPosts
+        modify (\m -> m { catalog_posts = catalogPosts })
 
 mainUpdate (ClientResponse (Client.ReturnResult SenderThread result)) = do
     io_ $ consoleLog $ SenderThread <> " - Has result. Storing result in model."
@@ -142,7 +142,7 @@ mainUpdate (ChangeURI uri) = do
 mainUpdate (SearchResults (searchTerm, catalogPosts)) = do
     model <- get
 
-    publish Grid.catalogInTopic $ Grid.DisplayItems catalogPosts
+    modify (\m -> m { catalog_posts = catalogPosts })
 
     io_ $ do
         consoleLog $ "Old URI:" <> (toMisoString $ show $ current_uri model)
