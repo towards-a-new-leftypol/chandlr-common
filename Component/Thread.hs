@@ -30,8 +30,6 @@ import Miso
   , consoleError
   , consoleLog
   , subscribe
-  , JSM
-  , URI
   )
 import Miso.Html
   ( div_
@@ -66,6 +64,8 @@ import Common.Component.Thread.Model
 import Common.Parsing.BodyParser
 import qualified Common.Component.BodyRender as Body
 import Common.Component.Thread.Types
+#if defined(FRONT_END)
+import Miso (JSM, URI)
 import Common.FrontEnd.Types
 import Utils
     ( pageTypeFromURI
@@ -73,6 +73,7 @@ import Utils
     , getInitialDataPayload
     , getMediaRoot
     )
+#endif
 
 initialModel :: MisoString -> Site -> Model
 initialModel m_root s = Model
@@ -91,11 +92,12 @@ app :: Model -> ThreadComponent parent
 #if defined(FRONT_END)
 app _ = M.Component
     { M.model = Uninitialized
+    , M.hydrateModel = Just getInitialModel
 #else
 app m = M.Component
     { M.model = m
+    , M.hydrateModel = Nothing
 #endif
-    , M.hydrateModel = Just getInitialModel
     , M.update = update
     , M.view = view
     , M.subs = []
@@ -109,8 +111,11 @@ app m = M.Component
     , M.bindings = []
     }
 
+#if defined(FRONT_END)
 getInitialModel :: URI -> JSM Model
 getInitialModel uri = do
+    pageType <- pageTypeFromURI <$> getURI
+
     if pageType == Thread then do
         initialPayload <- getInitialDataPayload
         case initialPayload of
@@ -129,6 +134,7 @@ getInitialModel uri = do
 
     where
         pageType = pageTypeFromURI uri
+#endif
 
 
 update :: Action -> Effect parent Model Action

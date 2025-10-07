@@ -63,30 +63,30 @@ import Common.Parsing.EmbedParser (extractVideoId)
 import Common.Component.CatalogGrid.GridTypes
 import qualified Common.Network.SiteType as Site
 import qualified Common.Component.BodyRender as Body
+#if defined(FRONT_END)
 import Utils
     ( pageTypeFromURI
     , PageType (..)
     , getInitialDataPayload
     )
+#endif
 import Common.FrontEnd.Types
 
 import Debug.Trace (trace)
 
-
-emptyModel :: MisoString -> Model
-emptyModel = Model []
 
 app :: MisoString -> Model -> GridComponent parent
 #if defined(FRONT_END)
 app mediaRoot _ =
     M.Component
         { M.model = emptyModel mediaRoot
+        , M.hydrateModel = Just $ getInitialModel mediaRoot
 #else
-app mediaRoot model =
+app _ model =
     M.Component
         { M.model = model
+        , M.hydrateModel = Nothing
 #endif
-        , M.hydrateModel = Just $ getInitialModel mediaRoot
         , M.update = update
         , M.view = view
         , M.subs = []
@@ -105,6 +105,10 @@ initialItems (CatalogData catalog_posts) = catalog_posts
 initialItems (SearchData catalog_posts) = catalog_posts
 initialItems _ = []
 
+#if defined(FRONT_END)
+emptyModel :: MisoString -> Model
+emptyModel = Model []
+
 getInitialModel :: MisoString -> M.URI -> M.JSM Model
 getInitialModel mediaRoot uri = do
     consoleLog "Hey CatalogGrid getInitialModel"
@@ -122,6 +126,7 @@ getInitialModel mediaRoot uri = do
     where
         e = emptyModel mediaRoot
         pageType = pageTypeFromURI uri
+#endif
 
 -- Custom event handler with preventDefault set to True
 onClick_ :: a -> Attribute a

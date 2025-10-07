@@ -1,4 +1,4 @@
-{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE OverloadedStrings #-}
 
 module Common.FrontEnd.MainComponent where
@@ -26,8 +26,10 @@ import Common.FrontEnd.Routes
 import Common.FrontEnd.Model
 import Common.FrontEnd.Views
 import Common.FrontEnd.Action
-import Common.FrontEnd.Update
 import Common.FrontEnd.Types
+#if defined(FRONT_END)
+import Common.FrontEnd.Update
+#endif
 
 type MainComponent = App Model Action
 
@@ -36,7 +38,11 @@ app settings url pagePayload =
     M.Component
         { M.model         = initialModel
         , M.hydrateModel  = Nothing
+#if defined(FRONT_END)
         , M.update        = mainUpdate
+#else
+        , M.update        = undefined
+#endif
         , M.view          = mainView (initialData pagePayload)
         , M.subs          = [ uriSub ChangeURI ]
         , M.events        = defaultEvents
