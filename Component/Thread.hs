@@ -31,7 +31,7 @@ import Miso
   , consoleLog
   , subscribe
   , JSM
-  , getURI
+  , URI
   )
 import Miso.Html
   ( div_
@@ -95,7 +95,7 @@ app _ = M.Component
 app m = M.Component
     { M.model = m
 #endif
-    , M.initialModel = Just getInitialModel
+    , M.hydrateModel = Just getInitialModel
     , M.update = update
     , M.view = view
     , M.subs = []
@@ -109,10 +109,8 @@ app m = M.Component
     , M.bindings = []
     }
 
-getInitialModel :: JSM Model
-getInitialModel = do
-    pageType <- pageTypeFromURI <$> getURI
-
+getInitialModel :: URI -> JSM Model
+getInitialModel uri = do
     if pageType == Thread then do
         initialPayload <- getInitialDataPayload
         case initialPayload of
@@ -128,6 +126,9 @@ getInitialModel = do
             _ -> return Uninitialized
     else
         return Uninitialized
+
+    where
+        pageType = pageTypeFromURI uri
 
 
 update :: Action -> Effect parent Model Action

@@ -131,7 +131,7 @@ app
     -> TimeControl parent
 app t = M.Component
     { M.model = Model t
-    , M.initialModel = Nothing
+    , M.hydrateModel = Nothing
     , M.update = update
     , M.view = view
     , M.subs = []

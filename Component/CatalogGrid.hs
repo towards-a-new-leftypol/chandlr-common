@@ -70,6 +70,8 @@ import Utils
     )
 import Common.FrontEnd.Types
 
+import Debug.Trace (trace)
+
 
 emptyModel :: MisoString -> Model
 emptyModel = Model []
@@ -84,7 +86,7 @@ app mediaRoot model =
     M.Component
         { M.model = model
 #endif
-        , M.initialModel = Just $ getInitialModel mediaRoot
+        , M.hydrateModel = Just $ getInitialModel mediaRoot
         , M.update = update
         , M.view = view
         , M.subs = []
@@ -103,12 +105,14 @@ initialItems (CatalogData catalog_posts) = catalog_posts
 initialItems (SearchData catalog_posts) = catalog_posts
 initialItems _ = []
 
-getInitialModel :: MisoString -> M.JSM Model
-getInitialModel mediaRoot = do
-    pageType <- pageTypeFromURI <$> M.getURI
+getInitialModel :: MisoString -> M.URI -> M.JSM Model
+getInitialModel mediaRoot uri = do
+    consoleLog "Hey CatalogGrid getInitialModel"
 
     if pageType == Catalog || pageType == Search then do
         initialPayload <- getInitialDataPayload
+
+        consoleLog $ "Found " <> toMisoString (show $ length $ initialItems $ initialData initialPayload) <> " catalog posts in page data."
 
         return $ Model (initialItems $ initialData initialPayload) mediaRoot
 
@@ -117,6 +121,7 @@ getInitialModel mediaRoot = do
 
     where
         e = emptyModel mediaRoot
+        pageType = pageTypeFromURI uri
 
 -- Custom event handler with preventDefault set to True
 onClick_ :: a -> Attribute a
@@ -124,7 +129,9 @@ onClick_ action = onWithOptions defaultOptions { _preventDefault = True } "click
 
 
 update :: Action -> Effect parent Model Action
-update Initialize = subscribe catalogInTopic OnMessage OnMessageError
+update Initialize = do
+    io_ $ consoleLog "CatalogGrid component Initialize!"
+    subscribe catalogInTopic OnMessage OnMessageError
 
 update (OnMessage (DisplayItems xs)) = do
     io_ $ consoleLog "CatalogGrid - DisplayItems message"
@@ -134,12 +141,13 @@ update (OnMessageError msg) =
     io_ $ consoleError ("CatalogGrid Message decode failure: " <> toMisoString msg)
 
 update (ThreadSelected post) = do
-    io_ $ consoleLog $ "ThreadSelected - " <> toMisoString (show post)
+    io_ $ consoleLog $ "ThreadSelected - " <> toMisoString (CatalogPost.thread_id post)
     publish catalogOutTopic $ SelectThread post
 
 
 view :: Model -> View model Action
 view model =
+    trace ("CatalogGrid view being called. Number of catalog items in model: " <> (show $ length $ display_items model)) $
     div_
         [ class_ "theme-catalog" ]
         [ div_

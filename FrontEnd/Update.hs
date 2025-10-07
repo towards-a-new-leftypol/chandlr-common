@@ -20,9 +20,8 @@ import Miso
     , subscribe
     )
 
-import Miso.String (MisoString, fromMisoString, toMisoString)
+import Miso.String (MisoString, toMisoString)
 import qualified Data.Map.Strict as Map
-import Network.URI (escapeURIString, isAllowedInURI)
 
 import Common.FrontEnd.Action
 import Common.FrontEnd.Model
@@ -32,6 +31,7 @@ import qualified Common.Component.Thread as Thread
 import qualified Common.Utils as Utils
 import qualified Common.Component.CatalogGrid.GridTypes as Grid
 import Common.Network.SiteType (fromCatalogPost)
+import JSFFI.Saddle (encodeURIComponent)
 
 pattern Sender :: Client.Sender
 pattern Sender = "main"
@@ -142,23 +142,22 @@ mainUpdate (ChangeURI uri) = do
 mainUpdate (SearchResults (searchTerm, catalogPosts)) = do
     model <- get
 
-    let new_uri :: URI = new_current_uri model
-
     publish Grid.catalogInTopic $ Grid.DisplayItems catalogPosts
 
     io_ $ do
         consoleLog $ "Old URI:" <> (toMisoString $ show $ current_uri model)
+        searchTermURIComponent <- encodeURIComponent searchTerm
+        let new_uri = newCurrentURI model searchTermURIComponent
         consoleLog $ "SearchResults new uri: " <> (toMisoString $ show new_uri)
-        -- pushURI new_uri
+        pushURI new_uri
 
     where
-        new_current_uri :: Model -> URI
-        new_current_uri m = (current_uri m)
+        newCurrentURI :: Model -> MisoString -> URI
+        newCurrentURI m searchTermURIComponent = (current_uri m)
             { uriPath = "search"
             , uriQueryString = Map.singleton
                 "search"
-                $ Just
-                    (toMisoString $ escapeURIString isAllowedInURI $ fromMisoString searchTerm)
+                $ Just searchTermURIComponent
             }
 
 mainUpdate (NotifySearch searchTerm) = publish Search.searchInTopic searchTerm
