@@ -114,8 +114,6 @@ app m = M.Component
 #if defined(FRONT_END)
 getInitialModel :: URI -> JSM Model
 getInitialModel uri = do
-    pageType <- pageTypeFromURI <$> getURI
-
     if pageType == Thread then do
         initialPayload <- getInitialDataPayload
         case initialPayload of
