@@ -10,8 +10,6 @@ import Miso
     , LogLevel (DebugAll)
     , defaultEvents
     , uriSub
-    , JSM
-    , consoleLog
     )
 import qualified Miso as M
 import Miso.String (toMisoString)
@@ -30,6 +28,7 @@ import Common.FrontEnd.Views
 import Common.FrontEnd.Action
 import Common.FrontEnd.Types
 #if defined(FRONT_END)
+import Miso (JSM, consoleLog)
 import Common.FrontEnd.Update
 import Utils
     ( pageTypeFromURI
@@ -122,4 +121,4 @@ mainView initial_data model = mainView_
         thread_model _ = Thread.Uninitialized
 
         grid :: Grid.GridComponent Model
-        grid = Grid.app (media_root_ model)
+        grid = Grid.app (media_root_ model) initial_data

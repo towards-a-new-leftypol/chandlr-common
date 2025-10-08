@@ -63,10 +63,10 @@ import qualified Common.FrontEnd.Model as FE
 
 import Debug.Trace (trace)
 
-app :: MisoString -> GridComponent FE.Model
-app mediaRoot =
+app :: MisoString -> InitialData -> GridComponent FE.Model
+app mediaRoot initialData =
     M.Component
-        { M.model = Model [] mediaRoot
+        { M.model = Model (initialItems initialData) mediaRoot
         , M.hydrateModel = Nothing
         , M.update = update
         , M.view = view
