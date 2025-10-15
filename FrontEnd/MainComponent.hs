@@ -6,7 +6,6 @@ module Common.FrontEnd.MainComponent where
 import Miso
     ( App
     , View
-    , URI (..)
     , LogLevel (DebugAll)
     , defaultEvents
     , uriSub
@@ -14,14 +13,12 @@ import Miso
 import qualified Miso as M
 import Miso.String (toMisoString)
 import Data.Proxy
-import Servant.API hiding (URI)
+import Servant.API
 import Servant.Miso.Router (route)
+import Data.IORef (readIORef)
 
 import Common.FrontEnd.JSONSettings (JSONSettings (..))
-import qualified Common.Component.CatalogGrid.GridTypes as Grid
 import qualified Common.Component.CatalogGrid as Grid
-import qualified Common.Component.Thread as Thread
-import qualified Common.Component.TimeControl as TC
 import Common.FrontEnd.Routes
 import Common.FrontEnd.Model
 import Common.FrontEnd.Views
@@ -39,18 +36,18 @@ import Utils
 
 type MainComponent = App Model Action
 
-app :: JSONSettings -> URI -> InitialDataPayload -> MainComponent
-app settings url pagePayload =
+app :: InitCtxRef -> MainComponent
+app ctxRef =
     M.Component
-        { M.model         = initialModel
+        { M.model         = undefined
 #if defined(FRONT_END)
-        , M.hydrateModel  = Just $ getInitCatalogPosts initialModel
+        , M.hydrateModel  = Nothing
         , M.update        = mainUpdate
 #else
-        , M.hydrateModel  = Nothing
+        , M.hydrateModel  = Just $ initializeModel ctxRef
         , M.update        = undefined
 #endif
-        , M.view          = mainView (initialData pagePayload)
+        , M.view          = mainView ctxRef
         , M.subs          = [ uriSub ChangeURI ]
         , M.events        = defaultEvents
         , M.styles = []
@@ -62,21 +59,28 @@ app settings url pagePayload =
         , M.bindings = []
         }
 
-    where
-        initialModel :: Model
-        initialModel =
+
+initializeModel :: InitCtxRef -> IO Model
+initializeModel ctxRef = do
+    ctx <- readIORef ctxRef
+
+    let settings = init_settings ctx
+    let initialPayload = init_payload ctx
+
+    return
           Model
-              { current_uri = url
+              { current_uri = init_uri ctx
               , media_root_ = toMisoString $ media_root settings
-              , current_time = timestamp pagePayload
+              , current_time = timestamp initialPayload
               , search_term = "" -- TODO: get this from URL
               , initial_action = NoAction
               , thread_message = Nothing
               , pg_api_root = toMisoString $ postgrest_url settings
               , client_fetch_count = postgrest_fetch_count settings
-              , catalog_posts = []
+              , catalog_posts = Grid.initialItems $ initialData initialPayload
               , between_pages = False
               }
+
 
 #if defined(FRONT_END)
 getInitCatalogPosts :: Model -> URI -> JSM Model
@@ -96,29 +100,17 @@ getInitCatalogPosts m uri = do
 #endif
 
 
-mainView :: InitialData -> Model -> View Model Action
-mainView initial_data model = mainView_
+mainView :: InitCtxRef -> Model -> View Model Action
+mainView ctxRef model = mainView_
     where
         mainView_ = either (const page404) id $
-            route (Proxy :: Proxy (Route (View Model Action))) handlers current_uri model
+            route
+                (Proxy :: Proxy (Route (View Model Action)))
+                handlers
+                current_uri
+                model
 
         handlers
-            =    (catalogView tc grid)
-            :<|> (threadView $ thread_model initial_data)
-            :<|> (searchView grid)
-
-        tc :: TC.TimeControl Model
-        tc = TC.app 0
-
-        thread_model :: InitialData -> Thread.Model
-        thread_model (ThreadData site posts_w_bodies) =
-            Thread.Model
-                { Thread.site = site
-                , Thread.media_root = media_root_ model
-                , Thread.post_bodies = posts_w_bodies
-                , Thread.current_time = current_time model
-                }
-        thread_model _ = Thread.Uninitialized
-
-        grid :: Grid.GridComponent Model
-        grid = Grid.app (media_root_ model) initial_data
+            =    catalogView ctxRef
+            :<|> threadView ctxRef
+            :<|> searchView ctxRef

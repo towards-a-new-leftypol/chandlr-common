@@ -43,6 +43,7 @@ import Data.Time.Clock
   , secondsToDiffTime
   )
 import Data.Time.Calendar (fromGregorian)
+import Common.FrontEnd.Types (InitCtxRef)
 
 data Time
   = Now
@@ -127,10 +128,10 @@ interpolateTimeHours n currentTime
     secondsInHour = 3600
 
 app
-    :: Integer
+    :: InitCtxRef
     -> TimeControl parent
-app t = M.Component
-    { M.model = Model t
+app _ = M.Component
+    { M.model = Model 0
     , M.hydrateModel = Nothing
     , M.update = update
     , M.view = view

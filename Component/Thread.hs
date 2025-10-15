@@ -1,4 +1,3 @@
-{-# LANGUAGE CPP #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE DataKinds #-}
 
@@ -48,6 +47,7 @@ import Data.Time.Clock (UTCTime (..), secondsToDiffTime, getCurrentTime)
 import Data.Time.Calendar (Day (..))
 import Control.Monad.IO.Class (liftIO)
 import Control.Monad.State (modify)
+import Data.IORef (readIORef)
 
 import Common.Network.SiteType (Site)
 import qualified Common.Network.SiteType as Site
@@ -64,16 +64,8 @@ import Common.Component.Thread.Model
 import Common.Parsing.BodyParser
 import qualified Common.Component.BodyRender as Body
 import Common.Component.Thread.Types
-#if defined(FRONT_END)
-import Miso (JSM, URI)
+import qualified Common.FrontEnd.JSONSettings as Settings
 import Common.FrontEnd.Types
-import Utils
-    ( pageTypeFromURI
-    , PageType (..)
-    , getInitialDataPayload
-    , getMediaRoot
-    )
-#endif
 
 initialModel :: MisoString -> Site -> Model
 initialModel m_root s = Model
@@ -88,16 +80,10 @@ type ThreadComponent parent = Component parent Model Action
 threadTopic :: Topic Message
 threadTopic = topic "thread"
 
-app :: Model -> ThreadComponent parent
-#if defined(FRONT_END)
-app _ = M.Component
+app :: InitCtxRef -> ThreadComponent parent
+app ctxRef = M.Component
     { M.model = Uninitialized
-    , M.hydrateModel = Just getInitialModel
-#else
-app m = M.Component
-    { M.model = m
-    , M.hydrateModel = Nothing
-#endif
+    , M.hydrateModel = Just $ initializeModel ctxRef
     , M.update = update
     , M.view = view
     , M.subs = []
@@ -111,28 +97,23 @@ app m = M.Component
     , M.bindings = []
     }
 
-#if defined(FRONT_END)
-getInitialModel :: URI -> JSM Model
-getInitialModel uri = do
-    if pageType == Thread then do
-        initialPayload <- getInitialDataPayload
-        case initialPayload of
-            (InitialDataPayload t (ThreadData s posts)) -> do
-                mediaRoot <- getMediaRoot
+initializeModel :: InitCtxRef -> IO Model
+initializeModel ctxRef = do
+  ctx <- readIORef ctxRef
 
-                return Model
-                    { site = s
-                    , media_root = mediaRoot
-                    , post_bodies = posts
-                    , current_time = t
-                    }
-            _ -> return Uninitialized
-    else
-        return Uninitialized
+  let settings = init_settings ctx
+  let initialPayload = init_payload ctx
 
-    where
-        pageType = pageTypeFromURI uri
-#endif
+  case initialPayload of
+    (InitialDataPayload t (ThreadData s pwbs)) ->
+          return Model
+            { site = s
+            , media_root = Settings.media_root settings
+            , post_bodies = pwbs
+            , current_time = t
+            }
+
+    _ -> return Uninitialized
 
 
 update :: Action -> Effect parent Model Action

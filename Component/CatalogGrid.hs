@@ -51,6 +51,7 @@ import Miso.String (toMisoString, fromMisoString, MisoString)
 import qualified Data.JSString as JStr
 import qualified Miso as M
 import Miso.Binding ((-->))
+import Data.IORef (readIORef)
 
 import Common.Network.CatalogPostType (CatalogPost)
 import qualified Common.Network.CatalogPostType as CatalogPost
@@ -60,14 +61,15 @@ import qualified Common.Network.SiteType as Site
 import qualified Common.Component.BodyRender as Body
 import Common.FrontEnd.Types
 import qualified Common.FrontEnd.Model as FE
+import qualified Common.FrontEnd.JSONSettings  as Settings
 
 import Debug.Trace (trace)
 
-app :: MisoString -> InitialData -> GridComponent FE.Model
-app mediaRoot initialData =
+app :: InitCtxRef -> GridComponent FE.Model
+app ctxRef =
     M.Component
-        { M.model = Model (initialItems initialData) mediaRoot
-        , M.hydrateModel = Nothing
+        { M.model = Model [] ""
+        , M.hydrateModel = Just $ initializeModel ctxRef
         , M.update = update
         , M.view = view
         , M.subs = []
@@ -80,6 +82,15 @@ app mediaRoot initialData =
         , M.mailbox = const Nothing
         , M.bindings = [ FE.getSetCatalogPosts --> getSetDisplayItems ]
         }
+
+
+initializeModel :: InitCtxRef -> IO Model
+initializeModel ctxRef = do
+    ctx <- readIORef ctxRef
+    return $ Model
+        (initialItems $ initialData $ init_payload ctx)
+        (toMisoString $ Settings.media_root $ init_settings ctx)
+
 
 initialItems :: InitialData -> [ CatalogPost ]
 initialItems (CatalogData catalog_posts) = catalog_posts

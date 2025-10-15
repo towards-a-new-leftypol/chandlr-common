@@ -29,16 +29,17 @@ import Common.FrontEnd.Action (Action (..))
 import qualified Common.Component.Search as Search
 import qualified Common.Component.CatalogGrid as Grid
 import qualified Common.Component.Thread as Thread
-import Common.Component.TimeControl (TimeControl)
+import qualified Common.Component.TimeControl as TC
 import Common.FrontEnd.Routes (BoardThreadId)
 import qualified Network.Client as Client
+import Common.FrontEnd.Types (InitCtxRef)
 
-timeControl :: TimeControl model -> View model Action
-timeControl = mount (div_ [ key_ ("time-control" :: MisoString) ])
+timeControl :: InitCtxRef -> View Model Action
+timeControl = mount (div_ [ key_ ("time-control" :: MisoString) ]) . TC.app
 
 
-grid :: Grid.GridComponent model -> View model Action
-grid = mount (div_ [ key_ ("catalog-grid" :: MisoString) ])
+grid :: InitCtxRef -> View Model Action
+grid = mount (div_ [ key_ ("catalog-grid" :: MisoString) ]) . Grid.app
 
 
 search :: View model Action
@@ -60,40 +61,40 @@ pageWrapperWithDefaults inner_content =
         ]
 
 
-catalogView :: TimeControl model -> Grid.GridComponent model -> Model -> View model Action
-catalogView tc gc m = pageWrapperWithDefaults $ div_ []
+catalogView :: InitCtxRef -> Model -> View Model Action
+catalogView ctxRef m = pageWrapperWithDefaults $ div_ []
     [ div_
         [ class_ "page_heading" ]
         [ h1_ [] [ text "Overboard Catalog" ]
         , time_ [] [ text $ toMisoString $ show $ current_time m ]
         ]
-    , timeControl tc
+    , timeControl ctxRef
     , search
-    , grid gc
+    , grid ctxRef
     ]
 
 
-searchView :: Grid.GridComponent model -> Maybe String -> Model -> View model Action
-searchView gc _ m = pageWrapperWithDefaults $ div_ []
+searchView :: InitCtxRef -> Maybe String -> Model -> View Model Action
+searchView ctxRef _ m = pageWrapperWithDefaults $ div_ []
     [ div_
         [ class_ "page_heading" ]
         [ h1_ [] [ text "Search" ]
         , time_ [] [ text $ search_term m ]
         ]
     , search
-    , grid gc
+    , grid ctxRef
     ]
 
 
-threadView :: Thread.Model -> Text -> Text -> BoardThreadId -> Model -> View model Action
-threadView thread_model site_name board_pathpart board_thread_id m =
+threadView :: InitCtxRef -> Text -> Text -> BoardThreadId -> Model -> View Model Action
+threadView ctxRef site_name board_pathpart board_thread_id _ =
     pageWrapperWithDefaults $ mount
         ( div_
             [ onMounted ThreadViewMounted
             , key_ ("thread-view" :: MisoString)
             ]
         )
-        (Thread.app thread_model)
+        (Thread.app ctxRef)
 
 
 page404 :: View model Action
