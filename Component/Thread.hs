@@ -1,5 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE DataKinds #-}
+{-# LANGUAGE CPP #-}
 
 module Common.Component.Thread
 ( Model (..)
@@ -29,6 +30,7 @@ import Miso
   , consoleError
   , consoleLog
   , subscribe
+  , JSM
   )
 import Miso.Html
   ( div_
@@ -97,8 +99,13 @@ app ctxRef = M.Component
     , M.bindings = []
     }
 
+#ifdef FRONT_END
+initializeModel :: InitCtxRef -> JSM Model
+initializeModel ctxRef = liftIO $ do
+#else
 initializeModel :: InitCtxRef -> IO Model
 initializeModel ctxRef = do
+#endif
   ctx <- readIORef ctxRef
 
   let settings = init_settings ctx

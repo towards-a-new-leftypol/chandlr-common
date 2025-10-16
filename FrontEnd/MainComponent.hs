@@ -25,13 +25,7 @@ import Common.FrontEnd.Views
 import Common.FrontEnd.Action
 import Common.FrontEnd.Types
 #if defined(FRONT_END)
-import Miso (JSM, consoleLog)
 import Common.FrontEnd.Update
-import Utils
-    ( pageTypeFromURI
-    , PageType (..)
-    , getInitialDataPayload
-    )
 #endif
 
 type MainComponent = App Model Action
@@ -80,24 +74,6 @@ initializeModel ctxRef = do
               , catalog_posts = Grid.initialItems $ initialData initialPayload
               , between_pages = False
               }
-
-
-#if defined(FRONT_END)
-getInitCatalogPosts :: Model -> URI -> JSM Model
-getInitCatalogPosts m uri = do
-    consoleLog "MainComponent getInitCatalogPosts"
-
-    if pageType == Catalog || pageType == Search then do
-        initialPayload <- getInitialDataPayload
-        consoleLog $ "Found " <> toMisoString (show $ length $ Grid.initialItems $ initialData initialPayload) <> " catalog posts in page data."
-        return $ m { catalog_posts = Grid.initialItems $ initialData initialPayload }
-
-    else
-        return m
-
-    where
-        pageType = pageTypeFromURI uri
-#endif
 
 
 mainView :: InitCtxRef -> Model -> View Model Action

@@ -1,5 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE DataKinds #-}
+{-# LANGUAGE CPP #-}
 {-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
 {-# HLINT ignore "Redundant bracket" #-}
 {-# HLINT ignore "Move brackets to avoid $" #-}
@@ -31,6 +32,7 @@ import Miso
     , publish
     , io_
     , consoleLog
+    , JSM
     )
 import Miso.Html
     ( div_
@@ -52,6 +54,7 @@ import qualified Data.JSString as JStr
 import qualified Miso as M
 import Miso.Binding ((-->))
 import Data.IORef (readIORef)
+import Control.Monad.IO.Class (liftIO)
 
 import Common.Network.CatalogPostType (CatalogPost)
 import qualified Common.Network.CatalogPostType as CatalogPost
@@ -84,8 +87,13 @@ app ctxRef =
         }
 
 
+#ifdef FRONT_END
+initializeModel :: InitCtxRef -> JSM Model
+initializeModel ctxRef = liftIO $ do
+#else
 initializeModel :: InitCtxRef -> IO Model
 initializeModel ctxRef = do
+#endif
     ctx <- readIORef ctxRef
     return $ Model
         (initialItems $ initialData $ init_payload ctx)
