@@ -28,6 +28,8 @@ import Data.Text (Text)
 import Data.Either (fromRight)
 import Servant.API hiding (URI)
 import Network.URI (unEscapeString)
+import Data.IORef (modifyIORef)
+import Control.Monad.IO.Class (liftIO)
 
 import Common.FrontEnd.Action
 import Common.FrontEnd.Model
@@ -39,6 +41,7 @@ import qualified Common.Component.CatalogGrid.GridTypes as Grid
 import Common.Network.SiteType (fromCatalogPost)
 import JSFFI.Saddle (encodeURIComponent)
 import Common.FrontEnd.Routes
+import qualified Common.FrontEnd.Types as T
 
 pattern Sender :: Client.Sender
 pattern Sender = "main"
@@ -52,10 +55,18 @@ pattern SenderThread = "main-thread"
 
 mainUpdate :: Action -> Effect ROOT Model Action
 mainUpdate NoAction = return ()
-mainUpdate Initialize = do
+mainUpdate (Initialize ctxRef) = do
     subscribe Client.clientOutTopic ClientResponse OnErrorMessage
     subscribe Grid.catalogOutTopic GridMessage OnErrorMessage
     subscribe Search.searchOutTopic SearchResults OnErrorMessage
+    io_ $ consoleLog "MainComponent Initialize action"
+    -- collect garbage
+    io_ $ liftIO $ modifyIORef ctxRef
+        ( \ctx@T.AppInitCtx {..} -> ctx
+            { T.init_payload =
+                init_payload { T.initialData = T.Nil }
+            }
+        )
 
 mainUpdate ClientMounted = do
     model <- get

@@ -27,3 +27,9 @@ getSetCatalogPosts =
     Lens
         catalog_posts
         (\x model -> model { catalog_posts = x })
+
+getSetMediaRoot :: Lens Model MisoString
+getSetMediaRoot =
+    Lens
+        media_root_
+        (\x model -> model { media_root_ = x })

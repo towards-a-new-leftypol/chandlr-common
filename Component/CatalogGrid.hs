@@ -85,7 +85,10 @@ app ctxRef =
         , M.logLevel = M.DebugAll
         , M.scripts = []
         , M.mailbox = const Nothing
-        , M.bindings = [ FE.getSetCatalogPosts --> getSetDisplayItems ]
+        , M.bindings =
+            [ FE.getSetCatalogPosts --> getSetDisplayItems
+            , FE.getSetMediaRoot --> getSetMediaRoot
+            ]
         }
 
 

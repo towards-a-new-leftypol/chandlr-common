@@ -29,6 +29,8 @@ import Common.FrontEnd.Action
 import Common.FrontEnd.Types
 #if defined(FRONT_END)
 import Common.FrontEnd.Update
+import Miso (JSM)
+import Control.Monad.IO.Class (liftIO)
 #endif
 
 type MainComponent = App Model Action
@@ -47,7 +49,7 @@ app ctxRef =
         , M.subs          = [ uriSub ChangeURI ]
         , M.events        = defaultEvents
         , M.styles = []
-        , M.initialAction = Just Initialize
+        , M.initialAction = Just (Initialize ctxRef)
         , M.mountPoint    = Nothing
         , M.logLevel      = DebugAll
         , M.scripts = []
@@ -71,8 +73,13 @@ app ctxRef =
             }
 
 
+#ifdef FRONT_END
+initializeModel :: InitCtxRef -> JSM Model
+initializeModel ctxRef = liftIO $ do
+#else
 initializeModel :: InitCtxRef -> IO Model
 initializeModel ctxRef = do
+#endif
     putStrLn "MainComponent initializeModel"
     ctx <- readIORef ctxRef
 

@@ -24,9 +24,15 @@ getSetDisplayItems =
         display_items
         (\x model -> model { display_items = x })
 
+getSetMediaRoot :: Lens Model MisoString
+getSetMediaRoot =
+    Lens
+        media_root
+        (\x model -> model { media_root = x })
+
 type GridComponent parent = Component parent Model Action
 
-data Action
+newtype Action
     = ThreadSelected CatalogPost
 
 newtype OutMessage
