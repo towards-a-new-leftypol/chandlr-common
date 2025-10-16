@@ -132,7 +132,9 @@ app
     -> TimeControl parent
 app _ = M.Component
     { M.model = Model 0
-    , M.hydrateModel = Nothing
+    , M.hydrateModel = Just $ do
+        putStrLn "TimeControl hydrateModel"
+        return $ Model 0
     , M.update = update
     , M.view = view
     , M.subs = []

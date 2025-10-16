@@ -1,3 +1,5 @@
+{-# LANGUAGE RecordWildCards #-}
+
 module Common.FrontEnd.Model where
 
 import Miso (URI)
@@ -9,7 +11,7 @@ import Common.FrontEnd.Action (Action)
 import qualified Common.Component.Thread.Types  as Thread
 import Common.Network.CatalogPostType (CatalogPost)
 
-data Model = Model
+data Model = Uninitialized | Model
     { current_uri :: URI
     , media_root_ :: MisoString
     , current_time :: UTCTime
@@ -23,7 +25,10 @@ data Model = Model
     } deriving Eq
 
 getSetCatalogPosts :: Lens Model [ CatalogPost ]
-getSetCatalogPosts =
-    Lens
-        catalog_posts
-        (\x model -> model { catalog_posts = x })
+getSetCatalogPosts = Lens getter setter
+    where
+        getter Uninitialized = []
+        getter Model {..} = catalog_posts
+
+        setter _ Uninitialized = Uninitialized
+        setter x model = model { catalog_posts = x }

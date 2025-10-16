@@ -33,14 +33,13 @@ type MainComponent = App Model Action
 app :: InitCtxRef -> MainComponent
 app ctxRef =
     M.Component
-        { M.model         = undefined
+        { M.model         = Uninitialized
 #if defined(FRONT_END)
-        , M.hydrateModel  = Nothing
         , M.update        = mainUpdate
 #else
-        , M.hydrateModel  = Just $ initializeModel ctxRef
         , M.update        = undefined
 #endif
+        , M.hydrateModel  = Just $ initializeModel ctxRef
         , M.view          = mainView ctxRef
         , M.subs          = [ uriSub ChangeURI ]
         , M.events        = defaultEvents
@@ -56,6 +55,7 @@ app ctxRef =
 
 initializeModel :: InitCtxRef -> IO Model
 initializeModel ctxRef = do
+    putStrLn "MainComponent initializeModel"
     ctx <- readIORef ctxRef
 
     let settings = init_settings ctx

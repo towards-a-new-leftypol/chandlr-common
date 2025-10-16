@@ -30,7 +30,6 @@ import Miso
   , consoleError
   , consoleLog
   , subscribe
-  , JSM
   )
 import Miso.Html
   ( div_
@@ -50,6 +49,9 @@ import Data.Time.Calendar (Day (..))
 import Control.Monad.IO.Class (liftIO)
 import Control.Monad.State (modify)
 import Data.IORef (readIORef)
+#ifdef FRONT_END
+import Miso (JSM)
+#endif
 
 import Common.Network.SiteType (Site)
 import qualified Common.Network.SiteType as Site

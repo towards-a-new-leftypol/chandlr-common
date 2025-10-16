@@ -32,7 +32,6 @@ import Miso
     , publish
     , io_
     , consoleLog
-    , JSM
     )
 import Miso.Html
     ( div_
@@ -54,7 +53,10 @@ import qualified Data.JSString as JStr
 import qualified Miso as M
 import Miso.Binding ((-->))
 import Data.IORef (readIORef)
+#ifdef FRONT_END
 import Control.Monad.IO.Class (liftIO)
+import Miso (JSM)
+#endif
 
 import Common.Network.CatalogPostType (CatalogPost)
 import qualified Common.Network.CatalogPostType as CatalogPost
@@ -94,7 +96,12 @@ initializeModel ctxRef = liftIO $ do
 initializeModel :: InitCtxRef -> IO Model
 initializeModel ctxRef = do
 #endif
+    putStrLn "CatalogGrid initializeModel"
     ctx <- readIORef ctxRef
+
+    let asdf = initialItems $ initialData $ init_payload ctx
+    putStrLn $ "CatalogGrid initializeModel item size: " ++ (show $ length asdf)
+
     return $ Model
         (initialItems $ initialData $ init_payload ctx)
         (toMisoString $ Settings.media_root $ init_settings ctx)
