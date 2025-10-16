@@ -160,9 +160,11 @@ mainUpdate (ChangeURI uri) = do
     io_ $ consoleLog $ "ChangeURI! " <> (toMisoString $ show uri)
     model <- get
 
-    if not $ between_pages model then
+    if not $ between_pages model then do
+        io_ $ consoleLog "Not between pages, issuing initialAction"
         issue $ initialActionFromRoute model uri
-    else
+    else do
+        io_ $ consoleLog "Between pages."
         modify (\m -> m { between_pages = False })
 
 mainUpdate (SearchResults (searchTerm, catalogPosts)) = do

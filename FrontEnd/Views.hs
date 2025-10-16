@@ -1,4 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
+{-# HLINT ignore "Use list comprehension" #-}
 
 module Common.FrontEnd.Views
     ( catalogView
@@ -20,8 +22,10 @@ import Miso.Html
     ( h1_
     , time_
     , div_
+    , p_
     )
 import Miso.String (MisoString, toMisoString)
+import qualified Miso.String as Str
 import Data.Text (Text)
 
 import Common.FrontEnd.Model
@@ -78,12 +82,20 @@ searchView :: InitCtxRef -> Maybe String -> Model -> View Model Action
 searchView ctxRef _ m = pageWrapperWithDefaults $ div_ []
     [ div_
         [ class_ "page_heading" ]
-        [ h1_ [] [ text "Search" ]
-        , time_ [] [ text $ search_term m ]
-        ]
+        (
+            h1_ [] [ text "Search" ]
+            :
+            if Str.null term then
+                []
+            else
+                [ p_ [] [ text term ] ]
+        )
     , search
     , grid ctxRef
     ]
+
+    where
+        term = search_term m
 
 
 threadView :: InitCtxRef -> Text -> Text -> BoardThreadId -> Model -> View Model Action
