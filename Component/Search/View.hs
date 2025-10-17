@@ -27,7 +27,7 @@ view = const $ form
     [ class_ "search_form"
     , action_ "/search"
     , method_ "GET"
-    , onSubmit OnSubmit
+    , onSubmit Submit
     ]
     [ input_
         [ type_ "submit"

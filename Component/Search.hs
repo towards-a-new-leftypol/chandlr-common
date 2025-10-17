@@ -44,6 +44,10 @@ update Initialize = do
 update (SearchChange q) =
     modify (\m -> m { searchTerm = q })
 
+update Submit = do
+    modify (\m -> m { intendPushUri = True })
+    issue OnSubmit
+
 update OnSubmit = do
     model <- get
 
@@ -61,17 +65,24 @@ update (SearchResult (Client.ReturnResult Sender result)) = do
     io_ $ consoleLog "Search - SearchResult action handler"
     Utils.helper result $ \searchResults -> do
         model <- get
-        publish searchOutTopic (searchTerm model, searchResults)
+        publish searchOutTopic
+            ( intendPushUri model
+            , searchTerm model
+            , searchResults
+            )
 
 update (SearchResult (Client.ReturnResult _ _)) = return ()
 
 update (OnMessageError msg) =
     io_ $ consoleError msg
 
-update (OnMessage query) = issue $ ChangeAndSubmit query
+update (OnMessage (b, query)) = do
+    modify (\m -> m { searchTerm = query, intendPushUri = b })
+    issue $ ChangeAndSubmit query
 
 app :: Component FE.Model Model Action
-app = M.Component { M.model = Model ""
+app = M.Component
+    { M.model = Model "" False
     , M.hydrateModel = Nothing
     , M.update = update
     , M.view = view

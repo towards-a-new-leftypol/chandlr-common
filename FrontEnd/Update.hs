@@ -30,6 +30,7 @@ import Servant.API hiding (URI)
 import Network.URI (unEscapeString)
 import Data.IORef (modifyIORef)
 import Control.Monad.IO.Class (liftIO)
+import Control.Monad (when)
 
 import Common.FrontEnd.Action
 import Common.FrontEnd.Model
@@ -175,13 +176,14 @@ mainUpdate (ChangeURI uri) = do
         io_ $ consoleLog "Between pages."
         modify (\m -> m { between_pages = False })
 
-mainUpdate (SearchResults (searchTerm, catalogPosts)) = do
-    modify (\m -> m { catalog_posts = catalogPosts, between_pages = True })
+mainUpdate (SearchResults (intendPushUri, searchTerm, catalogPosts)) = do
+    io_ $ consoleLog $ "MainComponent - SearchResults. intendPushUri: " <> (toMisoString $ show intendPushUri) <> ", searchTerm: " <> searchTerm <> ", number of results: " <> (toMisoString $ show $ length catalogPosts)
+    modify (\m -> m { catalog_posts = catalogPosts, between_pages = intendPushUri })
 
     model <- get
 
-    io_ $ do
-        consoleLog $ "Old URI:" <> (toMisoString $ show $ current_uri model)
+    when intendPushUri $ io_ $ do
+        consoleLog $ "Old URI:" <> (toMisoString $ show $ current_uri model) <> " searchTerm: " <> searchTerm
         searchTermURIComponent <- encodeURIComponent searchTerm
         let new_uri = newCurrentURI model searchTermURIComponent
         consoleLog $ "SearchResults pushURI new uri: " <> (toMisoString $ show new_uri)
@@ -196,9 +198,10 @@ mainUpdate (SearchResults (searchTerm, catalogPosts)) = do
                 $ Just searchTermURIComponent
             }
 
-mainUpdate (NotifySearch searchTerm) = do
+mainUpdate (NotifySearch (b, searchTerm)) = do
     io_ $ consoleLog $ "NotifySearch " <> searchTerm
-    publish Search.searchInTopic searchTerm
+    modify (\m -> m { search_term = searchTerm })
+    publish Search.searchInTopic (b, searchTerm)
 
 
 (</>) :: MisoString -> MisoString -> MisoString
@@ -230,7 +233,7 @@ initialActionFromRoute model uri = fromRight NoAction routing_result
 
         h_search :: Maybe String -> Model -> Action
         h_search Nothing m = GoToTime $ current_time m
-        h_search (Just search_query) _ = NotifySearch unescaped_search_query
+        h_search (Just search_query) _ = NotifySearch (False, unescaped_search_query)
             where
                 unescaped_search_query =
                     toMisoString $ unEscapeString $ search_query

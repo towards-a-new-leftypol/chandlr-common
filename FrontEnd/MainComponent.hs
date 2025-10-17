@@ -18,7 +18,6 @@ import Servant.API hiding (URI)
 import Servant.Miso.Router (route)
 import Data.IORef (readIORef)
 import qualified Data.Map.Strict as Map
-import Network.URI (unEscapeString)
 
 import Common.FrontEnd.JSONSettings (JSONSettings (..))
 import qualified Common.Component.CatalogGrid as Grid
@@ -107,7 +106,7 @@ initializeModel ctxRef = do
         searchTermFromUri :: URI -> MisoString
         searchTermFromUri u =
             case pageTypeFromURI u of
-                Search (Just q) -> toMisoString $ unEscapeString q
+                Search (Just q) -> toMisoString  q
                 _ -> ""
 
 
