@@ -13,10 +13,19 @@ import Miso
     , consoleError
     , consoleLog
     , io_
+    , View
+    , URI
     )
-import Miso.String (toMisoString)
+import Miso.String (toMisoString, MisoString)
+import Servant.Miso.Router (route)
+import Data.Proxy (Proxy (..))
+import Servant.API hiding (URI)
+import Data.Either (fromRight)
 
 import qualified Common.Network.HttpTypes as Http
+import Common.FrontEnd.Routes (Route)
+import Common.FrontEnd.Model (Model)
+import Common.FrontEnd.Action (Action)
 
 helper
     :: (FromJSON a)
@@ -37,3 +46,27 @@ helper (Http.HttpResponse status_code status_text (Just body)) continue = do
         Success x -> continue x
 
 helper _ _ = return () -- No body, nothing to parse
+
+
+data PageType = Catalog | Search (Maybe MisoString) | Thread
+    deriving Eq
+
+
+pageTypeFromURI :: URI -> PageType
+pageTypeFromURI = do
+    -- default to Catalog in case of routing error.
+    fromRight Catalog . routeResult
+
+    where
+        routeResult uri = route (Proxy :: Proxy (Route (View Model Action))) handlers (const uri) undefined
+
+        handlers = hLatest :<|> hThread :<|> hSearch
+
+        hLatest :: m -> PageType
+        hLatest = const Catalog
+
+        hThread :: a -> a -> b -> m -> PageType
+        hThread = const $ const $ const $ const Thread
+
+        hSearch :: Maybe String -> m -> PageType
+        hSearch q = const $ Search (toMisoString <$> q)

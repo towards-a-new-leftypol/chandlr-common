@@ -27,7 +27,7 @@ import Common.FrontEnd.Model
 import Common.FrontEnd.Views
 import Common.FrontEnd.Action
 import Common.FrontEnd.Types
-import Utils (pageTypeFromURI, PageType (..))
+import Common.Utils (pageTypeFromURI, PageType (..))
 #if defined(FRONT_END)
 import Common.FrontEnd.Update
 import Miso (JSM)
