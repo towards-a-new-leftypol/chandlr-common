@@ -94,5 +94,5 @@ app = M.Component
     , M.logLevel = M.DebugAll
     , M.scripts = []
     , M.mailbox = const Nothing
-    , M.bindings = [ FE.getSetSearchTerm --> getSetSearchTerm ]
+    , M.bindings = []
     }

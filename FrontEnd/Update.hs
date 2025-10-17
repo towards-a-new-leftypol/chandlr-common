@@ -43,6 +43,7 @@ import Common.Network.SiteType (fromCatalogPost)
 import JSFFI.Saddle (encodeURIComponent)
 import Common.FrontEnd.Routes
 import qualified Common.FrontEnd.Types as T
+import qualified Common.Network.CatalogPostType as CatPost
 
 pattern Sender :: Client.Sender
 pattern Sender = "main"
@@ -111,6 +112,22 @@ mainUpdate (GridMessage (Grid.SelectThread catalog_post)) = do
 
     issue $ GetThread $ mkGetThread catalog_post
 
+    model <- get
+
+    io_ $ do
+        consoleLog $ "calling pushURI on " <> (toMisoString $ show (new_current_uri model))
+        pushURI $ new_current_uri model
+
+    where
+        new_current_uri :: Model -> URI
+        new_current_uri m = (current_uri m)
+            { uriPath = CatPost.site_name catalog_post
+                    </> CatPost.pathpart catalog_post
+                    </> (toMisoString $ show $ CatPost.board_thread_id catalog_post)
+            , uriQueryString = Map.empty
+            }
+
+
 mainUpdate (OnErrorMessage msg) =
     io_ $ consoleError ("Main Component OnErrorMessage decode failure: " <> toMisoString msg)
 
@@ -147,22 +164,8 @@ mainUpdate (GetThread Client.GetThreadArgs {..}) = do
 
     modify (\m -> m { between_pages = True })
 
-    model <- get
-
-    io_ $ do
-        consoleLog $ "calling pushURI on " <> (toMisoString $ show (new_current_uri model))
-        pushURI $ new_current_uri model
-
     publish Client.clientInTopic (SenderThread, Client.GetThread Client.GetThreadArgs {..})
 
-    where
-        new_current_uri :: Model -> URI
-        new_current_uri m = (current_uri m)
-            { uriPath = website
-                    </> board_pathpart
-                    </> (toMisoString $ show board_thread_id)
-            , uriQueryString = Map.empty
-            }
 
 mainUpdate (ChangeURI uri) = do
     modify (\m -> m { current_uri = uri })
