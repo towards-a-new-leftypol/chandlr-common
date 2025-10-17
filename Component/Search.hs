@@ -24,11 +24,13 @@ import Miso
   , subscribe
   )
 import qualified Miso as M
+import Miso.Binding ((-->))
 
 import Common.Component.Search.SearchTypes
 import Common.Component.Search.View
 import qualified Common.Network.ClientTypes as Client
 import qualified Common.Utils as Utils
+import qualified Common.FrontEnd.Model as FE
 
 pattern Sender :: Client.Sender
 pattern Sender = "search"
@@ -68,9 +70,8 @@ update (OnMessageError msg) =
 
 update (OnMessage query) = issue $ ChangeAndSubmit query
 
-app :: Component parent Model Action
-app = M.Component
-    { M.model = Model ""
+app :: Component FE.Model Model Action
+app = M.Component { M.model = Model ""
     , M.hydrateModel = Nothing
     , M.update = update
     , M.view = view
@@ -82,5 +83,5 @@ app = M.Component
     , M.logLevel = M.DebugAll
     , M.scripts = []
     , M.mailbox = const Nothing
-    , M.bindings = []
+    , M.bindings = [ FE.getSetSearchTerm --> getSetSearchTerm ]
     }

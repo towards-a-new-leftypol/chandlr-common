@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RecordWildCards #-}
 {-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
 {-# HLINT ignore "Use list comprehension" #-}
 
@@ -23,6 +24,7 @@ import Miso.Html
     , time_
     , div_
     , p_
+    , pre_
     )
 import Miso.String (MisoString, toMisoString)
 import qualified Miso.String as Str
@@ -46,12 +48,12 @@ grid :: InitCtxRef -> View Model Action
 grid = mount (div_ [ key_ ("catalog-grid" :: MisoString) ]) . Grid.app
 
 
-search :: View model Action
+search :: View Model Action
 search = mount (div_ [ key_ ("search" :: MisoString) ]) Search.app
 
 
-pageWrapperWithDefaults :: View model Action -> View model Action
-pageWrapperWithDefaults inner_content =
+pageWrapperWithDefaults :: Model -> View model Action -> View model Action
+pageWrapperWithDefaults (Model {..}) inner_content =
     div_ [ key_ ("top-level" :: MisoString) ]
         [ mount
             (div_
@@ -61,12 +63,13 @@ pageWrapperWithDefaults inner_content =
                 ]
             )
             Client.app
+        , pre_ [] [ text $ "between_pages: " <> if between_pages then "True" else "False" ]
         , inner_content
         ]
 
 
 catalogView :: InitCtxRef -> Model -> View Model Action
-catalogView ctxRef m = pageWrapperWithDefaults $ div_ []
+catalogView ctxRef m = pageWrapperWithDefaults m $ div_ []
     [ div_
         [ class_ "page_heading" ]
         [ h1_ [] [ text "Overboard Catalog" ]
@@ -79,7 +82,7 @@ catalogView ctxRef m = pageWrapperWithDefaults $ div_ []
 
 
 searchView :: InitCtxRef -> Maybe String -> Model -> View Model Action
-searchView ctxRef _ m = pageWrapperWithDefaults $ div_ []
+searchView ctxRef _ m = pageWrapperWithDefaults m $ div_ []
     [ div_
         [ class_ "page_heading" ]
         (
@@ -99,8 +102,8 @@ searchView ctxRef _ m = pageWrapperWithDefaults $ div_ []
 
 
 threadView :: InitCtxRef -> Text -> Text -> BoardThreadId -> Model -> View Model Action
-threadView ctxRef site_name board_pathpart board_thread_id _ =
-    pageWrapperWithDefaults $ mount
+threadView ctxRef site_name board_pathpart board_thread_id m =
+    pageWrapperWithDefaults m $ mount
         ( div_
             [ onMounted ThreadViewMounted
             , key_ ("thread-view" :: MisoString)

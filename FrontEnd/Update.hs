@@ -114,8 +114,14 @@ mainUpdate (OnErrorMessage msg) =
     io_ $ consoleError ("Main Component OnErrorMessage decode failure: " <> toMisoString msg)
 
 mainUpdate (ClientResponse (Client.ReturnResult SenderLatest result)) =
-    Utils.helper result $ \catalogPosts ->
-        modify (\m -> m { catalog_posts = catalogPosts })
+    Utils.helper result $
+        \catalogPosts -> modify
+            ( \m -> m
+                { catalog_posts = catalogPosts
+                , between_pages = False
+                }
+            )
+        -- TODO: maybe we need to set between_pages=False here
 
 mainUpdate (ClientResponse (Client.ReturnResult SenderThread result)) = do
     io_ $ consoleLog $ SenderThread <> " - Has result. Storing result in model."
@@ -142,7 +148,9 @@ mainUpdate (GetThread Client.GetThreadArgs {..}) = do
 
     model <- get
 
-    io_ $ pushURI $ new_current_uri model
+    io_ $ do
+        consoleLog $ "calling pushURI on " <> (toMisoString $ show (new_current_uri model))
+        pushURI $ new_current_uri model
 
     publish Client.clientInTopic (SenderThread, Client.GetThread Client.GetThreadArgs {..})
 
@@ -161,22 +169,22 @@ mainUpdate (ChangeURI uri) = do
     model <- get
 
     if not $ between_pages model then do
-        io_ $ consoleLog "Not between pages, issuing initialAction"
+        io_ $ consoleLog $ "Not between pages, issuing initialAction, between_pages: " <> (toMisoString $ show $ (between_pages model))
         issue $ initialActionFromRoute model uri
     else do
         io_ $ consoleLog "Between pages."
         modify (\m -> m { between_pages = False })
 
 mainUpdate (SearchResults (searchTerm, catalogPosts)) = do
-    model <- get
-
     modify (\m -> m { catalog_posts = catalogPosts, between_pages = True })
+
+    model <- get
 
     io_ $ do
         consoleLog $ "Old URI:" <> (toMisoString $ show $ current_uri model)
         searchTermURIComponent <- encodeURIComponent searchTerm
         let new_uri = newCurrentURI model searchTermURIComponent
-        consoleLog $ "SearchResults new uri: " <> (toMisoString $ show new_uri)
+        consoleLog $ "SearchResults pushURI new uri: " <> (toMisoString $ show new_uri)
         pushURI new_uri
 
     where
@@ -184,11 +192,13 @@ mainUpdate (SearchResults (searchTerm, catalogPosts)) = do
         newCurrentURI m searchTermURIComponent = (current_uri m)
             { uriPath = "search"
             , uriQueryString = Map.singleton
-                "search"
+                "q"
                 $ Just searchTermURIComponent
             }
 
-mainUpdate (NotifySearch searchTerm) = publish Search.searchInTopic searchTerm
+mainUpdate (NotifySearch searchTerm) = do
+    io_ $ consoleLog $ "NotifySearch " <> searchTerm
+    publish Search.searchInTopic searchTerm
 
 
 (</>) :: MisoString -> MisoString -> MisoString
@@ -208,7 +218,7 @@ initialActionFromRoute model uri = fromRight NoAction routing_result
         handlers = h_latest :<|> h_thread :<|> h_search
 
         h_latest :: Model -> Action
-        h_latest = const $ GoToTime $ current_time model
+        h_latest = GoToTime . current_time
 
         h_thread :: Text -> Text -> BoardThreadId -> Model -> Action
         h_thread website board_pathpart board_thread_id _ =
@@ -220,11 +230,7 @@ initialActionFromRoute model uri = fromRight NoAction routing_result
 
         h_search :: Maybe String -> Model -> Action
         h_search Nothing m = GoToTime $ current_time m
-        h_search (Just search_query) m
-            | search_term m == unescaped_search_query =
-                SearchResults (unescaped_search_query, [])
-            | otherwise = NotifySearch $ unescaped_search_query
-
+        h_search (Just search_query) _ = NotifySearch unescaped_search_query
             where
                 unescaped_search_query =
                     toMisoString $ unEscapeString $ search_query

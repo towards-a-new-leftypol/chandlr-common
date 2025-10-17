@@ -12,7 +12,7 @@ import Miso
     , URI (..)
     )
 import qualified Miso as M
-import Miso.String (toMisoString)
+import Miso.String (toMisoString, MisoString)
 import Data.Proxy
 import Servant.API hiding (URI)
 import Servant.Miso.Router (route)
@@ -27,6 +27,7 @@ import Common.FrontEnd.Model
 import Common.FrontEnd.Views
 import Common.FrontEnd.Action
 import Common.FrontEnd.Types
+import Utils (pageTypeFromURI, PageType (..))
 #if defined(FRONT_END)
 import Common.FrontEnd.Update
 import Miso (JSM)
@@ -85,13 +86,14 @@ initializeModel ctxRef = do
 
     let settings = init_settings ctx
     let initialPayload = init_payload ctx
+    let uri = init_uri ctx
 
     return
           Model
               { current_uri = init_uri ctx
               , media_root_ = toMisoString $ media_root settings
               , current_time = timestamp initialPayload
-              , search_term = "" -- TODO: get this from URL
+              , search_term = termFromUri uri
               , initial_action = NoAction
               , thread_message = Nothing
               , pg_api_root = toMisoString $ postgrest_url settings
@@ -99,6 +101,13 @@ initializeModel ctxRef = do
               , catalog_posts = Grid.initialItems $ initialData initialPayload
               , between_pages = False
               }
+
+    where
+        termFromUri :: URI -> MisoString
+        termFromUri u =
+            case pageTypeFromURI u of
+                Search (Just q) -> q
+                _ -> ""
 
 
 mainView :: InitCtxRef -> Model -> View Model Action

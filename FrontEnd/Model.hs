@@ -33,3 +33,9 @@ getSetMediaRoot =
     Lens
         media_root_
         (\x model -> model { media_root_ = x })
+
+getSetSearchTerm :: Lens Model MisoString
+getSetSearchTerm =
+    Lens
+        search_term
+        (\s model -> model { search_term = s })
