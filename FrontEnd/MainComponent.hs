@@ -18,6 +18,7 @@ import Servant.API hiding (URI)
 import Servant.Miso.Router (route)
 import Data.IORef (readIORef)
 import qualified Data.Map.Strict as Map
+import Network.URI (unEscapeString)
 
 import Common.FrontEnd.JSONSettings (JSONSettings (..))
 import qualified Common.Component.CatalogGrid as Grid
@@ -93,7 +94,7 @@ initializeModel ctxRef = do
               { current_uri = init_uri ctx
               , media_root_ = toMisoString $ media_root settings
               , current_time = timestamp initialPayload
-              , search_term = termFromUri uri
+              , search_term = searchTermFromUri uri
               , initial_action = NoAction
               , thread_message = Nothing
               , pg_api_root = toMisoString $ postgrest_url settings
@@ -103,10 +104,10 @@ initializeModel ctxRef = do
               }
 
     where
-        termFromUri :: URI -> MisoString
-        termFromUri u =
+        searchTermFromUri :: URI -> MisoString
+        searchTermFromUri u =
             case pageTypeFromURI u of
-                Search (Just q) -> q
+                Search (Just q) -> toMisoString $ unEscapeString q
                 _ -> ""
 
 

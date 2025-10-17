@@ -16,7 +16,7 @@ import Miso
     , View
     , URI
     )
-import Miso.String (toMisoString, MisoString)
+import Miso.String (toMisoString)
 import Servant.Miso.Router (route)
 import Data.Proxy (Proxy (..))
 import Servant.API hiding (URI)
@@ -48,7 +48,7 @@ helper (Http.HttpResponse status_code status_text (Just body)) continue = do
 helper _ _ = return () -- No body, nothing to parse
 
 
-data PageType = Catalog | Search (Maybe MisoString) | Thread
+data PageType = Catalog | Search (Maybe String) | Thread
     deriving Eq
 
 
@@ -69,4 +69,4 @@ pageTypeFromURI = do
         hThread = const $ const $ const $ const Thread
 
         hSearch :: Maybe String -> m -> PageType
-        hSearch q = const $ Search (toMisoString <$> q)
+        hSearch = const . Search
