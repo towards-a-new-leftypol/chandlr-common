@@ -16,6 +16,7 @@ data Action
     | OnMessageError MisoString
     | UpdatePostBodies UTCTime [ PostWithBody ]
     | Initialize
+    | OnDeleteBtn
     deriving Eq
 
 data Message = RenderSite MisoString Site

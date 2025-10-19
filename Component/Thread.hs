@@ -70,6 +70,7 @@ import qualified Common.Component.BodyRender as Body
 import Common.Component.Thread.Types
 import qualified Common.FrontEnd.JSONSettings as Settings
 import Common.FrontEnd.Types
+import Common.Admin.DeleteBtn (deleteBtn)
 
 initialModel :: MisoString -> Site -> Model
 initialModel m_root s = Model
@@ -153,8 +154,10 @@ update (UpdatePostBodies t pwbs) = do
         changeModel Uninitialized = Uninitialized
         changeModel m = m { post_bodies = pwbs, current_time = t }
 
+update OnDeleteBtn = io_ $ consoleLog "OnDeleteBtn"
 
-view :: Model -> View model a
+
+view :: Model -> View model Action
 view Uninitialized = text ""
 view m =
   div_
@@ -231,7 +234,7 @@ multi post
     | otherwise = []
 
 
-reply :: Model -> Backlinks -> PostWithBody -> View model a
+reply :: Model -> Backlinks -> PostWithBody -> View model Action
 reply m backlinks (post, parts) = div_
     [ class_ "postcontainer"
     , id_ $ toMisoString $ show $ Post.board_post_id post
@@ -245,6 +248,7 @@ reply m backlinks (post, parts) = div_
             ] ++ multi post
         )
         [ intro site_ board thread post backlinks $ current_time m
+        , deleteBtn OnDeleteBtn
         , files_or_embed_view
         , div_
             [ class_ "body" ]
@@ -253,7 +257,7 @@ reply m backlinks (post, parts) = div_
     ]
 
     where
-        files_or_embed_view :: View model a
+        files_or_embed_view :: View model Action
         files_or_embed_view =
           case (Post.embed post) of
             Just _ -> embed post

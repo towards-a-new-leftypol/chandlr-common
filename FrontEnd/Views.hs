@@ -63,7 +63,7 @@ pageWrapperWithDefaults (Model {..}) inner_content =
                 ]
             )
             Client.app
-        , pre_ [] [ text $ "between_pages: " <> if between_pages then "True" else "False" ]
+        -- , pre_ [] [ text $ "between_pages: " <> if between_pages then "True" else "False" ]
         , inner_content
         ]
 
