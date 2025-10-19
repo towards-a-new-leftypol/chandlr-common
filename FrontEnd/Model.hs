@@ -20,6 +20,7 @@ data Model = Model
     , client_fetch_count :: Int
     , catalog_posts :: [ CatalogPost ]
     , between_pages :: Bool
+    , admin :: Bool
     } deriving Eq
 
 getSetCatalogPosts :: Lens Model [ CatalogPost ]
@@ -39,3 +40,10 @@ getSetSearchTerm =
     Lens
         search_term
         (\s model -> model { search_term = s })
+
+
+getSetAdmin :: Lens Model Bool
+getSetAdmin =
+    Lens
+        admin
+        (\s model -> model { admin = s })

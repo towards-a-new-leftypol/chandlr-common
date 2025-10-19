@@ -19,7 +19,7 @@ import Servant.Miso.Router (route)
 import Data.IORef (readIORef)
 import qualified Data.Map.Strict as Map
 
-import Common.FrontEnd.JSONSettings (JSONSettings (..))
+import qualified Common.FrontEnd.JSONSettings as Settings
 import qualified Common.Component.CatalogGrid as Grid
 import Common.Component.TimeControl (earliest)
 import Common.FrontEnd.Routes
@@ -71,6 +71,7 @@ app ctxRef =
             , client_fetch_count = 0
             , catalog_posts = []
             , between_pages = False
+            , admin = False
             }
 
 
@@ -91,15 +92,16 @@ initializeModel ctxRef = do
     return
           Model
               { current_uri = init_uri ctx
-              , media_root_ = toMisoString $ media_root settings
+              , media_root_ = toMisoString $ Settings.media_root settings
               , current_time = timestamp initialPayload
               , search_term = searchTermFromUri uri
               , initial_action = NoAction
               , thread_message = Nothing
-              , pg_api_root = toMisoString $ postgrest_url settings
-              , client_fetch_count = postgrest_fetch_count settings
+              , pg_api_root = toMisoString $ Settings.postgrest_url settings
+              , client_fetch_count = Settings.postgrest_fetch_count settings
               , catalog_posts = Grid.initialItems $ initialData initialPayload
               , between_pages = False
+              , admin = Settings.admin settings
               }
 
     where

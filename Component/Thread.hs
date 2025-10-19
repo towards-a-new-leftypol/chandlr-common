@@ -41,6 +41,7 @@ import Miso.Html.Property
   , id_
   )
 import qualified Miso as M
+import Miso.Binding ((-->))
 import Data.List.NonEmpty (head, toList)
 import qualified Data.List as L
 import Miso.String (toMisoString, MisoString)
@@ -71,6 +72,7 @@ import Common.Component.Thread.Types
 import qualified Common.FrontEnd.JSONSettings as Settings
 import Common.FrontEnd.Types
 import Common.Admin.DeleteBtn (deleteBtn)
+import qualified Common.FrontEnd.Model as FE
 
 initialModel :: MisoString -> Site -> Model
 initialModel m_root s = Model
@@ -78,6 +80,7 @@ initialModel m_root s = Model
     , post_bodies = []
     , media_root = m_root
     , current_time = UTCTime (ModifiedJulianDay 0) (secondsToDiffTime 0)
+    , admin = False
     }
 
 type ThreadComponent parent = Component parent Model Action
@@ -85,7 +88,7 @@ type ThreadComponent parent = Component parent Model Action
 threadTopic :: Topic Message
 threadTopic = topic "thread"
 
-app :: InitCtxRef -> ThreadComponent parent
+app :: InitCtxRef -> ThreadComponent FE.Model
 app ctxRef = M.Component
     { M.model = Uninitialized
     , M.hydrateModel = Just $ initializeModel ctxRef
@@ -99,7 +102,7 @@ app ctxRef = M.Component
     , M.logLevel = M.DebugAll
     , M.scripts = []
     , M.mailbox = const Nothing
-    , M.bindings = []
+    , M.bindings = [ FE.getSetAdmin --> getSetAdmin ]
     }
 
 #ifdef FRONT_END
@@ -121,6 +124,7 @@ initializeModel ctxRef = do
             , media_root = Settings.media_root settings
             , post_bodies = pwbs
             , current_time = t
+            , admin = Settings.admin settings
             }
 
     _ -> return Uninitialized
@@ -180,7 +184,7 @@ view m =
         backlinks :: Backlinks
         backlinks = collectBacklinks (post_bodies m)
 
-        op_post :: [ Post ] -> [ View model a ]
+        op_post :: [ Post ] -> [ View model Action ]
         op_post [] = [ h2_ [] [ "There's nothing here" ] ]
         op_post (x:_) = op m x backlinks
 
@@ -190,20 +194,23 @@ view m =
         board = Board.pathpart $ head $ Site.boards (site m)
 
 
-op :: Model -> Post -> Backlinks -> [ View model a ]
+op :: Model -> Post -> Backlinks -> [ View model Action ]
 op m op_post backlinks =
-    [ files_or_embed_view
-    , div_
+    [ div_
         (
             [ class_ "post op"
             , id_ $ toMisoString $ show $ Post.board_post_id op_post
             ] ++ multi op_post
         )
-        [ intro site_ board thread op_post backlinks $ current_time m
-        , div_
+        ( (intro site_ board thread op_post backlinks $ current_time m)
+        : files_or_embed_view
+        : (deleteBtn_ m)
+        ++
+        [ div_
             [ class_ "body" ]
             (body $ post_bodies m)
         ]
+        )
     ]
 
     where
@@ -247,13 +254,15 @@ reply m backlinks (post, parts) = div_
             [ class_ "post reply"
             ] ++ multi post
         )
-        [ intro site_ board thread post backlinks $ current_time m
-        , deleteBtn OnDeleteBtn
-        , files_or_embed_view
+        ( (intro site_ board thread post backlinks $ current_time m)
+        : (deleteBtn_ m)
+        ++
+        [ files_or_embed_view
         , div_
             [ class_ "body" ]
             (Body.render site_ parts)
         ]
+        )
     ]
 
     where
@@ -272,3 +281,8 @@ reply m backlinks (post, parts) = div_
         thread :: Thread
         thread = head $ Board.threads board
 
+
+deleteBtn_ :: Model -> [ View model Action ]
+deleteBtn_ m
+  | admin m = [ deleteBtn OnDeleteBtn ]
+  | otherwise = []
