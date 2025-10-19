@@ -24,7 +24,6 @@ import Miso.Html
     , time_
     , div_
     , p_
-    , pre_
     )
 import Miso.String (MisoString, toMisoString)
 import qualified Miso.String as Str
@@ -53,7 +52,7 @@ search = mount (div_ [ key_ ("search" :: MisoString) ]) Search.app
 
 
 pageWrapperWithDefaults :: Model -> View model Action -> View model Action
-pageWrapperWithDefaults (Model {..}) inner_content =
+pageWrapperWithDefaults _ inner_content =
     div_ [ key_ ("top-level" :: MisoString) ]
         [ mount
             (div_

@@ -25,6 +25,7 @@ data JSONSettings = JSONSettings
     , media_root :: MisoString
     , static_serve_path :: String
     , static_serve_url_root :: String
+    , admin :: Bool
     } deriving (Show, Generic)
 
 instance FromJSON JSONSettings
@@ -35,6 +36,7 @@ asHtml settings =
     [ meta "postgrest-url" (toMisoString $ postgrest_url settings)
     , meta "postgrest-fetch-count" (toMisoString $ postgrest_fetch_count settings)
     , meta "media-root" (toMisoString $ media_root settings)
+    , meta "admin" (if admin settings then "True" else "False")
     ]
 
     where

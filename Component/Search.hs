@@ -24,7 +24,6 @@ import Miso
   , subscribe
   )
 import qualified Miso as M
-import Miso.Binding ((-->))
 
 import Common.Component.Search.SearchTypes
 import Common.Component.Search.View
