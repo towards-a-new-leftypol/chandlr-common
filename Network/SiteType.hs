@@ -23,6 +23,15 @@ data Site = Site
   } deriving (Show, Generic, FromJSON, ToJSON, Eq)
 
 
+emptySite :: Site
+emptySite = Site
+    { site_id = -1
+    , name = ""
+    , url = ""
+    , boards = singleton B.emptyBoard
+    }
+
+
 fromCatalogPost :: Ct.CatalogPost -> Site
 fromCatalogPost p =
     Site

@@ -4,10 +4,12 @@
 module Common.Network.ThreadType where
 
 import GHC.Generics
-import Data.Time.Clock (UTCTime)
 import Data.Aeson (FromJSON, ToJSON)
 import Data.List.NonEmpty
-import Common.Network.PostType (Post)
+import Data.Time.Clock (UTCTime)
+
+import Common.Network.PostType (Post, emptyPost)
+import Common.Utils (fakeTime)
 
 data Thread = Thread
   { thread_id       :: Integer
@@ -16,3 +18,12 @@ data Thread = Thread
   , board_id        :: Int
   , posts           :: NonEmpty Post
   } deriving (Show, Generic, FromJSON, ToJSON, Eq)
+
+emptyThread :: Thread
+emptyThread = Thread
+    { thread_id = -1
+    , board_thread_id = -1
+    , creation_time = fakeTime
+    , board_id = -1
+    , posts = singleton emptyPost
+    }

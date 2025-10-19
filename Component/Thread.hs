@@ -5,7 +5,6 @@
 module Common.Component.Thread
 ( Model (..)
 , PostWithBody
-, initialModel
 , Action (..)
 , update
 , view
@@ -45,8 +44,7 @@ import Miso.Binding ((-->))
 import Data.List.NonEmpty (head, toList)
 import qualified Data.List as L
 import Miso.String (toMisoString, MisoString)
-import Data.Time.Clock (UTCTime (..), secondsToDiffTime, getCurrentTime)
-import Data.Time.Calendar (Day (..))
+import Data.Time.Clock (getCurrentTime)
 import Control.Monad.IO.Class (liftIO)
 import Control.Monad.State (modify)
 import Data.IORef (readIORef)
@@ -74,15 +72,6 @@ import Common.FrontEnd.Types
 import Common.Admin.DeleteBtn (deleteBtn)
 import qualified Common.FrontEnd.Model as FE
 
-initialModel :: MisoString -> Site -> Model
-initialModel m_root s = Model
-    { site = s
-    , post_bodies = []
-    , media_root = m_root
-    , current_time = UTCTime (ModifiedJulianDay 0) (secondsToDiffTime 0)
-    , admin = False
-    }
-
 type ThreadComponent parent = Component parent Model Action
 
 threadTopic :: Topic Message
@@ -90,7 +79,7 @@ threadTopic = topic "thread"
 
 app :: InitCtxRef -> ThreadComponent FE.Model
 app ctxRef = M.Component
-    { M.model = Uninitialized
+    { M.model = emptyModel
     , M.hydrateModel = Just $ initializeModel ctxRef
     , M.update = update
     , M.view = view
@@ -127,13 +116,13 @@ initializeModel ctxRef = do
             , admin = Settings.admin settings
             }
 
-    _ -> return Uninitialized
+    _ -> return emptyModel
 
 
 update :: Action -> Effect parent Model Action
 update Initialize = subscribe threadTopic OnMessage OnMessageError
-update (OnMessage (RenderSite m_root s)) = do
-    modify changeModel
+update (OnMessage (RenderSite _ s)) = do
+    modify (\m -> m { site = s })
 
     io $ do
         consoleLog "Thread - received RenderSite message"
@@ -141,28 +130,17 @@ update (OnMessage (RenderSite m_root s)) = do
         now <- liftIO $ getCurrentTime
         return $ UpdatePostBodies now pwbs
 
-    where
-        changeModel :: Model -> Model
-        changeModel Uninitialized = initialModel m_root s
-        changeModel m = m { site = s }
-
 update (OnMessageError msg) =
     io_ $ consoleError ("Thread Component Message decode failure: " <> toMisoString msg)
 
 update (UpdatePostBodies t pwbs) = do
     io_ $ consoleLog "Thread - update UpdatePostBodies case"
-    modify changeModel
-
-    where
-        changeModel :: Model -> Model
-        changeModel Uninitialized = Uninitialized
-        changeModel m = m { post_bodies = pwbs, current_time = t }
+    modify (\m -> m { post_bodies = pwbs, current_time = t })
 
 update OnDeleteBtn = io_ $ consoleLog "OnDeleteBtn"
 
 
 view :: Model -> View model Action
-view Uninitialized = text ""
 view m =
   div_
     []

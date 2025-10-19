@@ -21,11 +21,14 @@ import Servant.Miso.Router (route)
 import Data.Proxy (Proxy (..))
 import Servant.API hiding (URI)
 import Data.Either (fromRight)
+import Data.Time.Clock
+    ( UTCTime (..)
+    , secondsToDiffTime
+    )
+import Data.Time.Calendar (fromGregorian)
 
 import qualified Common.Network.HttpTypes as Http
 import Common.FrontEnd.Routes (Route)
-import Common.FrontEnd.Model (Model)
-import Common.FrontEnd.Action (Action)
 
 helper
     :: (FromJSON a)
@@ -58,7 +61,7 @@ pageTypeFromURI = do
     fromRight Catalog . routeResult
 
     where
-        routeResult uri = route (Proxy :: Proxy (Route (View Model Action))) handlers (const uri) undefined
+        routeResult uri = route (Proxy :: Proxy (Route (View () ()))) handlers (const uri) undefined
 
         handlers = hLatest :<|> hThread :<|> hSearch
 
@@ -70,3 +73,7 @@ pageTypeFromURI = do
 
         hSearch :: Maybe String -> m -> PageType
         hSearch = const . Search
+
+
+fakeTime :: UTCTime
+fakeTime = UTCTime (fromGregorian 0 0 0) (secondsToDiffTime 0)
