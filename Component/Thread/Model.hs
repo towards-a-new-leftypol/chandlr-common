@@ -38,3 +38,10 @@ getSetAdmin =
     Lens
         admin
         (\s model -> model { admin = s })
+
+
+getSetMediaRoot :: Lens Model MisoString
+getSetMediaRoot =
+    Lens
+        media_root
+        (\x model -> model { media_root = x })

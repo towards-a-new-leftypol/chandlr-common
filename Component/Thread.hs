@@ -93,7 +93,10 @@ app ctxRef = M.Component
     , M.logLevel = M.DebugAll
     , M.scripts = []
     , M.mailbox = const Nothing
-    , M.bindings = [ FE.getSetAdmin --> getSetAdmin ]
+    , M.bindings =
+        [ FE.getSetAdmin --> getSetAdmin
+        , FE.getSetMediaRoot --> getSetMediaRoot
+        ]
     }
 
 #ifdef FRONT_END
@@ -139,7 +142,7 @@ update (UpdatePostBodies t pwbs) = do
     io_ $ consoleLog "Thread - update UpdatePostBodies case"
     modify (\m -> m { post_bodies = pwbs, current_time = t })
 
-update OnDeleteBtn = do
+update (OnDeleteBtn pwb) = do
     io_ $ consoleLog "OnDeleteBtn"
     publish DIP.deleteIllegalPostInTopic DIP.InMessage
 
@@ -171,7 +174,7 @@ view m =
         op_post (x:_) = op m x backlinks
 
         title :: MisoString
-        title = toMisoString $ (Site.name $ site m) <> " /" <> board <> "/"
+        title = toMisoString $ Site.name (site m) <> " /" <> board <> "/"
 
         board = Board.pathpart $ head $ Site.boards (site m)
 
@@ -184,9 +187,9 @@ op m op_post backlinks =
             , id_ $ toMisoString $ show $ Post.board_post_id op_post
             ] ++ multi op_post
         )
-        ( (intro site_ board thread op_post backlinks $ current_time m)
+        ( intro site_ board thread op_post backlinks (current_time m)
         : files_or_embed_view
-        : (deleteBtn_ m)
+        : deleteBtn_ m (L.head $ post_bodies m)
         ++
         [ div_
             [ class_ "body" ]
@@ -198,10 +201,10 @@ op m op_post backlinks =
     where
         files_or_embed_view :: View model a
         files_or_embed_view =
-          case (Post.embed op_post) of
+          case Post.embed op_post of
             Just _ -> embed op_post
             Nothing -> files (media_root m) site_ op_post
-        
+
 
         site_ :: Site
         site_ = site m
@@ -224,7 +227,7 @@ multi post
 
 
 reply :: Model -> Backlinks -> PostWithBody -> View model Action
-reply m backlinks (post, parts) = div_
+reply m backlinks pwb@(post, parts) = div_
     [ class_ "postcontainer"
     , id_ $ toMisoString $ show $ Post.board_post_id post
     ]
@@ -232,12 +235,9 @@ reply m backlinks (post, parts) = div_
         [ class_ "sidearrows" ]
         [ text ">>" ]
     , div_
-        (
-            [ class_ "post reply"
-            ] ++ multi post
-        )
-        ( (intro site_ board thread post backlinks $ current_time m)
-        : (deleteBtn_ m)
+        ( class_ "post reply" : multi post )
+        ( intro site_ board thread post backlinks (current_time m)
+        : deleteBtn_ m pwb
         ++
         [ files_or_embed_view
         , div_
@@ -264,7 +264,7 @@ reply m backlinks (post, parts) = div_
         thread = head $ Board.threads board
 
 
-deleteBtn_ :: Model -> [ View model Action ]
-deleteBtn_ m
-  | admin m = [ deleteBtn OnDeleteBtn ]
+deleteBtn_ :: Model -> PostWithBody -> [ View model Action ]
+deleteBtn_ m p
+  | admin m = [ deleteBtn (OnDeleteBtn p) ]
   | otherwise = []
