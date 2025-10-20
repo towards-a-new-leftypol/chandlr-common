@@ -10,6 +10,7 @@ import Miso
     , defaultEvents
     , uriSub
     , URI (..)
+    , JSM
     )
 import qualified Miso as M
 import Miso.String (toMisoString, MisoString)
@@ -18,6 +19,7 @@ import Servant.API hiding (URI)
 import Servant.Miso.Router (route)
 import Data.IORef (readIORef)
 import qualified Data.Map.Strict as Map
+import Control.Monad.IO.Class (liftIO)
 
 import qualified Common.FrontEnd.JSONSettings as Settings
 import qualified Common.Component.CatalogGrid as Grid
@@ -30,8 +32,6 @@ import Common.FrontEnd.Types
 import Common.Utils (pageTypeFromURI, PageType (..))
 #if defined(FRONT_END)
 import Common.FrontEnd.Update
-import Miso (JSM)
-import Control.Monad.IO.Class (liftIO)
 #endif
 
 type MainComponent = App Model Action
@@ -75,13 +75,8 @@ app ctxRef =
             }
 
 
-#ifdef FRONT_END
-initializeModel :: InitCtxRef -> JSM Model
-initializeModel ctxRef = liftIO $ do
-#else
-initializeModel :: InitCtxRef -> IO Model
-initializeModel ctxRef = do
-#endif
+initializeModel :: InitCtxRef -> URI -> JSM Model
+initializeModel ctxRef = const $ liftIO $ do
     putStrLn "MainComponent initializeModel"
     ctx <- readIORef ctxRef
 

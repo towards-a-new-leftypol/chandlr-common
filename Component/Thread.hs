@@ -1,6 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE DataKinds #-}
-{-# LANGUAGE CPP #-}
 
 module Common.Component.Thread
 ( Model (..)
@@ -30,6 +29,8 @@ import Miso
   , consoleLog
   , subscribe
   , publish
+  , JSM
+  , URI
   )
 import Miso.Html
   ( div_
@@ -49,9 +50,6 @@ import Data.Time.Clock (getCurrentTime)
 import Control.Monad.IO.Class (liftIO)
 import Control.Monad.State (modify)
 import Data.IORef (readIORef)
-#ifdef FRONT_END
-import Miso (JSM)
-#endif
 
 import Common.Network.SiteType (Site)
 import qualified Common.Network.SiteType as Site
@@ -99,13 +97,8 @@ app ctxRef = M.Component
         ]
     }
 
-#ifdef FRONT_END
-initializeModel :: InitCtxRef -> JSM Model
-initializeModel ctxRef = liftIO $ do
-#else
-initializeModel :: InitCtxRef -> IO Model
-initializeModel ctxRef = do
-#endif
+initializeModel :: InitCtxRef -> URI -> JSM Model
+initializeModel ctxRef = const $ liftIO $ do
   ctx <- readIORef ctxRef
 
   let settings = init_settings ctx
@@ -144,7 +137,7 @@ update (UpdatePostBodies t pwbs) = do
 
 update (OnDeleteBtn pwb) = do
     io_ $ consoleLog "OnDeleteBtn"
-    publish DIP.deleteIllegalPostInTopic DIP.InMessage
+    publish DIP.deleteIllegalPostInTopic $ DIP.InMessage pwb
 
 
 view :: Model -> View model Action
@@ -154,7 +147,7 @@ view m =
     [ h1_ [] [ text title ]
     , div_
         [ class_ "thread" ]
-        (  (op_post thread_posts)
+        (  op_post thread_posts
         ++ map (reply m backlinks) (drop 1 (post_bodies m))
         )
     ]

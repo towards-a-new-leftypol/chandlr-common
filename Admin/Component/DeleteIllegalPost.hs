@@ -27,14 +27,22 @@ import Miso.CSS
     )
 import GHC.Generics (Generic)
 import Data.Aeson (ToJSON, FromJSON)
+import Control.Monad.State (modify)
 
-type Model = ()
+import Common.Component.Thread.Model (PostWithBody)
+
+data Model = Model
+    { postWithBody :: Maybe PostWithBody
+    , displayModal :: Bool
+    }
+    deriving Eq
+
 data Action
     = Initialize
     | OnMessageIn InMessage
     | OnErrorMessage MisoString
 
-data InMessage = InMessage
+newtype InMessage = InMessage PostWithBody
     deriving (Generic, ToJSON, FromJSON)
 
 deleteIllegalPostInTopic :: Topic InMessage
@@ -42,10 +50,13 @@ deleteIllegalPostInTopic = topic "deleteIllegal-in"
 
 type DeleteIllegalPostComponent parent = M.Component parent Model Action
 
+initialModel :: Model
+initialModel = Model Nothing False
+
 
 app :: DeleteIllegalPostComponent parent
 app = M.Component
-    { M.model = ()
+    { M.model = initialModel
     , M.hydrateModel = Nothing
     , M.update = update
     , M.view = view
@@ -66,8 +77,15 @@ update Initialize = do
     io_ $ consoleLog "DeleteIllegalPostComponent Init"
     subscribe deleteIllegalPostInTopic OnMessageIn OnErrorMessage
 
-update (OnMessageIn _) = io_ $ consoleLog "DeleteIllegalPostComponent received a message!"
+update (OnMessageIn (InMessage pwb)) = do
+    io_ $ consoleLog "DeleteIllegalPostComponent received a message!"
+    modify (\m -> m { displayModal = True, postWithBody = Just pwb } )
+
 update (OnErrorMessage e) = io_ $ consoleError e
 
 view :: Model -> View model Action
-view _ = div_ [ style_ [ display "none" ] ] []
+view m = div_ hide []
+    where
+        hide
+            | displayModal m = []
+            | otherwise = [ style_ [ display "none" ] ]
