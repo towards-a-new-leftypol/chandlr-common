@@ -29,6 +29,7 @@ import Miso
   , consoleError
   , consoleLog
   , subscribe
+  , publish
   )
 import Miso.Html
   ( div_
@@ -71,6 +72,7 @@ import qualified Common.FrontEnd.JSONSettings as Settings
 import Common.FrontEnd.Types
 import Common.Admin.DeleteBtn (deleteBtn)
 import qualified Common.FrontEnd.Model as FE
+import qualified Common.Admin.Component.DeleteIllegalPost as DIP
 
 type ThreadComponent parent = Component parent Model Action
 
@@ -137,7 +139,9 @@ update (UpdatePostBodies t pwbs) = do
     io_ $ consoleLog "Thread - update UpdatePostBodies case"
     modify (\m -> m { post_bodies = pwbs, current_time = t })
 
-update OnDeleteBtn = io_ $ consoleLog "OnDeleteBtn"
+update OnDeleteBtn = do
+    io_ $ consoleLog "OnDeleteBtn"
+    publish DIP.deleteIllegalPostInTopic DIP.InMessage
 
 
 view :: Model -> View model Action

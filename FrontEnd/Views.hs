@@ -38,6 +38,7 @@ import qualified Common.Component.TimeControl as TC
 import Common.FrontEnd.Routes (BoardThreadId)
 import qualified Network.Client as Client
 import Common.FrontEnd.Types (InitCtxRef)
+import qualified Common.Admin.Component.DeleteIllegalPost as DIP
 
 timeControl :: InitCtxRef -> View Model Action
 timeControl = mount (div_ [ key_ ("time-control" :: MisoString) ]) . TC.app
@@ -62,6 +63,10 @@ pageWrapperWithDefaults _ inner_content =
                 ]
             )
             Client.app
+        , mount
+            (div_ [ key_ ("delete-illegal-post" :: MisoString) ]
+            )
+            DIP.app
         -- , pre_ [] [ text $ "between_pages: " <> if between_pages then "True" else "False" ]
         , inner_content
         ]
