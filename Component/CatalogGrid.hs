@@ -90,8 +90,8 @@ app ctxRef =
         }
 
 
-initializeModel :: InitCtxRef -> URI -> JSM Model
-initializeModel ctxRef = const $ liftIO $ do
+initializeModel :: InitCtxRef -> IO Model
+initializeModel ctxRef = do
     putStrLn "CatalogGrid initializeModel"
     ctx <- readIORef ctxRef
 
