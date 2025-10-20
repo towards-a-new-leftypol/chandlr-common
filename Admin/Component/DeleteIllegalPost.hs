@@ -18,8 +18,10 @@ import Miso
     )
 
 import qualified Miso as M
+import Miso.Html.Property (class_)
 import Miso.Html.Element
     ( div_
+    , h1_
     )
 import Miso.CSS
     ( style_
@@ -30,6 +32,7 @@ import Data.Aeson (ToJSON, FromJSON)
 import Control.Monad.State (modify)
 
 import Common.Component.Thread.Model (PostWithBody)
+import qualified Common.Component.Modal as Modal
 
 data Model = Model
     { postWithBody :: Maybe PostWithBody
@@ -84,8 +87,20 @@ update (OnMessageIn (InMessage pwb)) = do
 update (OnErrorMessage e) = io_ $ consoleError e
 
 view :: Model -> View model Action
-view m = div_ hide []
+view m = div_ hide render
+
     where
         hide
-            | displayModal m = []
+            | displayModal m = [ class_ "modal-dialog" ]
             | otherwise = [ style_ [ display "none" ] ]
+
+        render
+            | displayModal m =
+                [ Modal.view
+                    ( Modal.Model
+                        { Modal.cancel = undefined
+                        , Modal.content = h1_ [] [ "Hello Modal" ]
+                        }
+                    )
+                ]
+            | otherwise = []
