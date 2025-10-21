@@ -64,7 +64,7 @@ pageWrapperWithDefaults _ inner_content =
             )
             Client.app
         , mount
-            (div_ [ key_ ("delete-illegal-post" :: MisoString) ]
+            ( div_ [ key_ ("delete-illegal-post" :: MisoString) ]
             )
             DIP.app
         -- , pre_ [] [ text $ "between_pages: " <> if between_pages then "True" else "False" ]
