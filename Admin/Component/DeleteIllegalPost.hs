@@ -14,6 +14,8 @@ import Miso
     , subscribe
     , io_
     , consoleError
+    , toMisoString
+    , text
     , View
     )
 
@@ -21,7 +23,8 @@ import qualified Miso as M
 import Miso.Html.Property (class_)
 import Miso.Html.Element
     ( div_
-    , h1_
+    , p_
+    , span_
     )
 import Miso.CSS
     ( style_
@@ -33,6 +36,11 @@ import Control.Monad.State (modify)
 
 import Common.Component.Thread.Model (PostWithBody)
 import qualified Common.Component.Modal as Modal
+import qualified Common.Network.PostType as P
+import JSFFI.Saddle
+    ( freezeBodyScrolling
+    , unFreezeBodyScrolling
+    )
 
 data Model = Model
     { postWithBody :: Maybe PostWithBody
@@ -44,6 +52,7 @@ data Action
     = Initialize
     | OnMessageIn InMessage
     | OnErrorMessage MisoString
+    | Cancel
 
 newtype InMessage = InMessage PostWithBody
     deriving (Generic, ToJSON, FromJSON)
@@ -83,8 +92,13 @@ update Initialize = do
 update (OnMessageIn (InMessage pwb)) = do
     io_ $ consoleLog "DeleteIllegalPostComponent received a message!"
     modify (\m -> m { displayModal = True, postWithBody = Just pwb } )
+    io_ freezeBodyScrolling
 
 update (OnErrorMessage e) = io_ $ consoleError e
+
+update Cancel = do
+    modify (\m -> m { displayModal = False, postWithBody = Nothing } )
+    io_ unFreezeBodyScrolling
 
 view :: Model -> View model Action
 view m = div_ hide render
@@ -98,9 +112,54 @@ view m = div_ hide render
             | displayModal m =
                 [ Modal.view
                     ( Modal.Model
-                        { Modal.cancel = undefined
-                        , Modal.content = h1_ [] [ "Hello Modal" ]
+                        { Modal.cancel = Cancel
+                        , Modal.submit = undefined
+                        , Modal.content = content
+                        , Modal.title = "Delete Post and Attachments?"
+                        , Modal.action = "Delete"
                         }
                     )
                 ]
             | otherwise = []
+
+        content =
+            case postWithBody m of
+                Nothing ->
+                    Modal.view
+                        ( Modal.Model
+                            { Modal.cancel = Cancel
+                            , Modal.submit = Cancel
+                            , Modal.content =
+                                div_
+                                    [ class_ "modal-dialog__content" ]
+                                    [ p_ [] [ "Nothing was selected to delete!" ]
+                                    ]
+                            , Modal.title = "Unexpected state!"
+                            , Modal.action = "Cancel"
+                            }
+                        )
+                Just pwb -> displayWarning pwb
+
+        displayWarning :: PostWithBody -> View model Action
+        displayWarning (post, postParts) =
+            div_ [ class_ "modal-dialog__content" ]
+                [ div_ [ class_ "warning-message" ]
+                    [ div_ [ class_ "warning-icon" ] []
+                    , "This will delete "
+                    , a
+                    , span_
+                        [ class_ "warning__strong-word" ]
+                        [ "No."
+                        , text $ toMisoString $ show $ P.board_post_id post
+                        ]
+                    ]
+                    , "as well as any other post containing the same attachments as this post."
+                ]
+
+            where
+                op :: Bool
+                op = P.local_idx post == 1
+
+                a
+                    | op = "thread"
+                    | otherwise = "post"

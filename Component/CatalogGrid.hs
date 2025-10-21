@@ -31,8 +31,6 @@ import Miso
     , publish
     , io_
     , consoleLog
-    , JSM
-    , URI
     )
 import Miso.Html
     ( div_
@@ -54,7 +52,6 @@ import qualified Data.JSString as JStr
 import qualified Miso as M
 import Miso.Binding ((-->))
 import Data.IORef (readIORef)
-import Control.Monad.IO.Class (liftIO)
 
 import Common.Network.CatalogPostType (CatalogPost)
 import qualified Common.Network.CatalogPostType as CatalogPost

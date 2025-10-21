@@ -64,6 +64,7 @@ fromCatalogPost p =
           , P.creation_time     = Ct.creation_time p
           , P.body              = Ct.body p
           , P.subject           = Ct.subject p
+          , P.local_idx         = 1
           , P.name              = Ct.name p
           , P.email             = Ct.email p
           , P.body_search_index = ""

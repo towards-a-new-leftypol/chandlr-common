@@ -17,6 +17,7 @@ data Post = Post
   , creation_time     :: UTCTime
   , body              :: Maybe MisoString
   , subject           :: Maybe MisoString
+  , local_idx         :: Int
   , name              :: Maybe MisoString
   , email             :: Maybe MisoString
   , body_search_index :: MisoString
@@ -33,6 +34,7 @@ emptyPost = Post
   , creation_time = fakeTime
   , body = Nothing
   , subject = Nothing
+  , local_idx = -1
   , name = Nothing
   , email = Nothing
   , body_search_index = ""
