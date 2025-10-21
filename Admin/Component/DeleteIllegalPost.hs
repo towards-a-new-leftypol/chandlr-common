@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DeriveAnyClass #-}
@@ -37,10 +38,12 @@ import Control.Monad.State (modify)
 import Common.Component.Thread.Model (PostWithBody)
 import qualified Common.Component.Modal as Modal
 import qualified Common.Network.PostType as P
+#ifdef FRONT_END
 import JSFFI.Saddle
     ( freezeBodyScrolling
     , unFreezeBodyScrolling
     )
+#endif
 
 data Model = Model
     { postWithBody :: Maybe PostWithBody
@@ -85,6 +88,7 @@ app = M.Component
 
 
 update :: Action -> Effect parent Model Action
+#ifdef FRONT_END
 update Initialize = do
     io_ $ consoleLog "DeleteIllegalPostComponent Init"
     subscribe deleteIllegalPostInTopic OnMessageIn OnErrorMessage
@@ -99,6 +103,9 @@ update (OnErrorMessage e) = io_ $ consoleError e
 update Cancel = do
     modify (\m -> m { displayModal = False, postWithBody = Nothing } )
     io_ unFreezeBodyScrolling
+#else
+update = undefined
+#endif
 
 view :: Model -> View model Action
 view m = div_ hide render
