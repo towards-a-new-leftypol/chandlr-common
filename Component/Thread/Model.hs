@@ -1,10 +1,14 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE DeriveAnyClass #-}
 
 module Common.Component.Thread.Model where
 
 import Data.Time.Clock (UTCTime)
 import Miso.String (MisoString)
 import Miso.Lens (Lens (..))
+import GHC.Generics
+import Data.Aeson (FromJSON, ToJSON)
 
 import Common.Network.SiteType (Site, emptySite)
 import Common.Network.PostType (Post)
@@ -20,7 +24,7 @@ data Model
     , post_bodies :: [ PostWithBody ]
     , current_time :: UTCTime
     , admin :: Bool
-    } deriving Eq
+    } deriving (Eq, Generic, FromJSON, ToJSON)
 
 
 emptyModel :: Model

@@ -28,6 +28,7 @@ import Miso
   , consoleLog
   , subscribe
   , publish
+  , get
   )
 import Miso.Html
   ( div_
@@ -58,6 +59,7 @@ import qualified Common.FrontEnd.JSONSettings as Settings
 import Common.FrontEnd.Types
 import qualified Common.FrontEnd.Model as FE
 import qualified Common.Admin.Component.DeleteIllegalPost as DIP
+import Common.Admin.DeleteBtn (deleteBtn)
 import Common.Component.PostViews (op, reply)
 
 type ThreadComponent parent = Component parent Model Action
@@ -125,7 +127,8 @@ update (UpdatePostBodies t pwbs) = do
 
 update (OnDeleteBtn pwb) = do
     io_ $ consoleLog "OnDeleteBtn"
-    publish DIP.deleteIllegalPostInTopic $ DIP.InMessage pwb
+    model <- get
+    publish DIP.deleteIllegalPostInTopic $ DIP.InMessage model { post_bodies = [ pwb ] }
 
 
 view :: Model -> View model Action
@@ -136,7 +139,7 @@ view m =
     , div_
         [ class_ "thread" ]
         (  op_post thread_posts
-        ++ map (reply OnDeleteBtn m backlinks) (drop 1 (post_bodies m))
+        ++ map (reply (deleteBtn_ m) m backlinks) (drop 1 (post_bodies m))
         )
     ]
 
@@ -152,9 +155,18 @@ view m =
 
         op_post :: [ Post ] -> [ View model Action ]
         op_post [] = [ h2_ [] [ "There's nothing here" ] ]
-        op_post (x:_) = op OnDeleteBtn m x backlinks
+        op_post (x:_) = op (deleteBtn_ m) m x backlinks
 
         title :: MisoString
         title = toMisoString $ Site.name (site m) <> " /" <> board <> "/"
 
         board = Board.pathpart $ head $ Site.boards (site m)
+
+
+deleteBtn_
+    :: Model
+    -> PostWithBody
+    -> [ View model Action ]
+deleteBtn_ m p
+  | admin m = [ deleteBtn (OnDeleteBtn p) ]
+  | otherwise = []

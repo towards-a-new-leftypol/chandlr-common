@@ -34,9 +34,10 @@ import Miso.CSS
 import GHC.Generics (Generic)
 import Data.Aeson (ToJSON, FromJSON)
 import Control.Monad.State (modify)
+import Data.Maybe (isJust)
 
-import Common.Component.Thread.Model (PostWithBody)
 import qualified Common.Component.Modal as Modal
+import qualified Common.Component.Thread.Model as T
 import qualified Common.Network.PostType as P
 #ifdef FRONT_END
 import JSFFI.Saddle
@@ -45,9 +46,8 @@ import JSFFI.Saddle
     )
 #endif
 
-data Model = Model
-    { postWithBody :: Maybe PostWithBody
-    , displayModal :: Bool
+newtype Model = Model
+    { threadData :: Maybe T.Model -- some may say this is lazy... really it's peak
     }
     deriving Eq
 
@@ -57,7 +57,7 @@ data Action
     | OnErrorMessage MisoString
     | Cancel
 
-newtype InMessage = InMessage PostWithBody
+newtype InMessage = InMessage T.Model
     deriving (Generic, ToJSON, FromJSON)
 
 deleteIllegalPostInTopic :: Topic InMessage
@@ -66,8 +66,7 @@ deleteIllegalPostInTopic = topic "deleteIllegal-in"
 type DeleteIllegalPostComponent parent = M.Component parent Model Action
 
 initialModel :: Model
-initialModel = Model Nothing False
-
+initialModel = Model Nothing
 
 app :: DeleteIllegalPostComponent parent
 app = M.Component
@@ -93,15 +92,15 @@ update Initialize = do
     io_ $ consoleLog "DeleteIllegalPostComponent Init"
     subscribe deleteIllegalPostInTopic OnMessageIn OnErrorMessage
 
-update (OnMessageIn (InMessage pwb)) = do
+update (OnMessageIn (InMessage x)) = do
     io_ $ consoleLog "DeleteIllegalPostComponent received a message!"
-    modify (\m -> m { displayModal = True, postWithBody = Just pwb } )
+    modify (\m -> m { threadData = Just x } )
     io_ freezeBodyScrolling
 
 update (OnErrorMessage e) = io_ $ consoleError e
 
 update Cancel = do
-    modify (\m -> m { displayModal = False, postWithBody = Nothing } )
+    modify (\m -> m { threadData = Nothing } )
     io_ unFreezeBodyScrolling
 #else
 update = undefined
@@ -112,43 +111,26 @@ view m = div_ hide render
 
     where
         hide
-            | displayModal m = [ class_ "modal-dialog" ]
+            | isJust $ threadData m = [ class_ "modal-dialog" ]
             | otherwise = [ style_ [ display "none" ] ]
 
-        render
-            | displayModal m =
-                [ Modal.view
-                    ( Modal.Model
-                        { Modal.cancel = Cancel
-                        , Modal.submit = undefined
-                        , Modal.content = content
-                        , Modal.title = "Delete post and attachments?"
-                        , Modal.action = "Delete"
-                        }
-                    )
-                ]
-            | otherwise = []
-
-        content =
-            case postWithBody m of
-                Nothing ->
-                    Modal.view
+        render =
+            case threadData m of
+                Nothing -> []
+                Just x ->
+                    [ Modal.view
                         ( Modal.Model
                             { Modal.cancel = Cancel
-                            , Modal.submit = Cancel
-                            , Modal.content =
-                                div_
-                                    [ class_ "modal-dialog__content" ]
-                                    [ p_ [] [ "Nothing was selected to delete!" ]
-                                    ]
-                            , Modal.title = "Unexpected state!"
-                            , Modal.action = "Cancel"
+                            , Modal.submit = undefined
+                            , Modal.content = displayWarning x
+                            , Modal.title = "Delete post and attachments?"
+                            , Modal.action = "Delete"
                             }
                         )
-                Just pwb -> displayWarning pwb
+                    ]
 
-        displayWarning :: PostWithBody -> View model Action
-        displayWarning (post, postParts) =
+        displayWarning :: T.Model -> View model Action
+        displayWarning T.Model { T.post_bodies = ((post, _):_) } =
             div_ [ class_ "modal-dialog__content" ]
                 [ div_ [ class_ "warning-message" ]
                     [ div_ [ class_ "warning-icon" ] [ "⚠" ]
@@ -172,3 +154,11 @@ view m = div_ hide render
                 a
                     | op = "thread "
                     | otherwise = "post "
+
+        displayWarning T.Model { T.post_bodies = [] } =
+            div_
+                [ class_ "modal-dialog__content" ]
+                [ div_ [ class_ "warning-message" ]
+                    [ p_ [] [ "Invalid state - no post information!" ]
+                    ]
+                ]

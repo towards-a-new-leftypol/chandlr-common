@@ -17,7 +17,6 @@ import Miso.Html.Property
   , id_
   )
 import Data.List.NonEmpty (head)
-import qualified Data.List as L
 
 import Common.Network.SiteType (Site)
 import qualified Common.Network.SiteType as Site
@@ -32,16 +31,15 @@ import Common.Component.Thread.Embed (embed)
 import Common.Component.Thread.Model
 import Common.Parsing.BodyParser
 import qualified Common.Component.BodyRender as Body
-import Common.Admin.DeleteBtn (deleteBtn)
 
 
 op
-    :: (PostWithBody -> action)
+    :: (PostWithBody -> [ View model action ])
     -> Model
     -> Post
     -> Backlinks
     -> [ View model action ]
-op mkDeleteAction m op_post backlinks =
+op introExtras m op_post backlinks =
     [ div_
         (
             [ class_ "post op"
@@ -50,7 +48,7 @@ op mkDeleteAction m op_post backlinks =
         )
         ( intro site_ board thread op_post backlinks (current_time m)
         : files_or_embed_view
-        : deleteBtn_ mkDeleteAction m (L.head $ post_bodies m)
+        : concatMap introExtras (post_bodies m)
         ++
         [ div_
             [ class_ "body" ]
@@ -88,12 +86,12 @@ multi post
 
 
 reply
-  :: (PostWithBody -> action)
+  :: (PostWithBody -> [ View model action ])
   -> Model
   -> Backlinks
   -> PostWithBody
   -> View model action
-reply mkDeleteAction m backlinks pwb@(post, parts) = div_
+reply introExtras m backlinks pwb@(post, parts) = div_
     [ class_ "postcontainer"
     , id_ $ toMisoString $ show $ Post.board_post_id post
     ]
@@ -103,7 +101,7 @@ reply mkDeleteAction m backlinks pwb@(post, parts) = div_
     , div_
         ( class_ "post reply" : multi post )
         ( intro site_ board thread post backlinks (current_time m)
-        : deleteBtn_ mkDeleteAction m pwb
+        : introExtras pwb
         ++
         [ files_or_embed_view
         , div_
@@ -128,13 +126,3 @@ reply mkDeleteAction m backlinks pwb@(post, parts) = div_
 
         thread :: Thread
         thread = head $ Board.threads board
-
-
-deleteBtn_
-    :: (PostWithBody -> action)
-    -> Model
-    -> PostWithBody
-    -> [ View model action ]
-deleteBtn_ mkDeleteAction m p
-  | admin m = [ deleteBtn (mkDeleteAction p) ]
-  | otherwise = []
