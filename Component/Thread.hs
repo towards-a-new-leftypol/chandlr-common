@@ -208,7 +208,7 @@ op m op_post backlinks =
 
         body :: [ PostWithBody ] -> [ View model a ]
         body [] = []
-        body x = Body.render site_ $ snd $ L.head x
+        body (x:_) = Body.render site_ $ snd x
 
 
 multi :: Post -> [ Attribute a ]

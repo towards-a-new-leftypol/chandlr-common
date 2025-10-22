@@ -122,7 +122,7 @@ view m = div_ hide render
                         { Modal.cancel = Cancel
                         , Modal.submit = undefined
                         , Modal.content = content
-                        , Modal.title = "Delete Post and Attachments?"
+                        , Modal.title = "Delete post and attachments?"
                         , Modal.action = "Delete"
                         }
                     )
@@ -151,16 +151,18 @@ view m = div_ hide render
         displayWarning (post, postParts) =
             div_ [ class_ "modal-dialog__content" ]
                 [ div_ [ class_ "warning-message" ]
-                    [ div_ [ class_ "warning-icon" ] []
-                    , "This will delete "
-                    , a
-                    , span_
-                        [ class_ "warning__strong-word" ]
-                        [ "No."
-                        , text $ toMisoString $ show $ P.board_post_id post
+                    [ div_ [ class_ "warning-icon" ] [ "⚠" ]
+                    , p_ []
+                        [ "This will delete "
+                        , a
+                        , span_
+                            [ class_ "warning-message__strong-word" ]
+                            [ "No."
+                            , text $ toMisoString $ show $ P.board_post_id post
+                            ]
+                        , " as well as any other post containing the same attachments as this post:"
                         ]
                     ]
-                    , "as well as any other post containing the same attachments as this post."
                 ]
 
             where
@@ -168,5 +170,5 @@ view m = div_ hide render
                 op = P.local_idx post == 1
 
                 a
-                    | op = "thread"
-                    | otherwise = "post"
+                    | op = "thread "
+                    | otherwise = "post "
