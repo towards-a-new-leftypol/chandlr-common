@@ -18,6 +18,7 @@ import Miso
     , toMisoString
     , text
     , View
+    , modify
     )
 
 import qualified Miso as M
@@ -146,14 +147,15 @@ view m = div_ hide render
                         , " as well as any other post containing the same attachments as this post:"
                         ]
                     ]
-                    , div_ [ class_ "modal-dialog__post-preview" ]
-                        (
-                            if isOp
-                            then
-                                op (const []) threadModel post Map.empty
-                            else
-                                [ reply (const []) threadModel Map.empty pwb ]
-                        )
+                , div_ [ class_ "modal-dialog__post-preview" ]
+                    (
+                        if isOp
+                        then
+                            op (const []) threadModel post Map.empty
+                            ++ [ div_ [ class_ "clearfix" ] [] ]
+                        else
+                            [ reply (const []) threadModel Map.empty pwb ]
+                    )
                 ]
 
             where
