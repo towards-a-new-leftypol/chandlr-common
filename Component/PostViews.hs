@@ -42,9 +42,9 @@ op
 op introExtras m op_post backlinks =
     [ div_
         (
-            [ class_ "post op"
-            , id_ $ toMisoString $ show $ Post.board_post_id op_post
-            ] ++ multi op_post
+            class_ (if admin m then "post op post-with-admin" else "post op")
+            : id_ (toMisoString $ show $ Post.board_post_id op_post)
+            : multi op_post
         )
         ( intro site_ board thread op_post backlinks (current_time m)
         : files_or_embed_view

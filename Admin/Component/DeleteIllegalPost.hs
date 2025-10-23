@@ -35,10 +35,12 @@ import GHC.Generics (Generic)
 import Data.Aeson (ToJSON, FromJSON)
 import Control.Monad.State (modify)
 import Data.Maybe (isJust)
+import qualified Data.Map as Map
 
 import qualified Common.Component.Modal as Modal
 import qualified Common.Component.Thread.Model as T
 import qualified Common.Network.PostType as P
+import Common.Component.PostViews (op, reply)
 #ifdef FRONT_END
 import JSFFI.Saddle
     ( freezeBodyScrolling
@@ -122,15 +124,15 @@ view m = div_ hide render
                         ( Modal.Model
                             { Modal.cancel = Cancel
                             , Modal.submit = undefined
-                            , Modal.content = displayWarning x
+                            , Modal.content = content x
                             , Modal.title = "Delete post and attachments?"
                             , Modal.action = "Delete"
                             }
                         )
                     ]
 
-        displayWarning :: T.Model -> View model Action
-        displayWarning T.Model { T.post_bodies = ((post, _):_) } =
+        content :: T.Model -> View model Action
+        content threadModel@T.Model { T.post_bodies = (pwb@(post, _):_) } =
             div_ [ class_ "modal-dialog__content" ]
                 [ div_ [ class_ "warning-message" ]
                     [ div_ [ class_ "warning-icon" ] [ "⚠" ]
@@ -145,17 +147,25 @@ view m = div_ hide render
                         , " as well as any other post containing the same attachments as this post:"
                         ]
                     ]
+                    , div_ [ class_ "modal-dialog__post-preview" ]
+                        (
+                            if isOp
+                            then
+                                op (const []) threadModel post Map.empty
+                            else
+                                [ reply (const []) threadModel Map.empty pwb ]
+                        )
                 ]
 
             where
-                op :: Bool
-                op = P.local_idx post == 1
+                isOp :: Bool
+                isOp = P.local_idx post == 1
 
                 a
-                    | op = "thread "
+                    | isOp = "thread "
                     | otherwise = "post "
 
-        displayWarning T.Model { T.post_bodies = [] } =
+        content T.Model { T.post_bodies = [] } =
             div_
                 [ class_ "modal-dialog__content" ]
                 [ div_ [ class_ "warning-message" ]
