@@ -33,7 +33,6 @@ import Miso.CSS
     )
 import GHC.Generics (Generic)
 import Data.Aeson (ToJSON, FromJSON)
-import Control.Monad.State (modify)
 import Data.Maybe (isJust)
 import qualified Data.Map as Map
 
@@ -124,7 +123,7 @@ view m = div_ hide render
                         ( Modal.Model
                             { Modal.cancel = Cancel
                             , Modal.submit = undefined
-                            , Modal.content = content x
+                            , Modal.content = content x { T.admin = False }
                             , Modal.title = "Delete post and attachments?"
                             , Modal.action = "Delete"
                             }
