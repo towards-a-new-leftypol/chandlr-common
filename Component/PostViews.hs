@@ -17,6 +17,7 @@ import Miso.Html.Property
   , id_
   )
 import Data.List.NonEmpty (head)
+import qualified Data.List as L
 
 import Common.Network.SiteType (Site)
 import qualified Common.Network.SiteType as Site
@@ -48,7 +49,7 @@ op introExtras m op_post backlinks =
         )
         ( intro site_ board thread op_post backlinks (current_time m)
         : files_or_embed_view
-        : concatMap introExtras (post_bodies m)
+        : introExtras (L.head $ post_bodies m)
         ++
         [ div_
             [ class_ "body" ]
