@@ -99,7 +99,10 @@ reply introExtras m backlinks pwb@(post, parts) = div_
         [ class_ "sidearrows" ]
         [ text ">>" ]
     , div_
-        ( class_ "post reply" : multi post )
+        ( class_ (if admin m then "post reply post-with-admin" else "post reply")
+        : multi post
+        )
+
         ( intro site_ board thread post backlinks (current_time m)
         : introExtras pwb
         ++
