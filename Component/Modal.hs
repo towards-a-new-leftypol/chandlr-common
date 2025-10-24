@@ -58,6 +58,7 @@ view (Model {..}) =
                 , button_
                     [ class_ "modal-dialog__button"
                     , class_ "modal-dialog__button--submit"
+                    , onClick submit
                     ] [ text action ]
                 ]
             ]

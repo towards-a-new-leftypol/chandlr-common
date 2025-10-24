@@ -41,6 +41,7 @@ import qualified Common.Component.Modal as Modal
 import qualified Common.Component.Thread.Model as T
 import qualified Common.Network.PostType as P
 import Common.Component.PostViews (op, reply)
+import qualified Common.Network.ClientTypes as Client
 #ifdef FRONT_END
 import JSFFI.Saddle
     ( freezeBodyScrolling
@@ -57,6 +58,8 @@ data Action
     = Initialize
     | OnMessageIn InMessage
     | OnErrorMessage MisoString
+    | ClientResponse Client.MessageOut
+    | Submit
     | Cancel
 
 newtype InMessage = InMessage T.Model
@@ -93,6 +96,7 @@ update :: Action -> Effect parent Model Action
 update Initialize = do
     io_ $ consoleLog "DeleteIllegalPostComponent Init"
     subscribe deleteIllegalPostInTopic OnMessageIn OnErrorMessage
+    subscribe Client.clientOutTopic ClientResponse OnErrorMessage
 
 update (OnMessageIn (InMessage x)) = do
     io_ $ consoleLog "DeleteIllegalPostComponent received a message!"
@@ -104,6 +108,9 @@ update (OnErrorMessage e) = io_ $ consoleError e
 update Cancel = do
     modify (\m -> m { threadData = Nothing } )
     io_ unFreezeBodyScrolling
+
+update Submit =
+    io_ $ consoleLog "DeleteIllegalPostComponent Submit!"
 #else
 update = undefined
 #endif
@@ -123,7 +130,7 @@ view m = div_ hide render
                     [ Modal.view
                         ( Modal.Model
                             { Modal.cancel = Cancel
-                            , Modal.submit = undefined
+                            , Modal.submit = Submit
                             , Modal.content = content x { T.admin = False }
                             , Modal.title = "Delete post and attachments?"
                             , Modal.action = "Delete"
