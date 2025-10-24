@@ -1,6 +1,5 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DeriveAnyClass #-}
-{-# LANGUAGE OverloadedStrings  #-}
 
 module Common.Network.ClientTypes where
 
@@ -9,7 +8,7 @@ import Data.Int (Int64)
 import Data.Aeson (ToJSON, FromJSON)
 import Data.Time.Clock (UTCTime)
 import Miso.String (MisoString)
-import Miso (Topic, topic)
+import Miso (ComponentId)
 
 import qualified Common.Network.HttpTypes as Http
 
@@ -17,8 +16,6 @@ data Action
     = Connect Sender Http.HttpActionResult
     | OnMessage MessageIn
     | OnErrorMessage MisoString
-    | Publish MessageOut
-    | Initialize
 
 data Model = Uninitialized | Model
   { pgApiRoot :: MisoString
@@ -35,9 +32,12 @@ data SearchPostsArgs = SearchPostsArgs
   , max_rows :: Int
   } deriving (Generic, ToJSON)
 
-type Sender = MisoString
+type Sender = ComponentId
 
-type MessageIn = (Sender, Query)
+type ReturnEnvelope = forall a. (ToJSON a) => Http.HttpResult -> a
+
+type MessageIn = 
+    (Sender, ReturnEnvelope, Query)
 
 data Query
     = FetchLatest UTCTime
@@ -45,16 +45,6 @@ data Query
     | Search MisoString
     | InitModel Model
     deriving (Generic, ToJSON, FromJSON)
-
-data MessageOut = ReturnResult Sender Http.HttpResult
-    deriving (Eq, Generic, ToJSON, FromJSON)
-
-clientInTopic :: Topic MessageIn
-clientInTopic = topic "client-in"
-
-clientOutTopic :: Topic MessageOut
-clientOutTopic = topic "client-out"
-
 
 data GetThreadArgs = GetThreadArgs
     { website         :: MisoString

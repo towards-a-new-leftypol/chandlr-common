@@ -70,7 +70,7 @@ mainUpdate (Initialize ctxRef) = do
             }
         )
 
-mainUpdate ClientMounted = do
+mainUpdate (ClientMounted clientId) = do
     model <- get
 
     io_ $ consoleLog "Http Client Mounted!"
@@ -85,7 +85,10 @@ mainUpdate ClientMounted = do
         )
 
     issue $ initial_action model
-    modify $ \m -> m { initial_action = NoAction }
+    modify $ \m -> m
+        { initial_action = NoAction
+        , clientComponentId = clientId
+        }
 
 mainUpdate ClientUnmounted = io_ $ consoleLog "Http Client Unmounted!"
 

@@ -14,6 +14,7 @@ import Miso
     ( View
     , text
     , onMounted
+    , onMountedWith
     , onUnmounted
     , key_
     , mount
@@ -57,7 +58,7 @@ pageWrapperWithDefaults _ inner_content =
     div_ [ key_ ("top-level" :: MisoString) ]
         [ mount
             (div_
-                [ onMounted ClientMounted
+                [ onMountedWith ClientMounted
                 , onUnmounted ClientUnmounted
                 , key_ ("http-client" :: MisoString)
                 ]

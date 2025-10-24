@@ -1,7 +1,6 @@
 module Common.FrontEnd.Model where
 
-import Miso (URI)
-import Miso.String (MisoString)
+import Miso (URI, ComponentId, MisoString)
 import Data.Time.Clock (UTCTime)
 import Miso.Lens (Lens (..))
 
@@ -21,6 +20,7 @@ data Model = Model
     , catalog_posts :: [ CatalogPost ]
     , between_pages :: Bool
     , admin :: Bool
+    , clientComponentId :: ComponentId
     } deriving Eq
 
 getSetCatalogPosts :: Lens Model [ CatalogPost ]
@@ -47,3 +47,9 @@ getSetAdmin =
     Lens
         admin
         (\s model -> model { admin = s })
+
+getSetClientComponentId :: Lens Model ComponentId
+getSetClientComponentId =
+    Lens
+        clientComponentId
+        (\x model -> model { clientComponentId = x })

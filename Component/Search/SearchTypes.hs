@@ -2,8 +2,7 @@
 
 module Common.Component.Search.SearchTypes where
 
-import Miso.String (MisoString)
-import Miso (Topic, topic)
+import Miso (Topic, topic, ComponentId, MisoString)
 import Miso.Lens (Lens (..))
 
 import qualified Common.Network.ClientTypes as Client
@@ -23,6 +22,7 @@ data Action
 data Model = Model
     { searchTerm :: MisoString
     , intendPushUri :: Bool
+    , clientComponentId :: ComponentId
     } deriving Eq
 
 getSetSearchTerm :: Lens Model MisoString
@@ -30,6 +30,12 @@ getSetSearchTerm =
     Lens
         searchTerm
         (\s model -> model { searchTerm = s })
+
+getSetClientComponentId :: Lens Model ComponentId
+getSetClientComponentId =
+    Lens
+        clientComponentId
+        (\x model -> model { clientComponentId = x })
 
 type MessageIn = (Bool, MisoString) -- the boolean is passed through
 type MessageOut = (Bool, MisoString, [ CatalogPost ])

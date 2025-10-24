@@ -31,9 +31,6 @@ import qualified Common.Network.ClientTypes as Client
 import qualified Common.Utils as Utils
 import qualified Common.FrontEnd.Model as FE
 
-pattern Sender :: Client.Sender
-pattern Sender = "search"
-
 update :: Action -> Effect parent Model Action
 update Initialize = do
     io_ $ consoleLog "Search component Initialize!"

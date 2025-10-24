@@ -1,8 +1,7 @@
 module Common.FrontEnd.Action where
 
 import Data.Time.Clock (UTCTime)
-import Miso.String (MisoString)
-import Miso (URI)
+import Miso (URI, ComponentId, MisoString)
 
 import Common.Network.CatalogPostType (CatalogPost)
 import qualified Common.Network.CatalogPostType as CatalogPost
@@ -20,7 +19,7 @@ data Action
     | ChangeURI URI
     | SearchResults Search.MessageOut
     | NotifySearch Search.MessageIn
-    | ClientMounted
+    | ClientMounted ComponentId
     | ClientUnmounted
     | ThreadViewMounted
     | NoAction
