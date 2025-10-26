@@ -2,6 +2,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE PatternSynonyms #-}
 
 module Common.Admin.Component.DeleteIllegalPost where
 
@@ -68,6 +69,9 @@ newtype InMessage = InMessage T.Model
 deleteIllegalPostInTopic :: Topic InMessage
 deleteIllegalPostInTopic = topic "deleteIllegal-in"
 
+pattern ReturnTopic :: Client.ReturnTopicName
+pattern ReturnTopic = "delete-illegal-post-results"
+
 type DeleteIllegalPostComponent parent = M.Component parent Model Action
 
 initialModel :: Model
@@ -96,12 +100,19 @@ update :: Action -> Effect parent Model Action
 update Initialize = do
     io_ $ consoleLog "DeleteIllegalPostComponent Init"
     subscribe deleteIllegalPostInTopic OnMessageIn OnErrorMessage
-    subscribe Client.clientOutTopic ClientResponse OnErrorMessage
+    subscribe clientReturnTopic ClientResponse OnErrorMessage
+
+    where
+        clientReturnTopic :: Topic Client.MessageOut
+        clientReturnTopic = topic ReturnTopic
 
 update (OnMessageIn (InMessage x)) = do
     io_ $ consoleLog "DeleteIllegalPostComponent received a message!"
     modify (\m -> m { threadData = Just x } )
     io_ freezeBodyScrolling
+
+update (ClientResponse _) =
+    io_ $ consoleLog "DeleteIllegalPostComponent ClientResponse."
 
 update (OnErrorMessage e) = io_ $ consoleError e
 

@@ -19,6 +19,8 @@ import Miso
     , issue
     , subscribe
     , View
+    , Topic
+    , topic
     )
 import Servant.Miso.Router (route)
 import Miso.String (MisoString, toMisoString)
@@ -45,20 +47,21 @@ import Common.FrontEnd.Routes
 import qualified Common.FrontEnd.Types as T
 import qualified Common.Network.CatalogPostType as CatPost
 
-pattern Sender :: Client.Sender
+pattern Sender :: Client.ReturnTopicName
 pattern Sender = "main"
 
-pattern SenderLatest :: Client.Sender
+pattern SenderLatest :: Client.ReturnTopicName
 pattern SenderLatest = "main-latest"
 
-pattern SenderThread :: Client.Sender
+pattern SenderThread :: Client.ReturnTopicName
 pattern SenderThread = "main-thread"
 
 
 mainUpdate :: Action -> Effect ROOT Model Action
 mainUpdate NoAction = return ()
 mainUpdate (Initialize ctxRef) = do
-    subscribe Client.clientOutTopic ClientResponse OnErrorMessage
+    subscribe clientLatestReturnTopic (ClientResponse SenderLatest) OnErrorMessage
+    subscribe clientThreadReturnTopic (ClientResponse SenderLatest) OnErrorMessage
     subscribe Grid.catalogOutTopic GridMessage OnErrorMessage
     subscribe Search.searchOutTopic SearchResults OnErrorMessage
     io_ $ consoleLog "MainComponent Initialize action"
@@ -69,6 +72,13 @@ mainUpdate (Initialize ctxRef) = do
                 init_payload { T.initialData = T.Nil }
             }
         )
+
+    where
+        clientLatestReturnTopic :: Topic Client.MessageOut
+        clientLatestReturnTopic = topic SenderLatest
+
+        clientThreadReturnTopic :: Topic Client.MessageOut
+        clientThreadReturnTopic = topic SenderThread
 
 mainUpdate ClientMounted = do
     model <- get
@@ -115,7 +125,7 @@ mainUpdate (GridMessage (Grid.SelectThread catalog_post)) = do
     model <- get
 
     io_ $ do
-        consoleLog $ "calling pushURI on " <> (toMisoString $ show (new_current_uri model))
+        consoleLog $ "calling pushURI on " <> toMisoString (show (new_current_uri model))
         pushURI $ new_current_uri model
 
     where
@@ -123,7 +133,7 @@ mainUpdate (GridMessage (Grid.SelectThread catalog_post)) = do
         new_current_uri m = (current_uri m)
             { uriPath = CatPost.site_name catalog_post
                     </> CatPost.pathpart catalog_post
-                    </> (toMisoString $ show $ CatPost.board_thread_id catalog_post)
+                    </> toMisoString (show $ CatPost.board_thread_id catalog_post)
             , uriQueryString = Map.empty
             }
 
@@ -131,7 +141,7 @@ mainUpdate (GridMessage (Grid.SelectThread catalog_post)) = do
 mainUpdate (OnErrorMessage msg) =
     io_ $ consoleError ("Main Component OnErrorMessage decode failure: " <> toMisoString msg)
 
-mainUpdate (ClientResponse (Client.ReturnResult SenderLatest result)) =
+mainUpdate (ClientResponse SenderLatest (Client.ReturnResult result)) =
     Utils.helper result $
         \catalogPosts -> modify
             ( \m -> m
@@ -141,7 +151,7 @@ mainUpdate (ClientResponse (Client.ReturnResult SenderLatest result)) =
             )
         -- TODO: maybe we need to set between_pages=False here
 
-mainUpdate (ClientResponse (Client.ReturnResult SenderThread result)) = do
+mainUpdate (ClientResponse SenderThread (Client.ReturnResult result)) = do
     io_ $ consoleLog $ SenderThread <> " - Has result. Storing result in model."
 
     Utils.helper result $ \sites -> do
@@ -153,7 +163,7 @@ mainUpdate (ClientResponse (Client.ReturnResult SenderThread result)) = do
             )
         issue ThreadViewMounted
 
-mainUpdate (ClientResponse (Client.ReturnResult _ _)) = return ()
+mainUpdate (ClientResponse _ (Client.ReturnResult _)) = return ()
 
 mainUpdate (GoToTime t) = do
     modify (\m -> m { current_time = t, between_pages = True })

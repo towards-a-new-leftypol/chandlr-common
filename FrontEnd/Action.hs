@@ -14,7 +14,7 @@ import Common.FrontEnd.Types (InitCtxRef)
 data Action
     = GetThread Client.GetThreadArgs
     | GridMessage Grid.OutMessage
-    | ClientResponse Client.MessageOut
+    | ClientResponse Client.ReturnTopicName Client.MessageOut
     | OnErrorMessage MisoString
     | GoToTime UTCTime
     | ChangeURI URI

@@ -22,6 +22,8 @@ import Miso
   , get
   , publish
   , subscribe
+  , Topic
+  , topic
   )
 import qualified Miso as M
 
@@ -31,14 +33,18 @@ import qualified Common.Network.ClientTypes as Client
 import qualified Common.Utils as Utils
 import qualified Common.FrontEnd.Model as FE
 
-pattern Sender :: Client.Sender
-pattern Sender = "search"
+pattern ReturnTopic :: Client.ReturnTopicName
+pattern ReturnTopic = "search-results"
 
 update :: Action -> Effect parent Model Action
 update Initialize = do
     io_ $ consoleLog "Search component Initialize!"
-    subscribe Client.clientOutTopic SearchResult OnMessageError
+    subscribe clientReturnTopic SearchResult OnMessageError
     subscribe searchInTopic OnMessage OnMessageError
+
+    where
+        clientReturnTopic :: Topic Client.MessageOut
+        clientReturnTopic = topic ReturnTopic
 
 update (SearchChange q) =
     modify (\m -> m { searchTerm = q })
@@ -54,13 +60,13 @@ update OnSubmit = do
 
     io_ $ consoleLog $ "Submit! " <> search_query
 
-    publish Client.clientInTopic (Sender, Client.Search search_query)
+    publish Client.clientInTopic (ReturnTopic, Client.Search search_query)
 
 update (ChangeAndSubmit search_query) = do
     issue $ SearchChange search_query
     issue OnSubmit
 
-update (SearchResult (Client.ReturnResult Sender result)) = do
+update (SearchResult (Client.ReturnResult result)) = do
     io_ $ consoleLog "Search - SearchResult action handler"
     Utils.helper result $ \searchResults -> do
         model <- get
@@ -69,8 +75,6 @@ update (SearchResult (Client.ReturnResult Sender result)) = do
             , searchTerm model
             , searchResults
             )
-
-update (SearchResult (Client.ReturnResult _ _)) = return ()
 
 update (OnMessageError msg) =
     io_ $ consoleError msg

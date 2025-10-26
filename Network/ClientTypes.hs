@@ -14,10 +14,10 @@ import Miso (Topic, topic)
 import qualified Common.Network.HttpTypes as Http
 
 data Action
-    = Connect Sender Http.HttpActionResult
+    = Connect ReturnTopicName Http.HttpActionResult
     | OnMessage MessageIn
     | OnErrorMessage MisoString
-    | Publish MessageOut
+    | Publish ReturnTopicName MessageOut
     | Initialize
 
 data Model = Uninitialized | Model
@@ -35,9 +35,15 @@ data SearchPostsArgs = SearchPostsArgs
   , max_rows :: Int
   } deriving (Generic, ToJSON)
 
-type Sender = MisoString
+type ReturnTopicName = MisoString
+-- TODO: change Sender to be a Topic is this possible? It should be...
+-- just create a
+-- searchClientResponseTopic :: Topic Client.MessageOut
+-- searchClientResponseTopic = topic "search-client-response"
+--
+-- for every component using Client
 
-type MessageIn = (Sender, Query)
+type MessageIn = (ReturnTopicName, Query)
 
 data Query
     = FetchLatest UTCTime
@@ -46,15 +52,11 @@ data Query
     | InitModel Model
     deriving (Generic, ToJSON, FromJSON)
 
-data MessageOut = ReturnResult Sender Http.HttpResult
+newtype MessageOut = ReturnResult Http.HttpResult
     deriving (Eq, Generic, ToJSON, FromJSON)
 
 clientInTopic :: Topic MessageIn
 clientInTopic = topic "client-in"
-
-clientOutTopic :: Topic MessageOut
-clientOutTopic = topic "client-out"
-
 
 data GetThreadArgs = GetThreadArgs
     { website         :: MisoString
