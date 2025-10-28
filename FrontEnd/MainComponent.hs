@@ -30,6 +30,7 @@ import Common.FrontEnd.Types
 import Common.Utils (pageTypeFromURI, PageType (..))
 #if defined(FRONT_END)
 import Common.FrontEnd.Update
+import Control.Monad.IO.Class (liftIO)
 #endif
 
 type MainComponent = App Model Action
@@ -73,8 +74,13 @@ app ctxRef =
             }
 
 
+#ifdef FRONT_END
+initializeModel :: InitCtxRef -> M.JSM Model
+initializeModel ctxRef = liftIO $ do
+#else
 initializeModel :: InitCtxRef -> IO Model
 initializeModel ctxRef = do
+#endif
     putStrLn "MainComponent initializeModel"
     ctx <- readIORef ctxRef
 

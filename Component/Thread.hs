@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE DataKinds #-}
 
@@ -87,8 +88,13 @@ app ctxRef = M.Component
         ]
     }
 
+#ifdef FRONT_END
+initializeModel :: InitCtxRef -> M.JSM Model
+initializeModel ctxRef = liftIO $ do
+#else
 initializeModel :: InitCtxRef -> IO Model
 initializeModel ctxRef = do
+#endif
   ctx <- readIORef ctxRef
 
   let settings = init_settings ctx
