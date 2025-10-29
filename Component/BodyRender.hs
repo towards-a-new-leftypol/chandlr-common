@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards #-}
 
@@ -24,6 +25,9 @@ import Miso.Html.Property
     , target_
     , class_
     )
+#ifndef FRONT_END
+import Miso.Html.Render (htmlEncode)
+#endif
 import Miso.String (toMisoString, MisoString)
 import Data.JSString (replace)
 import System.FilePath ((</>))
@@ -53,7 +57,11 @@ render :: Site.Site -> [ PostPart ] -> [ View model a ]
 render = map . renderPostPart
 
 renderPostPart :: Site.Site -> PostPart -> View model a
+#ifdef FRONT_END
 renderPostPart _ (SimpleText txt) = text $ getRidOfCarriageReturn txt
+#else
+renderPostPart _ (SimpleText txt) = text $ htmlEncode $ getRidOfCarriageReturn txt
+#endif
 renderPostPart _ (PostedUrl u) =
     a_
         [ href_ u
