@@ -61,7 +61,7 @@ mainUpdate :: Action -> Effect ROOT Model Action
 mainUpdate NoAction = return ()
 mainUpdate (Initialize ctxRef) = do
     subscribe clientLatestReturnTopic (ClientResponse SenderLatest) OnErrorMessage
-    subscribe clientThreadReturnTopic (ClientResponse SenderLatest) OnErrorMessage
+    subscribe clientThreadReturnTopic (ClientResponse SenderThread) OnErrorMessage
     subscribe Grid.catalogOutTopic GridMessage OnErrorMessage
     subscribe Search.searchOutTopic SearchResults OnErrorMessage
     io_ $ consoleLog "MainComponent Initialize action"
