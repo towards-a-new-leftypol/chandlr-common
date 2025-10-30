@@ -149,7 +149,6 @@ mainUpdate (ClientResponse SenderLatest (Client.ReturnResult result)) =
                 , between_pages = False
                 }
             )
-        -- TODO: maybe we need to set between_pages=False here
 
 mainUpdate (ClientResponse SenderThread (Client.ReturnResult result)) = do
     io_ $ consoleLog $ SenderThread <> " - Has result. Storing result in model."

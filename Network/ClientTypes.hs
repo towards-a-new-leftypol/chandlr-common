@@ -49,6 +49,7 @@ data Query
     = FetchLatest UTCTime
     | GetThread GetThreadArgs
     | Search MisoString
+    | DeleteIllegalPost DeleteIllegalPostArgs
     | InitModel Model
     deriving (Generic, ToJSON, FromJSON)
 
@@ -62,4 +63,8 @@ data GetThreadArgs = GetThreadArgs
     { website         :: MisoString
     , board_pathpart  :: MisoString
     , board_thread_id :: Int64
+    } deriving (Eq, Generic, ToJSON, FromJSON)
+
+newtype DeleteIllegalPostArgs = DeleteIllegalPostArgs
+    { post_id :: Integer
     } deriving (Eq, Generic, ToJSON, FromJSON)

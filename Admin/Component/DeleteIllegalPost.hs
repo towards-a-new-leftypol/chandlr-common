@@ -20,6 +20,8 @@ import Miso
     , text
     , View
     , modify
+    , publish
+    , get
     )
 
 import qualified Miso as M
@@ -120,8 +122,26 @@ update Cancel = do
     modify (\m -> m { threadData = Nothing } )
     io_ unFreezeBodyScrolling
 
-update Submit =
-    io_ $ consoleLog "DeleteIllegalPostComponent Submit!"
+update Submit = do
+    model <- get
+
+    case threadData model of
+        Nothing ->
+            io_ $ consoleLog "Error: DeleteIllegalPostComponent has nothing to post!"
+
+        Just threadModel -> do
+            io_ $ consoleLog "DeleteIllegalPostComponent Submit!"
+
+            publish Client.clientInTopic
+                ( ReturnTopic
+                , Client.DeleteIllegalPost $
+                    Client.DeleteIllegalPostArgs $ P.post_id $ post threadModel
+                )
+
+    where
+        post :: T.Model -> P.Post
+        post m = fst $ head $ T.post_bodies m
+
 #else
 update = undefined
 #endif
