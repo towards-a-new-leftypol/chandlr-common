@@ -11,7 +11,8 @@
  -}
 
 module Common.Parsing.FlexibleJsonResponseParser
-( parseSiteFromJson
+( parseSitesFromJSON
+, SSite (..)
 )
 where
 
@@ -20,6 +21,7 @@ import Data.Aeson
     , Object
     , (.:)
     , (.:?)
+    , FromJSON (..)
     )
 import Data.Aeson.Types (Parser)
 import Data.Vector (toList)
@@ -32,6 +34,11 @@ import qualified Common.Network.BoardType as B
 import qualified Common.Network.ThreadType as T
 import qualified Common.Network.PostType as P
 import qualified Common.AttachmentType as A
+
+newtype SSite = SSite Site.Site
+
+instance FromJSON SSite where
+  parseJSON v = parseSitesFromJSON v >>= return . SSite . head
 
 
 data ObjectType = Site | Board | Thread | Post | Attachment
@@ -176,12 +183,12 @@ objectTypeKeys =
     ]
 
 
-parseSiteFromJson :: Value -> Parser [ Site.Site ]
-parseSiteFromJson (Object obj) = (: []) <$> parseTopObject obj
-parseSiteFromJson (Array arr) =
-    mapM parseSiteFromJson (toList arr) >>= return . concat
+parseSitesFromJSON :: Value -> Parser [ Site.Site ]
+parseSitesFromJSON (Object obj) = (: []) <$> parseTopObject obj
+parseSitesFromJSON (Array arr) =
+    mapM parseSitesFromJSON (toList arr) >>= return . concat
 
-parseSiteFromJson _ = fail "Expected an array or an object at the top level"
+parseSitesFromJSON _ = fail "Expected an array or an object at the top level"
 
 
 objIsAttachment :: Object -> Bool
