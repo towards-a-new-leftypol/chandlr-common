@@ -162,7 +162,7 @@ parseNextObject Attachment (Object o) = do
     return (attachments ++ restOfThings)
 
 parseNextObject t (Array arr) =
-    mapM (parseNextObject t) (toList arr) >>= return . collapseThings . concat
+    mapM (parseNextObject t) (toList arr) >>= return . concat . (map collapseThings)
 parseNextObject _ (String _) = fail "Unexpected String JSON Value"
 parseNextObject _ (Number _) = fail "Unexpected Number JSON Value"
 parseNextObject _ (Bool _) = fail "Unexpected Bool JSON Value"
@@ -332,5 +332,5 @@ parsePost o = do
         , P.body_search_index = body_search_index_
         , P.thread_id         = thread_id_
         , P.embed             = embed_
-        , P.attachments       = undefined
+        , P.attachments       = []
         }
