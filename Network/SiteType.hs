@@ -94,4 +94,5 @@ fromCatalogPost p =
                 , A.spoiler           = False
                 , A.file_size_bytes   = 0
                 , A.attachment_idx    = 1
+                , A.attachment_id     = -1
                 }
