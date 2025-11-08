@@ -16,7 +16,7 @@ import Miso
     , onMounted
     , onUnmounted
     , key_
-    , mount
+    , (+>)
     )
 import Miso.Html.Property (class_)
 import Miso.Html
@@ -41,31 +41,29 @@ import Common.FrontEnd.Types (InitCtxRef)
 import qualified Common.Admin.Component.DeleteIllegalPost as DIP
 
 timeControl :: InitCtxRef -> View Model Action
-timeControl = mount (div_ [ key_ ("time-control" :: MisoString) ]) . TC.app
+timeControl = (div_ [ key_ ("time-control" :: MisoString) ] +>) . TC.app
 
 
 grid :: InitCtxRef -> View Model Action
-grid = mount (div_ [ key_ ("catalog-grid" :: MisoString) ]) . Grid.app
+grid = (div_ [ key_ ("catalog-grid" :: MisoString) ] +>) . Grid.app
 
 
 search :: View Model Action
-search = mount (div_ [ key_ ("search" :: MisoString) ]) Search.app
+search = div_ [ key_ ("search" :: MisoString) ] +> Search.app
 
 
 pageWrapperWithDefaults :: Model -> View model Action -> View model Action
 pageWrapperWithDefaults _ inner_content =
     div_ [ key_ ("top-level" :: MisoString) ]
-        [ mount
-            (div_
+        [ div_
                 [ onMounted ClientMounted
                 , onUnmounted ClientUnmounted
                 , key_ ("http-client" :: MisoString)
                 ]
-            )
+            +>
             Client.app
-        , mount
-            ( div_ [ key_ ("delete-illegal-post" :: MisoString) ]
-            )
+        , div_ [ key_ ("delete-illegal-post" :: MisoString) ]
+            +>
             DIP.app
         -- , pre_ [] [ text $ "between_pages: " <> if between_pages then "True" else "False" ]
         , inner_content
@@ -107,12 +105,12 @@ searchView ctxRef _ m = pageWrapperWithDefaults m $ div_ []
 
 threadView :: InitCtxRef -> Text -> Text -> BoardThreadId -> Model -> View Model Action
 threadView ctxRef site_name board_pathpart board_thread_id m =
-    pageWrapperWithDefaults m $ mount
-        ( div_
+    pageWrapperWithDefaults m $
+        div_
             [ onMounted ThreadViewMounted
             , key_ ("thread-view" :: MisoString)
             ]
-        )
+        +>
         (Thread.app ctxRef)
 
 
