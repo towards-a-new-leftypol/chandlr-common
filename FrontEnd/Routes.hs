@@ -6,7 +6,6 @@
 module Common.FrontEnd.Routes where
 
 import Data.Text (Text)
-import Data.Int (Int64)
 import Servant.API
 
 type Route a
@@ -29,4 +28,4 @@ type R_SearchResults a
     :> QueryParam "q" String
     :> a
 
-type BoardThreadId = Int64
+type BoardThreadId = Integer

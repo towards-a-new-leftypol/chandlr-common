@@ -23,12 +23,13 @@ data Paths = Paths
   } deriving (Show)
 
 data Attachment = Attachment
-    { mimetype          :: MisoString
+    { attachment_id     :: Integer
+    , mimetype          :: MisoString
     , creation_time     :: UTCTime
     , sha256_hash       :: MisoString
     , phash             :: Maybe Int64
     , illegal           :: Bool
-    , post_id           :: Int64
+    , post_id           :: Integer
     , resolution        :: Maybe Dimension
     , file_extension    :: Maybe MisoString
     , thumb_extension   :: Maybe MisoString

@@ -8,14 +8,13 @@ module Common.Network.CatalogPostType
 import GHC.Generics
 import Data.Aeson (FromJSON, ToJSON)
 import Data.Time.Clock (UTCTime) -- Required for timestamp with time zone
-import Data.Int (Int64)
 import Miso.String (MisoString)
 import Common.AttachmentType (Dimension)
 
 data CatalogPost = CatalogPost
-    { post_id              :: Maybe Int64
-    , board_post_id        :: Int64
-    , board_thread_id      :: Int64
+    { post_id              :: Maybe Integer
+    , board_post_id        :: Integer
+    , board_thread_id      :: Integer
     , creation_time        :: UTCTime
     , bump_time            :: UTCTime
     , body                 :: Maybe MisoString

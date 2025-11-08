@@ -5,7 +5,6 @@
 module Common.Network.ClientTypes where
 
 import GHC.Generics (Generic)
-import Data.Int (Int64)
 import Data.Aeson (ToJSON, FromJSON)
 import Data.Time.Clock (UTCTime)
 import Miso.String (MisoString)
@@ -62,9 +61,9 @@ clientInTopic = topic "client-in"
 data GetThreadArgs = GetThreadArgs
     { website         :: MisoString
     , board_pathpart  :: MisoString
-    , board_thread_id :: Int64
+    , board_thread_id :: Integer
     } deriving (Eq, Generic, ToJSON, FromJSON)
 
 newtype DeleteIllegalPostArgs = DeleteIllegalPostArgs
     { post_id :: Integer
-    } deriving (Eq, Generic, ToJSON, FromJSON)
+    } deriving (Eq, Show, Generic, ToJSON, FromJSON)
