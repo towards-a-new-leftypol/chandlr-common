@@ -19,7 +19,7 @@ data HttpResult
         , status_text :: String
         , body        :: Maybe Value
         }
-    deriving (Eq, Generic, ToJSON, FromJSON)
+    deriving (Show, Eq, Generic, ToJSON, FromJSON)
 
 -- TODO: maybe HttpResult a shouldn't have the 'a' param, but have the body be a Value (from aeson)
 -- this would mean that http is no longer decoding anything, but Client users do.

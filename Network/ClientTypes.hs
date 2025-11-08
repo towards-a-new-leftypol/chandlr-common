@@ -53,7 +53,7 @@ data Query
     deriving (Generic, ToJSON, FromJSON)
 
 newtype MessageOut = ReturnResult Http.HttpResult
-    deriving (Eq, Generic, ToJSON, FromJSON)
+    deriving (Show, Eq, Generic, ToJSON, FromJSON)
 
 clientInTopic :: Topic MessageIn
 clientInTopic = topic "client-in"

@@ -22,6 +22,7 @@ import Miso
     , modify
     , publish
     , get
+    , toMisoString
     )
 
 import qualified Miso as M
@@ -113,8 +114,8 @@ update (OnMessageIn (InMessage x)) = do
     modify (\m -> m { threadData = Just x } )
     io_ freezeBodyScrolling
 
-update (ClientResponse _) =
-    io_ $ consoleLog "DeleteIllegalPostComponent ClientResponse."
+update (ClientResponse r) =
+    io_ $ consoleLog $ "DeleteIllegalPostComponent ClientResponse: " <> toMisoString (show r)
 
 update (OnErrorMessage e) = io_ $ consoleError e
 
