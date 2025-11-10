@@ -85,6 +85,7 @@ initializeModel ctxRef = do
     ctx <- readIORef ctxRef
 
     let settings = init_settings ctx
+    putStrLn $ "MainComponent initializeModel settings: " <> show settings
     let initialPayload = init_payload ctx
     let uri = init_uri ctx
 

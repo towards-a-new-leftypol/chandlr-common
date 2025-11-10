@@ -64,7 +64,12 @@ mainUpdate (Initialize ctxRef) = do
     subscribe clientThreadReturnTopic (ClientResponse SenderThread) OnErrorMessage
     subscribe Grid.catalogOutTopic GridMessage OnErrorMessage
     subscribe Search.searchOutTopic SearchResults OnErrorMessage
-    io_ $ consoleLog "MainComponent Initialize action"
+
+    model <- get
+
+    io_ $ do
+        consoleLog "MainComponent Initialize action"
+        consoleLog $ "MainComponent pg_api_root: " <> (pg_api_root model)
     -- collect garbage
     io_ $ liftIO $ modifyIORef ctxRef
         ( \ctx@T.AppInitCtx {..} -> ctx
@@ -83,7 +88,10 @@ mainUpdate (Initialize ctxRef) = do
 mainUpdate ClientMounted = do
     model <- get
 
-    io_ $ consoleLog "Http Client Mounted!"
+    io_ $ do
+        consoleLog "Http Client Mounted!"
+        consoleLog $ "pg_api_root: " <> pg_api_root model
+        consoleLog $ "client_fetch_count: " <> (toMisoString $ client_fetch_count model)
 
     publish
         Client.clientInTopic

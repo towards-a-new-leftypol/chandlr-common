@@ -22,7 +22,7 @@ data Action
 data Model = Uninitialized | Model
   { pgApiRoot :: MisoString
   , fetchCount :: Int
-  } deriving (Eq, Generic, ToJSON, FromJSON)
+  } deriving (Eq, Generic, ToJSON, FromJSON, Show)
 
 data FetchCatalogArgs = FetchCatalogArgs
   { max_time :: UTCTime
