@@ -11,17 +11,9 @@ import Miso
     , Topic
     , defaultEvents
     , Effect
-    , consoleLog
     , MisoString
-    , subscribe
-    , io_
-    , consoleError
-    , toMisoString
     , text
     , View
-    , modify
-    , publish
-    , get
     , toMisoString
     )
 
@@ -50,6 +42,15 @@ import qualified Common.Network.ClientTypes as Client
 import JSFFI.Saddle
     ( freezeBodyScrolling
     , unFreezeBodyScrolling
+    )
+import Miso
+    ( consoleError
+    , consoleLog
+    , get
+    , io_
+    , modify
+    , publish
+    , subscribe
     )
 #endif
 
