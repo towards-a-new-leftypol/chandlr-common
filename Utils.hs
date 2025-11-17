@@ -38,7 +38,7 @@ helperE
     -> (a -> Effect parent model action)
     -> (MisoString -> Effect parent model action)
     -> Effect parent model action
-helperE Http.Error _ onError = onError "Http Error"
+helperE (Http.Error e) _ onError = onError e
 helperE (Http.HttpResponse status_code status_text (Just body)) continue onError = do
     io_ $ do
         consoleLog $ (toMisoString $ show $ status_code) <> " " <> (toMisoString $ status_text)

@@ -3,6 +3,7 @@
 
 module Common.Network.HttpTypes where
 
+import Miso (MisoString)
 import GHC.Generics (Generic)
 import Control.Concurrent.MVar (MVar)
 import Language.Javascript.JSaddle.Monad (JSM)
@@ -13,10 +14,10 @@ data HttpMethod = GET | PUT | POST | DELETE | PATCH
 
 
 data HttpResult
-    = Error
+    = Error MisoString
     | HttpResponse
         { status_code :: Int
-        , status_text :: String
+        , status_text :: MisoString
         , body        :: Maybe Value
         }
     deriving (Show, Eq, Generic, ToJSON, FromJSON)
