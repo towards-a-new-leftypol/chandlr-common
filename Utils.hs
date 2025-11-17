@@ -15,6 +15,7 @@ import Miso
     , io_
     , View
     , URI
+    , MisoString
     )
 import Miso.String (toMisoString)
 import Servant.Miso.Router (route)
@@ -30,14 +31,15 @@ import Data.Time.Calendar (fromGregorian)
 import qualified Common.Network.HttpTypes as Http
 import Common.FrontEnd.Routes (Route)
 
-helper
+helperE
     :: (FromJSON a)
     => forall parent
     . Http.HttpResult
     -> (a -> Effect parent model action)
+    -> (MisoString -> Effect parent model action)
     -> Effect parent model action
-helper Http.Error _ = io_ $ consoleError "Http Error"
-helper (Http.HttpResponse status_code status_text (Just body)) continue = do
+helperE Http.Error _ onError = onError "Http Error"
+helperE (Http.HttpResponse status_code status_text (Just body)) continue onError = do
     io_ $ do
         consoleLog $ (toMisoString $ show $ status_code) <> " " <> (toMisoString $ status_text)
         -- consoleLog $ (toMisoString $ show $ body)
@@ -45,10 +47,19 @@ helper (Http.HttpResponse status_code status_text (Just body)) continue = do
     let parsed = fromJSON body
 
     case parsed of
-        Error msg -> io_ $ consoleError (toMisoString msg) -- alert Error component here, maybe have toast pop up
+        Error msg -> onError (toMisoString msg) -- alert Error component here, maybe have toast pop up
         Success x -> continue x
 
-helper _ _ = return () -- No body, nothing to parse
+helperE (Http.HttpResponse _ _ Nothing) _ _ = return ()
+
+helper
+    :: (FromJSON a)
+    => forall parent
+    . Http.HttpResult
+    -> (a -> Effect parent model action)
+    -> Effect parent model action
+helper result onSuccess =
+    helperE result onSuccess (io_ . consoleError)
 
 
 data PageType = Catalog | Search (Maybe String) | Thread

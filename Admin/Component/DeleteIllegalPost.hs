@@ -23,6 +23,7 @@ import Miso.Html.Element
     ( div_
     , p_
     , span_
+    , pre_
     )
 import Miso.CSS
     ( style_
@@ -32,12 +33,18 @@ import GHC.Generics (Generic)
 import Data.Aeson (ToJSON, FromJSON)
 import Data.Maybe (isJust)
 import qualified Data.Map as Map
+import qualified Data.List.NonEmpty as L
 
 import qualified Common.Component.Modal as Modal
 import qualified Common.Component.Thread.Model as T
 import qualified Common.Network.PostType as P
 import Common.Component.PostViews (op, reply)
 import qualified Common.Network.ClientTypes as Client
+import qualified Common.Utils as Utils
+import qualified Common.Network.SiteType as Site
+import qualified Common.Network.BoardType as B
+import qualified Common.Network.ThreadType as T
+
 #ifdef FRONT_END
 import JSFFI.Saddle
     ( freezeBodyScrolling
@@ -54,8 +61,9 @@ import Miso
     )
 #endif
 
-newtype Model = Model
-    { threadData :: Maybe T.Model -- some may say this is lazy... really it's peak
+data Model = Model
+    { threadData :: Maybe T.Model
+    , deleteRequestResult :: Maybe (Either MisoString [ Site.Site ])
     }
     deriving Eq
 
@@ -79,7 +87,7 @@ pattern ReturnTopic = "delete-illegal-post-results"
 type DeleteIllegalPostComponent parent = M.Component parent Model Action
 
 initialModel :: Model
-initialModel = Model Nothing
+initialModel = Model Nothing Nothing
 
 app :: DeleteIllegalPostComponent parent
 app = M.Component
@@ -112,11 +120,22 @@ update Initialize = do
 
 update (OnMessageIn (InMessage x)) = do
     io_ $ consoleLog "DeleteIllegalPostComponent received a message!"
-    modify (\m -> m { threadData = Just x } )
+    modify (\m -> m { threadData = Just x, deleteRequestResult = Nothing })
     io_ freezeBodyScrolling
 
-update (ClientResponse r) =
-    io_ $ consoleLog $ "DeleteIllegalPostComponent ClientResponse: " <> toMisoString (show r)
+update (ClientResponse (Client.ReturnResult httpResult)) =
+    Utils.helperE httpResult saveDeleteResult saveDeleteErrorResult
+
+    where
+        saveDeleteResult :: [ Site.Site ] -> Effect parent Model Action
+        saveDeleteResult sites = do
+            io_ $ consoleLog $ toMisoString $ show sites
+            modify (\m -> m { deleteRequestResult = Just $ Right sites })
+
+        saveDeleteErrorResult :: MisoString -> Effect parent Model Action
+        saveDeleteErrorResult errMsg = do
+            io_ $ consoleError errMsg
+            modify (\m -> m { deleteRequestResult = Just $ Left errMsg })
 
 update (OnErrorMessage e) = io_ $ consoleError e
 
@@ -171,25 +190,72 @@ view m = div_ hide render
                         )
                     ]
 
+
+        statusMessage :: Model -> P.Post -> View model action
+        statusMessage Model { deleteRequestResult = Nothing }  post =
+            div_
+                [ class_ "warning-message" ]
+                [ div_ [ class_ "warning-icon" ] [ "⚠" ]
+                , p_ []
+                    [ "This will delete "
+                    , a post
+                    , span_
+                        [ class_ "warning-message__strong-word" ]
+                        [ "No."
+                        , text $ toMisoString $ show $ P.board_post_id post
+                        ]
+                    , " as well as any other post containing the same attachments as this post:"
+                    ]
+                ]
+
+        statusMessage Model { deleteRequestResult = Just (Left errMsg) } _ =
+            div_
+                [ class_ "warning-message warning-message--error" ]
+                [ div_ [ class_ "warning-icon" ] [ "⚠" ]
+                , p_ []
+                    [ "The server responded with an error:"
+                    , pre_
+                        [ class_ "warning-message__error-message" ]
+                        [ text errMsg ]
+                    ]
+                ]
+
+        statusMessage Model { deleteRequestResult = Just (Right sites) } _ =
+            div_
+                [ class_ "warning-message warning-message--success" ]
+                [ p_ [] [ successMessage ] ]
+
+            where
+                successMessage
+                    | null threads =
+                            text $ "Successfully removed "
+                                <> toMisoString (show $ length posts)
+                                <> " posts and " <> toMisoString (show $ length attachments)
+                                <> " attachments."
+                    | otherwise =
+                            text $ "Successfully removed "
+                                <> toMisoString (show $ length threads)
+                                <> " threads."
+
+                posts =
+                    ( concatMap (L.toList . T.posts)
+                    . concatMap (L.toList . B.threads)
+                    . concatMap (L.toList . Site.boards)
+                    )
+                    sites
+
+                attachments = concatMap P.attachments posts
+
+                threads = filter (\x -> P.local_idx x == 1) posts
+
+
         content :: T.Model -> View model Action
         content threadModel@T.Model { T.post_bodies = (pwb@(post, _):_) } =
             div_ [ class_ "modal-dialog__content" ]
-                [ div_ [ class_ "warning-message" ]
-                    [ div_ [ class_ "warning-icon" ] [ "⚠" ]
-                    , p_ []
-                        [ "This will delete "
-                        , a
-                        , span_
-                            [ class_ "warning-message__strong-word" ]
-                            [ "No."
-                            , text $ toMisoString $ show $ P.board_post_id post
-                            ]
-                        , " as well as any other post containing the same attachments as this post:"
-                        ]
-                    ]
+                [ statusMessage m post
                 , div_ [ class_ "modal-dialog__post-preview" ]
                     (
-                        if isOp
+                        if isOp post
                         then
                             op (const []) threadModel post Map.empty
                             ++ [ div_ [ class_ "clearfix" ] [] ]
@@ -198,14 +264,6 @@ view m = div_ hide render
                     )
                 ]
 
-            where
-                isOp :: Bool
-                isOp = P.local_idx post == 1
-
-                a
-                    | isOp = "thread "
-                    | otherwise = "post "
-
         content T.Model { T.post_bodies = [] } =
             div_
                 [ class_ "modal-dialog__content" ]
@@ -213,3 +271,12 @@ view m = div_ hide render
                     [ p_ [] [ "Invalid state - no post information!" ]
                     ]
                 ]
+
+
+        isOp :: P.Post -> Bool
+        isOp post = P.local_idx post == 1
+
+
+        a post
+            | isOp post = "thread "
+            | otherwise = "post "
