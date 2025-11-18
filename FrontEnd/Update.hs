@@ -46,6 +46,7 @@ import JSFFI.Saddle (encodeURIComponent)
 import Common.FrontEnd.Routes
 import qualified Common.FrontEnd.Types as T
 import qualified Common.Network.CatalogPostType as CatPost
+import qualified Common.Component.TimeControl as TC
 
 pattern Sender :: Client.ReturnTopicName
 pattern Sender = "main"
@@ -64,6 +65,7 @@ mainUpdate (Initialize ctxRef) = do
     subscribe clientThreadReturnTopic (ClientResponse SenderThread) OnErrorMessage
     subscribe Grid.catalogOutTopic GridMessage OnErrorMessage
     subscribe Search.searchOutTopic SearchResults OnErrorMessage
+    subscribe TC.timeControlTopic GoToTime OnErrorMessage
 
     model <- get
 
