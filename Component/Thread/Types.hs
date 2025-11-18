@@ -17,6 +17,7 @@ data Action
     | UpdatePostBodies UTCTime [ PostWithBody ]
     | Initialize
     | OnDeleteBtn PostWithBody
+    | PostDeleted Integer
     deriving Eq
 
 data Message = RenderSite MisoString Site

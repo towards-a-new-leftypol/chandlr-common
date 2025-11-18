@@ -1,6 +1,7 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE DataKinds #-}
+{-# LANGUAGE RecordWildCards #-}
 
 module Common.Component.Thread
 ( Model (..)
@@ -49,7 +50,7 @@ import Control.Monad.State (modify)
 import Data.IORef (readIORef)
 
 import qualified Common.Network.SiteType as Site
-import Common.Network.PostType (Post)
+import Common.Network.PostType (Post (post_id))
 import qualified Common.Network.BoardType as Board
 import qualified Common.Network.ThreadType as Thread
 import Common.Component.Thread.Model
@@ -135,6 +136,13 @@ update (OnDeleteBtn pwb) = do
     io_ $ consoleLog "OnDeleteBtn"
     model <- get
     publish DIP.deleteIllegalPostInTopic $ DIP.InMessage model { post_bodies = [ pwb ] }
+
+update (PostDeleted deletedPostId) =
+    modify (\m@Model {..} -> m { post_bodies = filter ff post_bodies })
+
+    where
+        ff :: PostWithBody -> Bool
+        ff (p, _) = post_id p /= deletedPostId
 
 
 view :: Model -> View model Action

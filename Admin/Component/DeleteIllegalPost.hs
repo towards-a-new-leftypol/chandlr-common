@@ -40,12 +40,12 @@ import qualified Common.Component.Thread.Model as T
 import qualified Common.Network.PostType as P
 import Common.Component.PostViews (op, reply)
 import qualified Common.Network.ClientTypes as Client
-import qualified Common.Utils as Utils
 import qualified Common.Network.SiteType as Site
 import qualified Common.Network.BoardType as B
 import qualified Common.Network.ThreadType as T
 
 #ifdef FRONT_END
+import qualified Common.Utils as Utils
 import JSFFI.Saddle
     ( freezeBodyScrolling
     , unFreezeBodyScrolling
