@@ -40,7 +40,7 @@ import Miso.Html.Property
   )
 import qualified Miso as M
 import Miso.Binding ((-->))
-import Data.List.NonEmpty (head, toList)
+import Data.List.NonEmpty (head)
 import Miso.String (toMisoString, MisoString)
 import Data.Time.Clock (getCurrentTime)
 import Control.Monad.IO.Class (liftIO)
@@ -51,7 +51,6 @@ import qualified Data.Set as Set
 import qualified Common.Network.SiteType as Site
 import Common.Network.PostType (Post (post_id))
 import qualified Common.Network.BoardType as Board
-import qualified Common.Network.ThreadType as Thread
 import Common.Component.Thread.Model
 import Common.Parsing.BodyParser
 import qualified Common.Component.BodyRender as Body

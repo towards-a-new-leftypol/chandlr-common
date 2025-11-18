@@ -7,7 +7,7 @@ import Miso
   ( View
   , text
   , Attribute
-  , toMisoString
+  , toMisoString, key_
   )
 import Miso.Html
   ( div_
@@ -45,6 +45,7 @@ op introExtras m op_post backlinks =
         (
             class_ (if admin m then "post op post-with-admin" else "post op")
             : id_ (toMisoString $ show $ Post.board_post_id op_post)
+            : key_ ("post#" <> show (Post.post_id op_post))
             : multi op_post
         )
         ( intro site_ board thread op_post backlinks (current_time m)
@@ -95,6 +96,7 @@ reply
 reply introExtras m backlinks pwb@(post, parts) = div_
     [ class_ "postcontainer"
     , id_ $ toMisoString $ show $ Post.board_post_id post
+    , key_ $ "post#" <> show (Post.post_id post)
     ]
     [ div_
         [ class_ "sidearrows" ]

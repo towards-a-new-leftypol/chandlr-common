@@ -32,6 +32,7 @@ import Miso
     , publish
     , io_
     , consoleLog
+    , key_
     )
 import Miso.Html
     ( div_
@@ -142,7 +143,9 @@ view model =
 gridItem :: Model -> CatalogPost -> View model Action
 gridItem m post =
     div_
-        [ class_ "thread grid-li grid-size-small" ]
+        [ class_ "thread grid-li grid-size-small"
+        , key_ ("thread#" <> show (CatalogPost.thread_id post))
+        ]
         [ a_
             [ href_ thread_url
             , onClick_ (ThreadSelected post)
