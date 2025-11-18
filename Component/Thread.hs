@@ -24,8 +24,6 @@ import Miso
   , defaultEvents
   , io
   , io_
-  , Topic
-  , topic
   , consoleError
   , consoleLog
   , subscribe
@@ -48,6 +46,7 @@ import Data.Time.Clock (getCurrentTime)
 import Control.Monad.IO.Class (liftIO)
 import Control.Monad.State (modify)
 import Data.IORef (readIORef)
+import qualified Data.Set as Set
 
 import qualified Common.Network.SiteType as Site
 import Common.Network.PostType (Post (post_id))
@@ -65,9 +64,6 @@ import Common.Admin.DeleteBtn (deleteBtn)
 import Common.Component.PostViews (op, reply)
 
 type ThreadComponent parent = Component parent Model Action
-
-threadTopic :: Topic Message
-threadTopic = topic "thread"
 
 app :: InitCtxRef -> ThreadComponent FE.Model
 app ctxRef = M.Component
@@ -125,6 +121,15 @@ update (OnMessage (RenderSite _ s)) = do
         now <- liftIO $ getCurrentTime
         return $ UpdatePostBodies now pwbs
 
+update (OnMessage (PostDeleted deletedPostIds)) =
+    modify (\m@Model {..} -> m { post_bodies = filter ff post_bodies })
+
+    where
+        deletedSet = Set.fromList deletedPostIds
+
+        ff :: PostWithBody -> Bool
+        ff (p, _) = post_id p `Set.notMember` deletedSet
+
 update (OnMessageError msg) =
     io_ $ consoleError ("Thread Component Message decode failure: " <> toMisoString msg)
 
@@ -137,13 +142,6 @@ update (OnDeleteBtn pwb) = do
     model <- get
     publish DIP.deleteIllegalPostInTopic $ DIP.InMessage model { post_bodies = [ pwb ] }
 
-update (PostDeleted deletedPostId) =
-    modify (\m@Model {..} -> m { post_bodies = filter ff post_bodies })
-
-    where
-        ff :: PostWithBody -> Bool
-        ff (p, _) = post_id p /= deletedPostId
-
 
 view :: Model -> View model Action
 view m =
@@ -152,24 +150,18 @@ view m =
     [ h1_ [] [ text title ]
     , div_
         [ class_ "thread" ]
-        (  op_post thread_posts
+        (  op_post (post_bodies m)
         ++ map (reply (deleteBtn_ m) m backlinks) (drop 1 (post_bodies m))
         )
     ]
 
     where
-        thread_posts :: [ Post ]
-        thread_posts =
-            concatMap (toList . Thread.posts) $
-                concatMap (toList . Board.threads) $
-                    Site.boards (site m)
-
         backlinks :: Backlinks
         backlinks = collectBacklinks (post_bodies m)
 
-        op_post :: [ Post ] -> [ View model Action ]
+        op_post :: [ PostWithBody ] -> [ View model Action ]
         op_post [] = [ h2_ [] [ "There's nothing here" ] ]
-        op_post (x:_) = op (deleteBtn_ m) m x backlinks
+        op_post ((p, _):_) = op (deleteBtn_ m) m p backlinks
 
         title :: MisoString
         title = toMisoString $ Site.name (site m) <> " /" <> board <> "/"

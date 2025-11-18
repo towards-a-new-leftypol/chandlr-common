@@ -43,6 +43,7 @@ import qualified Common.Network.ClientTypes as Client
 import qualified Common.Network.SiteType as Site
 import qualified Common.Network.BoardType as B
 import qualified Common.Network.ThreadType as T
+import qualified Common.Component.Thread.Types as TT
 
 #ifdef FRONT_END
 import qualified Common.Utils as Utils
@@ -64,6 +65,7 @@ import Miso
 data Model = Model
     { threadData :: Maybe T.Model
     , deleteRequestResult :: Maybe (Either MisoString [ Site.Site ])
+    , busy :: Bool
     }
     deriving Eq
 
@@ -87,7 +89,7 @@ pattern ReturnTopic = "delete-illegal-post-results"
 type DeleteIllegalPostComponent parent = M.Component parent Model Action
 
 initialModel :: Model
-initialModel = Model Nothing Nothing
+initialModel = Model Nothing Nothing False
 
 app :: DeleteIllegalPostComponent parent
 app = M.Component
@@ -120,22 +122,41 @@ update Initialize = do
 
 update (OnMessageIn (InMessage x)) = do
     io_ $ consoleLog "DeleteIllegalPostComponent received a message!"
-    modify (\m -> m { threadData = Just x, deleteRequestResult = Nothing })
+    modify
+        ( \m -> m
+            { threadData = Just x
+            , deleteRequestResult = Nothing
+            , busy = False
+            }
+        )
     io_ freezeBodyScrolling
 
-update (ClientResponse (Client.ReturnResult httpResult)) =
+update (ClientResponse (Client.ReturnResult httpResult)) = do
     Utils.helperE httpResult saveDeleteResult saveDeleteErrorResult
 
     where
         saveDeleteResult :: [ Site.Site ] -> Effect parent Model Action
         saveDeleteResult sites = do
             io_ $ consoleLog $ toMisoString $ show sites
-            modify (\m -> m { deleteRequestResult = Just $ Right sites })
+            modify
+                ( \m -> m
+                    { deleteRequestResult = Just $ Right sites
+                    , busy = True
+                    }
+                )
+            publish
+                TT.threadTopic $
+                TT.PostDeleted $ map P.post_id $ postsFromSites sites
 
         saveDeleteErrorResult :: MisoString -> Effect parent Model Action
         saveDeleteErrorResult errMsg = do
             io_ $ consoleError errMsg
-            modify (\m -> m { deleteRequestResult = Just $ Left errMsg })
+            modify
+                ( \m -> m
+                    { deleteRequestResult = Just $ Left errMsg
+                    , busy = False
+                    }
+                )
 
 update (OnErrorMessage e) = io_ $ consoleError e
 
@@ -146,18 +167,25 @@ update Cancel = do
 update Submit = do
     model <- get
 
-    case threadData model of
-        Nothing ->
-            io_ $ consoleLog "Error: DeleteIllegalPostComponent has nothing to post!"
+    case busy model of
+        True -> return ()
+        False ->
+            case threadData model of
+                Nothing ->
+                    io_ $ consoleLog "Error: DeleteIllegalPostComponent has nothing to post!"
 
-        Just threadModel -> do
-            io_ $ consoleLog "DeleteIllegalPostComponent Submit!"
+                Just threadModel -> do
+                    io_ $ consoleLog "DeleteIllegalPostComponent Submit!"
 
-            publish Client.clientInTopic
-                ( ReturnTopic
-                , Client.DeleteIllegalPost $
-                    Client.DeleteIllegalPostArgs $ P.post_id $ post threadModel
-                )
+                    publish Client.clientInTopic
+                        ( ReturnTopic
+                        , Client.DeleteIllegalPost $
+                            Client.DeleteIllegalPostArgs $
+                            P.post_id $
+                            post threadModel
+                        )
+
+                    modify (\m -> m { busy = True })
 
     where
         post :: T.Model -> P.Post
@@ -192,7 +220,7 @@ view m = div_ hide render
 
 
         statusMessage :: Model -> P.Post -> View model action
-        statusMessage Model { deleteRequestResult = Nothing }  post =
+        statusMessage Model { deleteRequestResult = Nothing } post =
             div_
                 [ class_ "warning-message" ]
                 [ div_ [ class_ "warning-icon" ] [ "⚠" ]
@@ -237,12 +265,7 @@ view m = div_ hide render
                                 <> toMisoString (show $ length threads)
                                 <> " threads."
 
-                posts =
-                    ( concatMap (L.toList . T.posts)
-                    . concatMap (L.toList . B.threads)
-                    . concatMap (L.toList . Site.boards)
-                    )
-                    sites
+                posts = postsFromSites sites
 
                 attachments = concatMap P.attachments posts
 
@@ -280,3 +303,10 @@ view m = div_ hide render
         a post
             | isOp post = "thread "
             | otherwise = "post "
+
+
+postsFromSites :: [ Site.Site ] -> [ P.Post ]
+postsFromSites
+    = concatMap (L.toList . T.posts)
+    . concatMap (L.toList . B.threads)
+    . concatMap (L.toList . Site.boards)
