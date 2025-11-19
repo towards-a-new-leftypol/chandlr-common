@@ -22,6 +22,7 @@ import Miso
     , Topic
     , topic
     )
+import Miso.Subscription.History (replaceURI)
 import Servant.Miso.Router (route)
 import Miso.String (MisoString, toMisoString)
 import qualified Data.Map.Strict as Map
@@ -177,6 +178,18 @@ mainUpdate (ClientResponse _ (Client.ReturnResult _)) = return ()
 mainUpdate (GoToTime t) = do
     modify (\m -> m { current_time = t, between_pages = True })
     publish Client.clientInTopic (SenderLatest, Client.FetchLatest t)
+
+    model <- get
+
+    io_ $ do
+        consoleLog $ "calling replaceURI on " <> toMisoString (show (new_current_uri model))
+        replaceURI $ new_current_uri model
+
+    where
+        new_current_uri :: Model -> URI
+        new_current_uri m = (current_uri m)
+            { uriQueryString = Map.fromList [ ("t", Just $ toMisoString $ show t) ]
+            }
 
 mainUpdate (GetThread Client.GetThreadArgs {..}) = do
     io_ $ consoleLog $ "Thread " <> (toMisoString $ show board_thread_id)
