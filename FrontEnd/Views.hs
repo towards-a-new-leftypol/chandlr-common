@@ -70,8 +70,8 @@ pageWrapperWithDefaults _ inner_content =
         ]
 
 
-catalogView :: InitCtxRef -> Model -> View Model Action
-catalogView ctxRef m = pageWrapperWithDefaults m $ div_ []
+catalogView :: InitCtxRef -> Maybe String -> Model -> View Model Action
+catalogView ctxRef _ m = pageWrapperWithDefaults m $ div_ []
     [ div_
         [ class_ "page_heading" ]
         [ h1_ [] [ text "Overboard Catalog" ]

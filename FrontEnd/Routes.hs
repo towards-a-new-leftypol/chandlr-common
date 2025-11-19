@@ -13,7 +13,9 @@ type Route a
     :<|> R_Thread a
     :<|> R_SearchResults a
 
-type R_Latest a = a
+type R_Latest a
+    = QueryParam "t" String
+    :> a
 
 -- Show selected thread
 --  - <website>/<board>/<thread_id>
