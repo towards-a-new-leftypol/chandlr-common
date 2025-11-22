@@ -255,8 +255,9 @@ initialActionFromRoute model uri = fromRight NoAction routing_result
 
         handlers = h_latest :<|> h_thread :<|> h_search
 
-        h_latest :: Model -> Action
-        h_latest = GoToTime . current_time
+        h_latest :: Maybe String -> Model -> Action
+        h_latest Nothing m = GoToTime $ current_time m
+        h_latest (Just t) _ = GoToTime $ read t
 
         h_thread :: Text -> Text -> BoardThreadId -> Model -> Action
         h_thread website board_pathpart board_thread_id _ =
