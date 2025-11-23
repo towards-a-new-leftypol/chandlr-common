@@ -45,7 +45,12 @@ timeControl = (div_ [ key_ ("time-control" :: MisoString) ] +>) . TC.app
 
 
 grid :: InitCtxRef -> View Model Action
-grid = (div_ [ key_ ("catalog-grid" :: MisoString) ] +>) . Grid.app
+grid =
+    ( div_
+        [ key_ ("catalog-grid" :: MisoString)
+        , onMounted CatalogViewMounted
+        ] +>
+    ) . Grid.app
 
 
 search :: View Model Action
