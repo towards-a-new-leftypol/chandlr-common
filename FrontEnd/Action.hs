@@ -23,6 +23,7 @@ data Action
     | ClientMounted
     | ClientUnmounted
     | ThreadViewMounted
+    | CatalogViewMounted
     | NoAction
     | Initialize InitCtxRef
     deriving Eq
