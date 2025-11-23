@@ -15,7 +15,7 @@ import Miso.Html.Property
   )
 import Miso.Html
   ( input_
-  , form
+  , form_
   , onChange
   , onSubmit
   )
@@ -23,7 +23,7 @@ import Miso.Html
 import Common.Component.Search.SearchTypes
 
 view :: Model -> View Model Action
-view = const $ form
+view = const $ form_
     [ class_ "search_form"
     , action_ "/search"
     , method_ "GET"
