@@ -69,6 +69,7 @@ import qualified Common.FrontEnd.Model as FE
 import qualified Common.FrontEnd.JSONSettings  as Settings
 
 import Debug.Trace (trace)
+import qualified Data.Map as Map
 
 app :: InitCtxRef -> GridComponent FE.Model
 app ctxRef =
@@ -78,17 +79,20 @@ app ctxRef =
         , M.update = update
         , M.view = view
         , M.subs = []
-        , M.events = M.defaultEvents
+        -- , M.events = M.defaultEvents
+        , M.events = Map.singleton "click" False
         , M.styles = []
         , M.initialAction = Nothing
         , M.mountPoint = Nothing
-        , M.logLevel = M.DebugAll
+        -- , M.logLevel = M.DebugAll
+        , M.logLevel = M.Off
         , M.scripts = []
         , M.mailbox = const Nothing
         , M.bindings =
             [ FE.getSetCatalogPosts --> getSetDisplayItems
             , FE.getSetMediaRoot --> getSetMediaRoot
             ]
+        , M.eventPropagation = False
         }
 
 
@@ -118,7 +122,7 @@ initialItems _ = []
 
 -- Custom event handler with preventDefault set to True
 onClick_ :: a -> Attribute a
-onClick_ action = onWithOptions defaultOptions { _preventDefault = True } "click" emptyDecoder (const $ const action)
+onClick_ action = onWithOptions M.BUBBLE defaultOptions { _preventDefault = True } "click" emptyDecoder (const $ const action)
 
 
 update :: Action -> Effect parent Model Action

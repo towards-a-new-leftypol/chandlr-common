@@ -98,14 +98,17 @@ app = M.Component
     , M.update = update
     , M.view = view
     , M.subs = []
-    , M.events = defaultEvents
+    -- , M.events = defaultEvents
+    , M.events = Map.singleton "click" False
     , M.styles = []
     , M.initialAction = Just Initialize
     , M.mountPoint = Nothing
-    , M.logLevel = M.DebugAll
+    -- , M.logLevel = M.DebugAll
+    , M.logLevel = M.Off
     , M.scripts = []
     , M.mailbox = const Nothing
     , M.bindings = []
+    , M.eventPropagation = False
     }
 
 

@@ -49,6 +49,8 @@ import qualified Common.FrontEnd.Types as T
 import qualified Common.Network.CatalogPostType as CatPost
 import qualified Common.Component.TimeControl as TC
 
+import JSFFI.Profile (sectionEnd, toJSString, displayTotals)
+
 pattern Sender :: Client.ReturnTopicName
 pattern Sender = "main"
 
@@ -110,8 +112,17 @@ mainUpdate ClientMounted = do
 
 mainUpdate ClientUnmounted = io_ $ consoleLog "Http Client Unmounted!"
 
+mainUpdate CatalogViewMounted = do
+    io_ $ do
+        consoleLog "CatalogViewMounted"
+        liftIO $ sectionEnd $ toJSString "pageLoad"
+        liftIO $ displayTotals
+
 mainUpdate ThreadViewMounted = do
-    io_ $ consoleLog "ThreadViewMounted"
+    io_ $ do
+        consoleLog "ThreadViewMounted"
+        liftIO $ sectionEnd $ toJSString "pageLoad"
+        liftIO $ displayTotals
 
     model <- get
 

@@ -45,6 +45,8 @@ import Data.Time.Clock
 import Data.Time.Calendar (fromGregorian)
 import Common.FrontEnd.Types (InitCtxRef)
 
+import qualified Data.Map as Map
+
 data Time
   = Now
   | SlideInput MisoString
@@ -74,7 +76,7 @@ view m =
             , min_ "-500"
             , max_ "0"
             , step_ "1"
-            , value_ $ toMisoString $ show (whereAt m)
+            -- , value_ $ toMisoString $ show (whereAt m)
             , onInput SlideInput
             , onChange SlideChange
             ]
@@ -136,12 +138,15 @@ app _ = M.Component
     , M.update = update
     , M.view = view
     , M.subs = []
-    , M.events = defaultEvents
+    -- , M.events = defaultEvents
+    , M.events = Map.singleton "click" False
     , M.styles = []
     , M.initialAction = Nothing
     , M.mountPoint = Nothing
-    , M.logLevel = M.DebugAll
+    -- , M.logLevel = M.DebugAll
+    , M.logLevel = M.Off
     , M.scripts = []
     , M.mailbox = const Nothing
     , M.bindings = []
+    , M.eventPropagation = False
     }
