@@ -33,7 +33,6 @@ import qualified Common.Network.ClientTypes as Client
 import qualified Common.Utils as Utils
 import qualified Common.FrontEnd.Model as FE
 
-import qualified Data.Map as Map
 
 pattern ReturnTopic :: Client.ReturnTopicName
 pattern ReturnTopic = "search-results"
@@ -92,13 +91,11 @@ app = M.Component
     , M.update = update
     , M.view = view
     , M.subs = []
-    -- , M.events = defaultEvents
-    , M.events = Map.singleton "click" False
+    , M.events = defaultEvents
     , M.styles = []
     , M.initialAction = Just Initialize
     , M.mountPoint = Nothing
-    -- , M.logLevel = M.DebugAll
-    , M.logLevel = M.Off
+    , M.logLevel = M.DebugAll
     , M.scripts = []
     , M.mailbox = const Nothing
     , M.bindings = []

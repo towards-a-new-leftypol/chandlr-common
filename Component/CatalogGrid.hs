@@ -69,7 +69,7 @@ import qualified Common.FrontEnd.Model as FE
 import qualified Common.FrontEnd.JSONSettings  as Settings
 
 import Debug.Trace (trace)
-import qualified Data.Map as Map
+
 
 app :: InitCtxRef -> GridComponent FE.Model
 app ctxRef =
@@ -79,13 +79,11 @@ app ctxRef =
         , M.update = update
         , M.view = view
         , M.subs = []
-        -- , M.events = M.defaultEvents
-        , M.events = Map.singleton "click" False
+        , M.events = M.defaultEvents
         , M.styles = []
         , M.initialAction = Nothing
         , M.mountPoint = Nothing
-        -- , M.logLevel = M.DebugAll
-        , M.logLevel = M.Off
+        , M.logLevel = M.DebugAll
         , M.scripts = []
         , M.mailbox = const Nothing
         , M.bindings =

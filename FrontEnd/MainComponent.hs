@@ -18,7 +18,6 @@ import Servant.API hiding (URI)
 import Servant.Miso.Router (route)
 import Data.IORef (readIORef)
 import qualified Data.Map.Strict as Map
-import qualified Data.Map as Mep
 
 import qualified Common.FrontEnd.JSONSettings as Settings
 import qualified Common.Component.CatalogGrid as Grid
@@ -48,13 +47,11 @@ app ctxRef =
         , M.hydrateModel  = Just $ initializeModel ctxRef
         , M.view          = mainView ctxRef
         , M.subs          = [ uriSub ChangeURI ]
-        -- , M.events        = defaultEvents
-        , M.events = Mep.singleton "click" False
+        , M.events        = defaultEvents
         , M.styles = []
         , M.initialAction = Just (Initialize ctxRef)
         , M.mountPoint    = Nothing
-    --    , M.logLevel      = DebugAll
-    , M.logLevel = M.Off
+        , M.logLevel      = DebugAll
         , M.scripts = []
         , M.mailbox = const Nothing
         , M.bindings = []

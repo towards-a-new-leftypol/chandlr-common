@@ -62,7 +62,6 @@ import qualified Common.Admin.Component.DeleteIllegalPost as DIP
 import Common.Admin.DeleteBtn (deleteBtn)
 import Common.Component.PostViews (op, reply)
 
-import qualified Data.Map as Map
 
 type ThreadComponent parent = Component parent Model Action
 
@@ -73,13 +72,11 @@ app ctxRef = M.Component
     , M.update = update
     , M.view = view
     , M.subs = []
-    -- , M.events = defaultEvents
-    , M.events = Map.singleton "click" False
+    , M.events = defaultEvents
     , M.styles = []
     , M.initialAction = Just Initialize
     , M.mountPoint = Nothing
-    -- , M.logLevel = M.DebugAll
-    , M.logLevel = M.Off
+    , M.logLevel = M.DebugAll
     , M.scripts = []
     , M.mailbox = const Nothing
     , M.bindings =

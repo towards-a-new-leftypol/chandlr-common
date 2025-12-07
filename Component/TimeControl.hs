@@ -45,7 +45,6 @@ import Data.Time.Clock
 import Data.Time.Calendar (fromGregorian)
 import Common.FrontEnd.Types (InitCtxRef)
 
-import qualified Data.Map as Map
 
 data Time
   = Now
@@ -138,13 +137,11 @@ app _ = M.Component
     , M.update = update
     , M.view = view
     , M.subs = []
-    -- , M.events = defaultEvents
-    , M.events = Map.singleton "click" False
+    , M.events = defaultEvents
     , M.styles = []
     , M.initialAction = Nothing
     , M.mountPoint = Nothing
-    -- , M.logLevel = M.DebugAll
-    , M.logLevel = M.Off
+    , M.logLevel = M.DebugAll
     , M.scripts = []
     , M.mailbox = const Nothing
     , M.bindings = []
