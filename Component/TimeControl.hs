@@ -75,7 +75,7 @@ view m =
             , min_ "-500"
             , max_ "0"
             , step_ "1"
-            -- , value_ $ toMisoString $ show (whereAt m)
+            , value_ $ toMisoString $ show (whereAt m)
             , onInput SlideInput
             , onChange SlideChange
             ]
