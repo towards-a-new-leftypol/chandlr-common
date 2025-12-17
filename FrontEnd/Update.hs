@@ -70,7 +70,7 @@ mainUpdate (Initialize ctxRef) = do
     subscribe clientThreadReturnTopic (ClientResponse SenderThread) OnErrorMessage
     subscribe Grid.catalogOutTopic GridMessage OnErrorMessage
     subscribe Search.searchOutTopic SearchResults OnErrorMessage
-    subscribe TC.timeControlTopic GoToTime OnErrorMessage
+    subscribe TC.timeControlTopic (GoToTime . Then) OnErrorMessage
 
     model <- get
 
@@ -105,9 +105,9 @@ mainUpdate (InitNoHydration ctx) = do
     modify $ \m -> m
         { current_uri = uri
         , media_root_ = toMisoString $ Settings.media_root settings
-        , current_time = T.timestamp $ T.init_payload ctx
+        , current_time = current_time_
         , search_term = searchTermFromUri uri
-        , initial_action = initialActionFromRoute m uri
+        , initial_action = initialActionFromRoute (m { current_time = current_time_ }) uri
         , thread_message = Nothing
         , pg_api_root = toMisoString $ Settings.postgrest_url settings
         , client_fetch_count = Settings.postgrest_fetch_count settings
@@ -118,6 +118,7 @@ mainUpdate (InitNoHydration ctx) = do
     where
         uri = T.init_uri ctx
         settings = T.init_settings ctx
+        current_time_ = T.timestamp $ T.init_payload ctx
 
         searchTermFromUri :: URI -> MisoString
         searchTermFromUri u =
@@ -221,7 +222,11 @@ mainUpdate (ClientResponse SenderThread (Client.ReturnResult result)) = do
 
 mainUpdate (ClientResponse _ (Client.ReturnResult _)) = return ()
 
-mainUpdate (GoToTime t) = do
+mainUpdate (GoToTime (Now t)) = do
+    modify (\m -> m { current_time = t, between_pages = True })
+    publish Client.clientInTopic (SenderLatest, Client.FetchLatest t)
+
+mainUpdate (GoToTime (Then t)) = do
     modify (\m -> m { current_time = t, between_pages = True })
     publish Client.clientInTopic (SenderLatest, Client.FetchLatest t)
 
@@ -302,8 +307,8 @@ initialActionFromRoute model uri = fromRight NoAction routing_result
         handlers = h_latest :<|> h_thread :<|> h_search
 
         h_latest :: Maybe String -> Model -> Action
-        h_latest Nothing m = GoToTime $ current_time m
-        h_latest (Just t) _ = GoToTime $ read t
+        h_latest Nothing m = GoToTime $ Now $ current_time m
+        h_latest (Just t) _ = GoToTime $ Then $ read t
 
         h_thread :: Text -> Text -> BoardThreadId -> Model -> Action
         h_thread website board_pathpart board_thread_id _ =
@@ -314,7 +319,7 @@ initialActionFromRoute model uri = fromRight NoAction routing_result
                 }
 
         h_search :: Maybe String -> Model -> Action
-        h_search Nothing m = GoToTime $ current_time m
+        h_search Nothing m = GoToTime $ Now $ current_time m
         h_search (Just search_query) _ = NotifySearch (False, unescaped_search_query)
             where
                 unescaped_search_query =

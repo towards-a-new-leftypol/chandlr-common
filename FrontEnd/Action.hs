@@ -11,12 +11,15 @@ import qualified Common.Network.ClientTypes as Client
 import qualified Common.Component.CatalogGrid.GridTypes as Grid
 import Common.FrontEnd.Types (InitCtxRef, AppInitCtx)
 
+data Time = Now UTCTime | Then UTCTime
+    deriving Eq
+
 data Action
     = GetThread Client.GetThreadArgs
     | GridMessage Grid.OutMessage
     | ClientResponse Client.ReturnTopicName Client.MessageOut
     | OnErrorMessage MisoString
-    | GoToTime UTCTime
+    | GoToTime Time
     | ChangeURI URI
     | SearchResults Search.MessageOut
     | NotifySearch Search.MessageIn
