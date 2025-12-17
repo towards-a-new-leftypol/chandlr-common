@@ -27,6 +27,7 @@ import Miso.Html.Property
   , target_
   , data_
   )
+import Miso.CSS (styleInline_)
 import Data.List.NonEmpty (head)
 import Data.Foldable (toList)
 import Miso.String (MisoString, append, toMisoString, fromMisoString)
@@ -163,7 +164,7 @@ file media_root site multifile a = div_
 
     mk_file_elem_width_style :: Dimension -> Attribute a
     mk_file_elem_width_style Dimension {..} =
-      data_ "width" $ toPx (width + 40)
+      styleInline_ $ "width: " <> toPx (width + 40)
 
     mk_size_style_attr :: Dimension -> [ Attribute a ]
     mk_size_style_attr Dimension {..} =

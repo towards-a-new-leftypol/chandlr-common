@@ -41,7 +41,8 @@ op
     -> Backlinks
     -> [ View model action ]
 op introExtras m op_post backlinks =
-    [ div_
+    [ files_or_embed_view
+    , div_
         (
             class_ (if admin m then "post op post-with-admin" else "post op")
             : id_ (toMisoString $ show $ Post.board_post_id op_post)
@@ -49,7 +50,6 @@ op introExtras m op_post backlinks =
             : multi op_post
         )
         ( intro site_ board thread op_post backlinks (current_time m)
-        : files_or_embed_view
         : introExtras (L.head $ post_bodies m)
         ++
         [ div_
