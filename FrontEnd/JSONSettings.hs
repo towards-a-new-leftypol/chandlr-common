@@ -27,7 +27,7 @@ data JSONSettings = JSONSettings
     , static_serve_path :: String
     , static_serve_url_root :: String
     , admin :: Bool
-    } deriving (Show, Generic)
+    } deriving (Show, Eq, Generic)
 
 instance FromJSON JSONSettings
 

@@ -9,7 +9,7 @@ import qualified Common.Network.CatalogPostType as CatalogPost
 import qualified Common.Component.Search.SearchTypes as Search
 import qualified Common.Network.ClientTypes as Client
 import qualified Common.Component.CatalogGrid.GridTypes as Grid
-import Common.FrontEnd.Types (InitCtxRef)
+import Common.FrontEnd.Types (InitCtxRef, AppInitCtx)
 
 data Action
     = GetThread Client.GetThreadArgs
@@ -26,6 +26,7 @@ data Action
     | CatalogViewMounted
     | NoAction
     | Initialize InitCtxRef
+    | InitNoHydration AppInitCtx
     deriving Eq
 
 

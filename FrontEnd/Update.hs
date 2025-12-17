@@ -14,6 +14,7 @@ import Miso
     , consoleLog
     , consoleError
     , io_
+    , io
     , get
     , modify
     , issue
@@ -31,7 +32,7 @@ import Data.Text (Text)
 import Data.Either (fromRight)
 import Servant.API hiding (URI)
 import Network.URI (unEscapeString)
-import Data.IORef (modifyIORef)
+import Data.IORef (modifyIORef, readIORef)
 import Control.Monad.IO.Class (liftIO)
 import Control.Monad (when)
 
@@ -48,6 +49,7 @@ import Common.FrontEnd.Routes
 import qualified Common.FrontEnd.Types as T
 import qualified Common.Network.CatalogPostType as CatPost
 import qualified Common.Component.TimeControl as TC
+import qualified Common.FrontEnd.JSONSettings as Settings
 
 import JSFFI.Profile (sectionEnd, toJSString, displayTotals)
 
@@ -75,6 +77,15 @@ mainUpdate (Initialize ctxRef) = do
     io_ $ do
         consoleLog "MainComponent Initialize action"
         consoleLog $ "MainComponent pg_api_root: " <> (pg_api_root model)
+
+    io $ do
+        ctx <- liftIO $ readIORef ctxRef
+        if T.hydrate ctx
+        then
+            return NoAction
+        else
+            return $ InitNoHydration ctx
+
     -- collect garbage
     io_ $ liftIO $ modifyIORef ctxRef
         ( \ctx@T.AppInitCtx {..} -> ctx
@@ -89,6 +100,30 @@ mainUpdate (Initialize ctxRef) = do
 
         clientThreadReturnTopic :: Topic Client.MessageOut
         clientThreadReturnTopic = topic SenderThread
+
+mainUpdate (InitNoHydration ctx) = do
+    modify $ \m -> m
+        { current_uri = uri
+        , media_root_ = toMisoString $ Settings.media_root settings
+        , current_time = T.timestamp $ T.init_payload ctx
+        , search_term = searchTermFromUri uri
+        , initial_action = initialActionFromRoute m uri
+        , thread_message = Nothing
+        , pg_api_root = toMisoString $ Settings.postgrest_url settings
+        , client_fetch_count = Settings.postgrest_fetch_count settings
+        , between_pages = False
+        , admin = Settings.admin settings
+        }
+
+    where
+        uri = T.init_uri ctx
+        settings = T.init_settings ctx
+
+        searchTermFromUri :: URI -> MisoString
+        searchTermFromUri u =
+            case Utils.pageTypeFromURI u of
+                Utils.Search (Just q) -> toMisoString  q
+                _ -> ""
 
 mainUpdate ClientMounted = do
     model <- get

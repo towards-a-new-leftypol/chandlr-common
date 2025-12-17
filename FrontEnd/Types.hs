@@ -16,7 +16,7 @@ import Common.FrontEnd.JSONSettings (JSONSettings)
 data InitialDataPayload = InitialDataPayload
     { timestamp :: UTCTime
     , initialData :: InitialData
-    } deriving (Generic)
+    } deriving (Generic, Eq)
 
 instance FromJSON InitialDataPayload
 instance ToJSON InitialDataPayload
@@ -26,15 +26,16 @@ data InitialData
     | SearchData [ CatalogPost ]
     | ThreadData Site [ Thread.PostWithBody ]
     | Nil
-    deriving (Generic)
+    deriving (Generic, Eq)
 
 instance FromJSON InitialData
 instance ToJSON InitialData
 
 data AppInitCtx = AppInitCtx
-    { init_uri :: URI
+    { hydrate :: Bool
+    , init_uri :: URI
     , init_settings :: JSONSettings
     , init_payload :: InitialDataPayload
-    }
+    } deriving Eq
 
 type InitCtxRef = IORef AppInitCtx
