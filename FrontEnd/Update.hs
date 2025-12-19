@@ -218,14 +218,17 @@ mainUpdate (GridMessage (Grid.SelectThread catalog_post)) = do
 mainUpdate (OnErrorMessage msg) =
     io_ $ consoleError ("Main Component OnErrorMessage decode failure: " <> toMisoString msg)
 
-mainUpdate (ClientResponse SenderLatest (Client.ReturnResult result)) =
+mainUpdate (ClientResponse SenderLatest (Client.ReturnResult result)) = do
+    io_ $ consoleLog $ "ClientResponse - SenderLatest have encoded result"
     Utils.helper result $
-        \catalogPosts -> modify
-            ( \m -> m
-                { catalog_posts = catalogPosts
-                , between_pages = False
-                }
-            )
+        \catalogPosts -> do
+            io_ $ consoleLog $ "ClientResponse - SenderLatest, saving posts to model. number of posts: " <> toMisoString (show $ length catalogPosts)
+            modify
+                ( \m -> m
+                    { catalog_posts = catalogPosts
+                    , between_pages = False
+                    }
+                )
 
 mainUpdate (ClientResponse SenderThread (Client.ReturnResult result)) = do
     io_ $ consoleLog $ SenderThread <> " - Has result. Storing result in model."
