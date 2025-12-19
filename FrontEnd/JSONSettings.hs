@@ -38,6 +38,7 @@ asHtml settings =
     , meta "postgrest-fetch-count" (toMisoString $ postgrest_fetch_count settings)
     , meta "media-root" (toMisoString $ media_root settings)
     , meta "admin" (if admin settings then "True" else "False")
+    , meta "hydrate" "True"
     ]
 
     where
