@@ -21,6 +21,8 @@ data Model = Model
     , catalog_posts :: [ CatalogPost ]
     , between_pages :: Bool
     , admin :: Bool
+    , initialized :: Bool
+    , client_mounted :: Bool
     } deriving Eq
 
 getSetCatalogPosts :: Lens Model [ CatalogPost ]

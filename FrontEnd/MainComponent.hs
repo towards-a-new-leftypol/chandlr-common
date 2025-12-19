@@ -72,6 +72,8 @@ app ctxRef =
             , catalog_posts = []
             , between_pages = False
             , admin = False
+            , initialized = False
+            , client_mounted = False
             }
 
 
@@ -103,6 +105,8 @@ initializeModel ctxRef = do
               , catalog_posts = Grid.initialItems $ initialData initialPayload
               , between_pages = False
               , admin = Settings.admin settings
+              , initialized = True
+              , client_mounted = False
               }
 
     where

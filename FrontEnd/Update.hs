@@ -81,9 +81,10 @@ mainUpdate (Initialize ctxRef) = do
     io $ do
         ctx <- liftIO $ readIORef ctxRef
         if T.hydrate ctx
-        then
+        then do
             return NoAction
-        else
+        else do
+            consoleLog "hydrate off, calling InitNoHydration"
             return $ InitNoHydration ctx
 
     -- collect garbage
@@ -102,6 +103,8 @@ mainUpdate (Initialize ctxRef) = do
         clientThreadReturnTopic = topic SenderThread
 
 mainUpdate (InitNoHydration ctx) = do
+    io_ $ consoleLog "InitNoHydration - initializing model from settings"
+
     modify $ \m -> m
         { current_uri = uri
         , media_root_ = toMisoString $ Settings.media_root settings
@@ -113,7 +116,16 @@ mainUpdate (InitNoHydration ctx) = do
         , client_fetch_count = Settings.postgrest_fetch_count settings
         , between_pages = False
         , admin = Settings.admin settings
+        , initialized = True
         }
+
+    model <- get
+
+    if client_mounted model
+    then
+        issue ClientMounted
+    else
+        return ()
 
     where
         uri = T.init_uri ctx
@@ -129,22 +141,29 @@ mainUpdate (InitNoHydration ctx) = do
 mainUpdate ClientMounted = do
     model <- get
 
-    io_ $ do
-        consoleLog "Http Client Mounted!"
-        consoleLog $ "pg_api_root: " <> pg_api_root model
-        consoleLog $ "client_fetch_count: " <> (toMisoString $ client_fetch_count model)
+    if initialized model
+    then do
+        io_ $ do
+            consoleLog "Http Client Mounted!"
+            consoleLog $ "pg_api_root: " <> pg_api_root model
+            consoleLog $ "client_fetch_count: " <> (toMisoString $ client_fetch_count model)
 
-    publish
-        Client.clientInTopic
-        ( Sender
-        , Client.InitModel $
-            Client.Model
-                (pg_api_root model)
-                (client_fetch_count model)
-        )
+        publish
+            Client.clientInTopic
+            ( Sender
+            , Client.InitModel $
+                Client.Model
+                    (pg_api_root model)
+                    (client_fetch_count model)
+            )
 
-    issue $ initial_action model
-    modify $ \m -> m { initial_action = NoAction }
+        issue $ initial_action model
+        modify $ \m -> m { initial_action = NoAction }
+
+    else
+        return ()
+
+    modify $ \m -> m { client_mounted = True }
 
 mainUpdate ClientUnmounted = io_ $ consoleLog "Http Client Unmounted!"
 

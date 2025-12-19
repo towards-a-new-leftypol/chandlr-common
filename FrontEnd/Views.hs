@@ -48,10 +48,11 @@ timeControl ctxRef =
 
 grid :: InitCtxRef -> View Model Action
 grid ctxRef = div_
-    [ key_ ("catalog-grid" :: MisoString)
-    , onMounted CatalogViewMounted
+    [ key_ ("catalog-grid" :: MisoString) ]
+    [ mount_
+      [ onMounted CatalogViewMounted ]
+      (Grid.app ctxRef)
     ]
-    [ mount $ Grid.app ctxRef ]
 
 
 search :: View Model Action
@@ -66,7 +67,12 @@ pageWrapperWithDefaults _ inner_content =
             , onUnmounted ClientUnmounted
             , key_ ("http-client" :: MisoString)
             ]
-            [ mount Client.app ]
+            [ mount_
+                [ onMounted ClientMounted
+                , onUnmounted ClientUnmounted
+                ]
+                Client.app
+            ]
         , div_
             [ key_ ("delete-illegal-post" :: MisoString) ]
             [ mount DIP.app ]
