@@ -16,7 +16,8 @@ import Miso
     , onMounted
     , onUnmounted
     , key_
-    , (+>)
+    , mount_
+    , mount
     )
 import Miso.Html.Property (class_)
 import Miso.Html
@@ -41,35 +42,34 @@ import Common.FrontEnd.Types (InitCtxRef)
 import qualified Common.Admin.Component.DeleteIllegalPost as DIP
 
 timeControl :: InitCtxRef -> View Model Action
-timeControl = (div_ [ key_ ("time-control" :: MisoString) ] +>) . TC.app
+timeControl ctxRef =
+    div_ [ key_ ("time-control" :: MisoString) ] [ mount $ TC.app ctxRef ]
 
 
 grid :: InitCtxRef -> View Model Action
-grid =
-    ( div_
-        [ key_ ("catalog-grid" :: MisoString)
-        , onMounted CatalogViewMounted
-        ] +>
-    ) . Grid.app
+grid ctxRef = div_
+    [ key_ ("catalog-grid" :: MisoString)
+    , onMounted CatalogViewMounted
+    ]
+    [ mount $ Grid.app ctxRef ]
 
 
 search :: View Model Action
-search = div_ [ key_ ("search" :: MisoString) ] +> Search.app
+search = div_ [ key_ ("search" :: MisoString) ] [ mount Search.app ]
 
 
 pageWrapperWithDefaults :: Model -> View model Action -> View model Action
 pageWrapperWithDefaults _ inner_content =
     div_ [ key_ ("top-level" :: MisoString) ]
         [ div_
-                [ onMounted ClientMounted
-                , onUnmounted ClientUnmounted
-                , key_ ("http-client" :: MisoString)
-                ]
-            +>
-            Client.app
-        , div_ [ key_ ("delete-illegal-post" :: MisoString) ]
-            +>
-            DIP.app
+            [ onMounted ClientMounted
+            , onUnmounted ClientUnmounted
+            , key_ ("http-client" :: MisoString)
+            ]
+            [ mount Client.app ]
+        , div_
+            [ key_ ("delete-illegal-post" :: MisoString) ]
+            [ mount DIP.app ]
         -- , pre_ [] [ text $ "between_pages: " <> if between_pages then "True" else "False" ]
         , inner_content
         ]
@@ -112,11 +112,12 @@ threadView :: InitCtxRef -> Text -> Text -> BoardThreadId -> Model -> View Model
 threadView ctxRef site_name board_pathpart board_thread_id m =
     pageWrapperWithDefaults m $
         div_
-            [ onMounted ThreadViewMounted
-            , key_ ("thread-view" :: MisoString)
+            [ key_ ("thread-view" :: MisoString) ]
+            [ mount_
+                [ onMounted ThreadViewMounted
+                ]
+                (Thread.app ctxRef)
             ]
-        +>
-        (Thread.app ctxRef)
 
 
 page404 :: View model Action
