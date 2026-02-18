@@ -4,10 +4,16 @@ import Data.Text (Text)
 import GHC.Generics
 import Data.Aeson (FromJSON)
 
+data ClientApiType = LainJSON | TinyboardHTML
+    deriving (Eq, Show, Generic)
+
+instance FromJSON ClientApiType
+
 data JSONSiteSettings = JSONSiteSettings
     { name :: String
     , root_url :: String
     , boards :: [ String ]
+    , client_api_type :: ClientApiType
     } deriving (Show, Generic)
 
 instance FromJSON JSONSiteSettings
