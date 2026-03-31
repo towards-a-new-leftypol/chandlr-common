@@ -9,7 +9,7 @@ import GHC.Generics (Generic)
 import Data.Aeson (ToJSON, FromJSON)
 import Miso (Topic, topic, Component)
 import Miso.String (MisoString)
-import Miso.Lens (Lens (..))
+import Miso.Lens (Lens, LensCore (..))
 
 import Common.Network.CatalogPostType (CatalogPost)
 

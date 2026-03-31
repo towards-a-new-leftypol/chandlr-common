@@ -3,7 +3,7 @@ module Common.FrontEnd.Model where
 import Miso (URI)
 import Miso.String (MisoString)
 import Data.Time.Clock (UTCTime)
-import Miso.Lens (Lens (..))
+import Miso.Lens (Lens, LensCore (..))
 
 import Common.FrontEnd.Action (Action)
 import qualified Common.Component.Thread.Types  as Thread

@@ -4,7 +4,7 @@ module Common.Component.Search.SearchTypes where
 
 import Miso.String (MisoString)
 import Miso (Topic, topic)
-import Miso.Lens (Lens (..))
+import Miso.Lens (Lens, LensCore (..))
 
 import qualified Common.Network.ClientTypes as Client
 import Common.Network.CatalogPostType (CatalogPost)
