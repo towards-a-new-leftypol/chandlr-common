@@ -10,7 +10,6 @@ import Miso
     , consoleLog
     , Effect
     , Component
-    , defaultEvents
     , modify
     , io
     , io_
@@ -103,7 +102,7 @@ update (SlideChange nstr) = do
     n :: Integer
     n = read $ fromMisoString nstr
 
-update (Publish t) = publish timeControlTopic t
+update (Publish t) = io_ $ publish timeControlTopic t
 
 earliest :: UTCTime
 --earliest = UTCTime (fromGregorian 2020 12 20) (secondsToDiffTime 82643)
@@ -137,13 +136,13 @@ app _ = M.Component
     , M.update = update
     , M.view = view
     , M.subs = []
-    , M.events = defaultEvents
     , M.styles = []
-    , M.initialAction = Nothing
     , M.mountPoint = Nothing
     , M.logLevel = M.DebugAll
     , M.scripts = []
     , M.mailbox = const Nothing
     , M.bindings = []
     , M.eventPropagation = False
+    , M.mount = Nothing
+    , M.unmount = Nothing
     }

@@ -9,7 +9,6 @@ module Common.Admin.Component.DeleteIllegalPost where
 import Miso
     ( topic
     , Topic
-    , defaultEvents
     , Effect
     , MisoString
     , text
@@ -43,9 +42,9 @@ import qualified Common.Network.ClientTypes as Client
 import qualified Common.Network.SiteType as Site
 import qualified Common.Network.BoardType as B
 import qualified Common.Network.ThreadType as T
-import qualified Common.Component.Thread.Types as TT
 
 #ifdef FRONT_END
+import qualified Common.Component.Thread.Types as TT
 import qualified Common.Utils as Utils
 import JSFFI.Saddle
     ( freezeBodyScrolling
@@ -98,15 +97,15 @@ app = M.Component
     , M.update = update
     , M.view = view
     , M.subs = []
-    , M.events = defaultEvents
     , M.styles = []
-    , M.initialAction = Just Initialize
     , M.mountPoint = Nothing
     , M.logLevel = M.DebugAll
     , M.scripts = []
     , M.mailbox = const Nothing
     , M.bindings = []
     , M.eventPropagation = False
+    , M.mount = Just Initialize
+    , M.unmount = Nothing
     }
 
 

@@ -49,8 +49,7 @@ import Miso.Html.Property
     , class_
     , href_
     )
-import Miso.String (toMisoString, fromMisoString, MisoString)
-import qualified Data.JSString as JStr
+import Miso.String (toMisoString, fromMisoString, MisoString, intercalate)
 import qualified Miso as M
 import Miso.Binding ((-->))
 import Data.IORef (readIORef)
@@ -79,9 +78,7 @@ app ctxRef =
         , M.update = update
         , M.view = view
         , M.subs = []
-        , M.events = M.defaultEvents
         , M.styles = []
-        , M.initialAction = Nothing
         , M.mountPoint = Nothing
         , M.logLevel = M.DebugAll
         , M.scripts = []
@@ -91,6 +88,8 @@ app ctxRef =
             , FE.getSetMediaRoot --> getSetMediaRoot
             ]
         , M.eventPropagation = False
+        , M.mount = Nothing
+        , M.unmount = Nothing
         }
 
 
@@ -125,8 +124,9 @@ onClick_ action = onWithOptions M.BUBBLE defaultOptions { _preventDefault = True
 
 update :: Action -> Effect parent Model Action
 update (ThreadSelected post) = do
-    io_ $ consoleLog $ "ThreadSelected - " <> toMisoString (CatalogPost.thread_id post)
-    publish catalogOutTopic $ SelectThread post
+    io_ $ do
+        consoleLog $ "ThreadSelected - " <> toMisoString (CatalogPost.thread_id post)
+        publish catalogOutTopic $ SelectThread post
 
 
 view :: Model -> View model Action
@@ -221,7 +221,7 @@ gridItem m post =
             <> "." <> thumb_ext
 
     thread_url :: MisoString
-    thread_url = toMisoString $ JStr.intercalate "/" $ map fromMisoString $
+    thread_url = toMisoString $ intercalate "/" $ map fromMisoString $
       [ CatalogPost.site_name post
       , CatalogPost.pathpart post
       , toMisoString $ show $ CatalogPost.board_thread_id post

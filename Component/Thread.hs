@@ -21,7 +21,6 @@ import Miso
   , Effect
   , text
   , Component
-  , defaultEvents
   , io
   , io_
   , consoleError
@@ -72,9 +71,7 @@ app ctxRef = M.Component
     , M.update = update
     , M.view = view
     , M.subs = []
-    , M.events = defaultEvents
     , M.styles = []
-    , M.initialAction = Just Initialize
     , M.mountPoint = Nothing
     , M.logLevel = M.DebugAll
     , M.scripts = []
@@ -84,6 +81,8 @@ app ctxRef = M.Component
         , FE.getSetMediaRoot --> getSetMediaRoot
         ]
     , M.eventPropagation = False
+    , M.mount = Just Initialize
+    , M.unmount = Nothing
     }
 
 #ifdef FRONT_END
@@ -141,7 +140,7 @@ update (UpdatePostBodies t pwbs) = do
 update (OnDeleteBtn pwb) = do
     io_ $ consoleLog "OnDeleteBtn"
     model <- get
-    publish DIP.deleteIllegalPostInTopic $ DIP.InMessage model { post_bodies = [ pwb ] }
+    io_ $ publish DIP.deleteIllegalPostInTopic $ DIP.InMessage model { post_bodies = [ pwb ] }
 
 
 view :: Model -> View model Action

@@ -15,7 +15,6 @@ import Miso
   , consoleLog
   , consoleError
   , Component
-  , defaultEvents
   , modify
   , issue
   , io_
@@ -59,9 +58,9 @@ update OnSubmit = do
 
     let search_query = searchTerm model
 
-    io_ $ consoleLog $ "Submit! " <> search_query
-
-    publish Client.clientInTopic (ReturnTopic, Client.Search search_query)
+    io_ $ do
+        consoleLog $ "Submit! " <> search_query
+        publish Client.clientInTopic (ReturnTopic, Client.Search search_query)
 
 update (ChangeAndSubmit search_query) = do
     issue $ SearchChange search_query
@@ -71,11 +70,12 @@ update (SearchResult (Client.ReturnResult result)) = do
     io_ $ consoleLog "Search - SearchResult action handler"
     Utils.helper result $ \searchResults -> do
         model <- get
-        publish searchOutTopic
-            ( intendPushUri model
-            , searchTerm model
-            , searchResults
-            )
+        io_ $ publish
+            searchOutTopic
+                ( intendPushUri model
+                , searchTerm model
+                , searchResults
+                )
 
 update (OnMessageError msg) =
     io_ $ consoleError msg
@@ -91,13 +91,13 @@ app = M.Component
     , M.update = update
     , M.view = view
     , M.subs = []
-    , M.events = defaultEvents
     , M.styles = []
-    , M.initialAction = Just Initialize
     , M.mountPoint = Nothing
     , M.logLevel = M.DebugAll
     , M.scripts = []
     , M.mailbox = const Nothing
     , M.bindings = []
     , M.eventPropagation = False
+    , M.mount = Just Initialize
+    , M.unmount = Nothing
     }

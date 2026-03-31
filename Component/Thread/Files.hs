@@ -3,7 +3,7 @@
 
 module Common.Component.Thread.Files where
 
-import Prelude hiding (head)
+import Prelude hiding (head, take)
 import Miso
   ( View
   , Attribute
@@ -30,8 +30,8 @@ import Miso.Html.Property
 import Miso.CSS (styleInline_)
 import Data.List.NonEmpty (head)
 import Data.Foldable (toList)
-import Miso.String (MisoString, append, toMisoString, fromMisoString)
-import qualified Data.JSString as JStr
+import Miso.String (MisoString, append, toMisoString, take)
+import qualified Miso.String as Str
 
 import Common.Network.SiteType (Site)
 import qualified Common.Network.SiteType as Site
@@ -120,13 +120,13 @@ file media_root site multifile a = div_
 
     filename_text :: MisoString
     filename_text
-      | JStr.length fname > max_original_filename_display_length =
-          toMisoString (JStr.take max_original_filename_display_length fname)
+      | (Str.length fname) > max_original_filename_display_length =
+          toMisoString (take max_original_filename_display_length fname)
           `append` "…" `append` toMisoString file_ext
       | otherwise = toMisoString fname
 
-    fname :: JStr.JSString
-    fname = fromMisoString $ fromMaybe board_filename $ Attachment.original_filename a
+    fname :: MisoString
+    fname = fromMaybe board_filename $ Attachment.original_filename a
 
     file_ext :: MisoString
     file_ext = maybe "" ("." <>) $ Attachment.file_extension a

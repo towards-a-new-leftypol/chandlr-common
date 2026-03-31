@@ -25,8 +25,7 @@ import Miso.Html.Property
     , target_
     , class_
     )
-import Miso.String (toMisoString, MisoString)
-import Data.JSString (replace)
+import Miso.String (toMisoString, MisoString, replace)
 import System.FilePath ((</>))
 import Data.Maybe (fromJust)
 import Data.List.NonEmpty (head, toList)
