@@ -1,5 +1,7 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE DerivingVia #-}
 
 module Common.Network.CatalogPostType
     ( CatalogPost (..) )
@@ -10,6 +12,8 @@ import Data.Aeson (FromJSON, ToJSON)
 import Data.Time.Clock (UTCTime) -- Required for timestamp with time zone
 import Miso.String (MisoString)
 import Common.AttachmentType (Dimension)
+import Common.MisoAeson
+import Miso.JSON qualified
 
 data CatalogPost = CatalogPost
     { post_id              :: Maybe Integer
@@ -34,4 +38,7 @@ data CatalogPost = CatalogPost
     , file_name            :: Maybe MisoString
     , file_extension       :: Maybe MisoString
     , file_thumb_extension :: Maybe MisoString
-    } deriving (Show, Generic, FromJSON, ToJSON, Eq)
+    }
+    deriving stock (Show, Generic, Eq)
+    deriving anyclass (FromJSON, ToJSON)
+    deriving (Miso.JSON.ToJSON, Miso.JSON.FromJSON) via (MisoAeson CatalogPost)
