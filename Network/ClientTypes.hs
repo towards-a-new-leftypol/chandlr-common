@@ -1,6 +1,8 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE OverloadedStrings  #-}
+{-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE DerivingVia #-}
 
 module Common.Network.ClientTypes where
 
@@ -9,8 +11,10 @@ import Data.Aeson (ToJSON, FromJSON)
 import Data.Time.Clock (UTCTime)
 import Miso.String (MisoString)
 import Miso (Topic, topic)
+import Miso.JSON qualified
 
 import qualified Common.Network.HttpTypes as Http
+import Common.MisoAeson
 
 data Action
     = Connect ReturnTopicName Http.HttpActionResult
@@ -50,10 +54,14 @@ data Query
     | Search MisoString
     | DeleteIllegalPost DeleteIllegalPostArgs
     | InitModel Model
-    deriving (Generic, ToJSON, FromJSON)
+    deriving stock (Generic, Eq)
+    deriving anyclass (FromJSON, ToJSON)
+    deriving (Miso.JSON.ToJSON, Miso.JSON.FromJSON) via (MisoAeson Query)
 
 newtype MessageOut = ReturnResult Http.HttpResult
-    deriving (Show, Eq, Generic, ToJSON, FromJSON)
+    deriving stock (Show, Eq, Generic)
+    deriving anyclass (ToJSON, FromJSON)
+    deriving (Miso.JSON.ToJSON, Miso.JSON.FromJSON) via (MisoAeson MessageOut)
 
 clientInTopic :: Topic MessageIn
 clientInTopic = topic "client-in"
@@ -62,8 +70,12 @@ data GetThreadArgs = GetThreadArgs
     { website         :: MisoString
     , board_pathpart  :: MisoString
     , board_thread_id :: Integer
-    } deriving (Eq, Generic, ToJSON, FromJSON)
+    }
+    deriving stock (Eq, Generic)
+    deriving anyclass (ToJSON, FromJSON)
 
 newtype DeleteIllegalPostArgs = DeleteIllegalPostArgs
     { post_id :: Integer
-    } deriving (Eq, Show, Generic, ToJSON, FromJSON)
+    }
+    deriving stock (Eq, Show, Generic)
+    deriving anyclass (ToJSON, FromJSON)

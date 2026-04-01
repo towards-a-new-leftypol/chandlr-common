@@ -60,6 +60,7 @@ type TimeControl parent = Component parent Model Time
 
 type Message = UTCTime
 
+
 timeControlTopic :: Topic Message
 timeControlTopic = topic "time-control"
 

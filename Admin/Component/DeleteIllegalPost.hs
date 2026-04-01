@@ -3,6 +3,8 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE DerivingVia #-}
 
 module Common.Admin.Component.DeleteIllegalPost where
 
@@ -33,6 +35,8 @@ import Data.Aeson (ToJSON, FromJSON)
 import Data.Maybe (isJust)
 import qualified Data.Map as Map
 import qualified Data.List.NonEmpty as L
+import Common.MisoAeson
+import Miso.JSON qualified
 
 import qualified Common.Component.Modal as Modal
 import qualified Common.Component.Thread.Model as T
@@ -77,7 +81,9 @@ data Action
     | Cancel
 
 newtype InMessage = InMessage T.Model
-    deriving (Generic, ToJSON, FromJSON)
+    deriving stock (Generic)
+    deriving anyclass (ToJSON, FromJSON)
+    deriving (Miso.JSON.ToJSON, Miso.JSON.FromJSON) via (MisoAeson InMessage)
 
 deleteIllegalPostInTopic :: Topic InMessage
 deleteIllegalPostInTopic = topic "deleteIllegal-in"
