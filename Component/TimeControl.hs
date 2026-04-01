@@ -1,6 +1,10 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE DerivingVia #-}
 
 module Common.Component.TimeControl where
 
@@ -43,6 +47,10 @@ import Data.Time.Clock
   )
 import Data.Time.Calendar (fromGregorian)
 import Common.FrontEnd.Types (InitCtxRef)
+import GHC.Generics
+import Common.MisoAeson
+import Miso.JSON qualified
+import Data.Aeson (FromJSON, ToJSON)
 
 
 data Time
@@ -50,7 +58,7 @@ data Time
   | SlideInput MisoString
   | SlideChange MisoString
   | Publish Message
-  deriving Show
+  deriving stock Show
 
 data Model = Model
   { whereAt :: Integer
@@ -58,7 +66,10 @@ data Model = Model
 
 type TimeControl parent = Component parent Model Time
 
-type Message = UTCTime
+newtype Message = Message UTCTime
+  deriving stock (Show, Generic)
+  deriving anyclass (FromJSON, ToJSON)
+  deriving (Miso.JSON.ToJSON, Miso.JSON.FromJSON) via (MisoAeson Message)
 
 
 timeControlTopic :: Topic Message
@@ -97,13 +108,13 @@ update (SlideChange nstr) = do
 
     let newTime = interpolateTimeHours n now
 
-    return $ Publish newTime
+    return $ Publish $ Message newTime
 
   where
     n :: Integer
     n = read $ fromMisoString nstr
 
-update (Publish t) = io_ $ publish timeControlTopic t
+update (Publish m) = io_ $ publish timeControlTopic m
 
 earliest :: UTCTime
 --earliest = UTCTime (fromGregorian 2020 12 20) (secondsToDiffTime 82643)
