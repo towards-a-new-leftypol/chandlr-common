@@ -80,9 +80,11 @@ mainUpdate (Initialize ctxRef) = do
 
     io $ do
         ctx <- liftIO $ readIORef ctxRef
-        if T.hydrate ctx
-        then do
-            return NoAction
+        if T.hydrate ctx then
+            if client_mounted model then
+                return ClientMounted
+            else
+                return NoAction
         else do
             consoleLog "hydrate off, calling InitNoHydration"
             return $ InitNoHydration ctx
@@ -121,8 +123,7 @@ mainUpdate (InitNoHydration ctx) = do
 
     model <- get
 
-    if client_mounted model
-    then
+    if client_mounted model then
         issue ClientMounted
     else
         return ()
@@ -139,10 +140,10 @@ mainUpdate (InitNoHydration ctx) = do
                 _ -> ""
 
 mainUpdate ClientMounted = do
+    io_ $ consoleLog "ClientMounted"
     model <- get
 
-    if initialized model
-    then do
+    if initialized model then do
         io_ $ do
             consoleLog "Http Client Mounted!"
             consoleLog $ "pg_api_root: " <> pg_api_root model
@@ -170,14 +171,14 @@ mainUpdate ClientUnmounted = io_ $ consoleLog "Http Client Unmounted!"
 mainUpdate CatalogViewMounted = do
     io_ $ do
         consoleLog "CatalogViewMounted"
-        liftIO $ sectionEnd $ toJSString "pageLoad"
-        liftIO $ displayTotals
+        -- liftIO $ sectionEnd $ toJSString "pageLoad"
+        -- liftIO $ displayTotals
 
 mainUpdate ThreadViewMounted = do
     io_ $ do
         consoleLog "ThreadViewMounted"
-        liftIO $ sectionEnd $ toJSString "pageLoad"
-        liftIO $ displayTotals
+        -- liftIO $ sectionEnd $ toJSString "pageLoad"
+        -- liftIO $ displayTotals
 
     model <- get
 
@@ -270,7 +271,6 @@ mainUpdate (GetThread Client.GetThreadArgs {..}) = do
     modify (\m -> m { between_pages = True })
 
     publish Client.clientInTopic (SenderThread, Client.GetThread Client.GetThreadArgs {..})
-
 
 mainUpdate (ChangeURI uri) = do
     modify (\m -> m { current_uri = uri })

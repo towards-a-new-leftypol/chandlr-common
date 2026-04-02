@@ -60,7 +60,7 @@ pageWrapperWithDefaults :: Model -> View model Action -> View model Action
 pageWrapperWithDefaults _ inner_content =
     div_ [ key_ ("top-level" :: MisoString) ]
         [ div_
-            [ key_ ("http-client" :: MisoString) ]
+            []
             [ mount_
                 -- [ onMounted ClientMounted
                 -- , onUnmounted ClientUnmounted
