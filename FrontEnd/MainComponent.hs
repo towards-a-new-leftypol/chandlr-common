@@ -7,11 +7,11 @@ import Miso
     ( App
     , View
     , LogLevel (DebugAll)
-    , defaultEvents
     , uriSub
     , URI (..)
     )
 import qualified Miso as M
+import Miso.JSON (Value)
 import Miso.String (toMisoString, MisoString)
 import Data.Proxy
 import Servant.API hiding (URI)
@@ -47,15 +47,15 @@ app ctxRef =
         , M.hydrateModel  = Just $ initializeModel ctxRef
         , M.view          = mainView ctxRef
         , M.subs          = [ uriSub ChangeURI ]
-        , M.events        = defaultEvents
         , M.styles = []
-        , M.initialAction = Just (Initialize ctxRef)
         , M.mountPoint    = Nothing
         , M.logLevel      = DebugAll
         , M.scripts = []
-        , M.mailbox = const Nothing
+        , M.mailbox = handleMail
         , M.bindings = []
         , M.eventPropagation = False
+        , M.mount = Just (Initialize ctxRef)
+        , M.unmount = Nothing
         }
 
     where
@@ -75,6 +75,12 @@ app ctxRef =
             , initialized = False
             , client_mounted = False
             }
+
+        handleMail :: Value -> Maybe Action
+        handleMail = M.checkMail actionFromChildMessage OnErrorMessage
+            where
+                actionFromChildMessage :: MessagesFromChildren -> Action
+                actionFromChildMessage MsgClientMounted = ClientMounted
 
 
 #ifdef FRONT_END

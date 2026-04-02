@@ -1,4 +1,7 @@
 {-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE DerivingVia #-}
 
 module Common.FrontEnd.Types where
 
@@ -7,6 +10,8 @@ import Data.Aeson (FromJSON, ToJSON)
 import Data.Time.Clock (UTCTime)
 import Miso (URI)
 import Data.IORef (IORef)
+import Common.MisoAeson
+import Miso.JSON qualified
 
 import Common.Network.CatalogPostType (CatalogPost)
 import qualified Common.Component.Thread.Model as Thread
@@ -39,3 +44,8 @@ data AppInitCtx = AppInitCtx
     } deriving Eq
 
 type InitCtxRef = IORef AppInitCtx
+
+data MessagesFromChildren = MsgClientMounted
+    deriving stock (Generic, Eq)
+    deriving anyclass (FromJSON, ToJSON)
+    deriving (Miso.JSON.ToJSON, Miso.JSON.FromJSON) via (MisoAeson MessagesFromChildren)

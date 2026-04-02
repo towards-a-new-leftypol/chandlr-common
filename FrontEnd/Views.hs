@@ -13,11 +13,8 @@ module Common.FrontEnd.Views
 import Miso
     ( View
     , text
-    , onMounted
-    , onUnmounted
     , key_
     , mount_
-    , mount
     )
 import Miso.Html.Property (class_)
 import Miso.Html
@@ -43,20 +40,20 @@ import qualified Common.Admin.Component.DeleteIllegalPost as DIP
 
 timeControl :: InitCtxRef -> View Model Action
 timeControl ctxRef =
-    div_ [ key_ ("time-control" :: MisoString) ] [ mount $ TC.app ctxRef ]
+    div_ [ key_ ("time-control" :: MisoString) ] [ mount_ $ TC.app ctxRef ]
 
 
 grid :: InitCtxRef -> View Model Action
 grid ctxRef = div_
     [ key_ ("catalog-grid" :: MisoString) ]
     [ mount_
-      [ onMounted CatalogViewMounted ]
+      --[ onMounted CatalogViewMounted ]
       (Grid.app ctxRef)
     ]
 
 
 search :: View Model Action
-search = div_ [ key_ ("search" :: MisoString) ] [ mount Search.app ]
+search = div_ [ key_ ("search" :: MisoString) ] [ mount_ Search.app ]
 
 
 pageWrapperWithDefaults :: Model -> View model Action -> View model Action
@@ -65,14 +62,14 @@ pageWrapperWithDefaults _ inner_content =
         [ div_
             [ key_ ("http-client" :: MisoString) ]
             [ mount_
-                [ onMounted ClientMounted
-                , onUnmounted ClientUnmounted
-                ]
+                -- [ onMounted ClientMounted
+                -- , onUnmounted ClientUnmounted
+                -- ]
                 Client.app
             ]
         , div_
             [ key_ ("delete-illegal-post" :: MisoString) ]
-            [ mount DIP.app ]
+            [ mount_ DIP.app ]
         -- , pre_ [] [ text $ "between_pages: " <> if between_pages then "True" else "False" ]
         , inner_content
         ]
@@ -117,8 +114,8 @@ threadView ctxRef site_name board_pathpart board_thread_id m =
         div_
             [ key_ ("thread-view" :: MisoString) ]
             [ mount_
-                [ onMounted ThreadViewMounted
-                ]
+                -- [ onMounted ThreadViewMounted
+                -- ]
                 (Thread.app ctxRef)
             ]
 
