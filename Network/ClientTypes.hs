@@ -11,7 +11,6 @@ import Data.Time.Clock (UTCTime)
 import Miso.String (MisoString)
 import Miso (Topic, topic)
 import Miso.JSON
-import GHC.Float (int2Double)
 
 import qualified Common.Network.HttpTypes as Http
 import Common.Utils (isoToUtc, utcToIso)
@@ -34,7 +33,7 @@ instance ToJSON Model where
         object
             [ "tag"        .= String "Model"
             , "pgApiRoot"  .= String pgApiRoot
-            , "fetchCount" .= Number (int2Double fetchCount)
+            , "fetchCount" .= Number (fromIntegral fetchCount)
             ]
 
 instance FromJSON Model where
@@ -61,7 +60,7 @@ instance ToJSON FetchCatalogArgs where
     toJSON (FetchCatalogArgs {..}) =
         object
             [ "max_time"     .= String (utcToIso max_time)
-            , "max_row_read" .= Number (int2Double max_row_read)
+            , "max_row_read" .= Number (fromIntegral max_row_read)
             ]
 
 data SearchPostsArgs = SearchPostsArgs
