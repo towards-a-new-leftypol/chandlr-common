@@ -1,20 +1,20 @@
+{-# LANGUAGE OverloadedStrings  #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DeriveAnyClass #-}
-{-# LANGUAGE OverloadedStrings  #-}
 {-# LANGUAGE DerivingStrategies #-}
-{-# LANGUAGE DerivingVia #-}
+{-# LANGUAGE RecordWildCards #-}
 
 module Common.Network.ClientTypes where
 
 import GHC.Generics (Generic)
-import Data.Aeson (ToJSON, FromJSON)
 import Data.Time.Clock (UTCTime)
 import Miso.String (MisoString)
 import Miso (Topic, topic)
-import Miso.JSON qualified
+import Miso.JSON
+import GHC.Float (int2Double)
 
 import qualified Common.Network.HttpTypes as Http
-import Common.MisoAeson
+import Common.Utils (isoToUtc, utcToIso)
 
 data Action
     = Connect ReturnTopicName Http.HttpActionResult
@@ -26,12 +26,43 @@ data Action
 data Model = Uninitialized | Model
   { pgApiRoot :: MisoString
   , fetchCount :: Int
-  } deriving (Eq, Generic, ToJSON, FromJSON, Show)
+  } deriving (Eq, Show)
+
+instance ToJSON Model where
+    toJSON Uninitialized = object [ "tag" .= String "Uninitialized" ]
+    toJSON Model {..} =
+        object
+            [ "tag"        .= String "Model"
+            , "pgApiRoot"  .= String pgApiRoot
+            , "fetchCount" .= Number (int2Double fetchCount)
+            ]
+
+instance FromJSON Model where
+    parseJSON (Object m) = do
+        tag <- (m .: "tag") :: Parser MisoString
+
+        case tag of
+            "Uninitialized" -> pure Uninitialized
+
+            "Model"         -> Model <$> m .: "pgApiRoot"
+                                     <*> m .: "fetchCount"
+
+            _               -> fail "Unknown Model tag"
+
+    parseJSON _ = fail "Expected Object for HttpResult"
+
 
 data FetchCatalogArgs = FetchCatalogArgs
   { max_time :: UTCTime
   , max_row_read :: Int
-  } deriving (Generic, ToJSON)
+  }
+
+instance ToJSON FetchCatalogArgs where
+    toJSON (FetchCatalogArgs {..}) =
+        object
+            [ "max_time"     .= String (utcToIso max_time)
+            , "max_row_read" .= Number (int2Double max_row_read)
+            ]
 
 data SearchPostsArgs = SearchPostsArgs
   { search_text :: MisoString
@@ -54,14 +85,47 @@ data Query
     | Search MisoString
     | DeleteIllegalPost DeleteIllegalPostArgs
     | InitModel Model
-    deriving stock (Generic, Eq)
-    deriving anyclass (FromJSON, ToJSON)
-    deriving (Miso.JSON.ToJSON, Miso.JSON.FromJSON) via (MisoAeson Query)
+    deriving Eq
+
+instance ToJSON Query where
+    toJSON (FetchLatest t) = object
+        [ "tag"  .= String "FetchLatest"
+        , "args" .= String (utcToIso t)
+        ]
+    toJSON (GetThread a) = object
+        [ "tag"  .= String "GetThread"
+        , "args" .= toJSON a
+        ]
+    toJSON (Search q) = object
+        [ "tag"  .= String "Search"
+        , "args" .= String q
+        ]
+    toJSON (DeleteIllegalPost a) = object
+        [ "tag"  .= String "DeleteIllegalPost"
+        , "args" .= toJSON a
+        ]
+    toJSON (InitModel m) = object
+        [ "tag"  .= String "InitModel"
+        , "args" .= toJSON m
+        ]
+
+instance FromJSON Query where
+    parseJSON (Object m) = do
+        tag <- (m .: "tag") :: Parser MisoString
+        case tag of
+            "FetchLatest"         -> FetchLatest       <$> (m .: "args" >>= isoToUtc)
+            "GetThread"           -> GetThread         <$> m .: "args"
+            "Search"              -> Search            <$> m .: "args"
+            "DeleteIllegalPost"   -> DeleteIllegalPost <$> m .: "args"
+            "InitModel"           -> InitModel         <$> m .: "args"
+            _                     -> fail "Unknown Query tag"
+
+    parseJSON _ = fail "Expected Object for Query"
+
 
 newtype MessageOut = ReturnResult Http.HttpResult
     deriving stock (Show, Eq, Generic)
     deriving anyclass (ToJSON, FromJSON)
-    deriving (Miso.JSON.ToJSON, Miso.JSON.FromJSON) via (MisoAeson MessageOut)
 
 clientInTopic :: Topic MessageIn
 clientInTopic = topic "client-in"

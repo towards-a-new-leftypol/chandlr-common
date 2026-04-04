@@ -3,11 +3,6 @@
 
 module Common.Utils where
 
-import Data.Aeson
-    ( FromJSON
-    , fromJSON
-    , Result(..)
-    )
 import Miso
     ( Effect
     , consoleError
@@ -17,7 +12,8 @@ import Miso
     , URI
     , MisoString
     )
-import Miso.String (toMisoString)
+import Miso.JSON
+import Miso.String (toMisoString, fromMisoString)
 import Servant.Miso.Router (route)
 import Data.Proxy (Proxy (..))
 import Servant.API hiding (URI)
@@ -27,6 +23,7 @@ import Data.Time.Clock
     , secondsToDiffTime
     )
 import Data.Time.Calendar (fromGregorian)
+import Data.Time.Format.ISO8601 (iso8601Show, iso8601ParseM)
 
 import qualified Common.Network.HttpTypes as Http
 import Common.FrontEnd.Routes (Route)
@@ -88,3 +85,10 @@ pageTypeFromURI = do
 
 fakeTime :: UTCTime
 fakeTime = UTCTime (fromGregorian 0 0 0) (secondsToDiffTime 0)
+
+
+utcToIso :: UTCTime -> MisoString
+utcToIso = toMisoString . iso8601Show
+
+isoToUtc :: MisoString -> Parser UTCTime
+isoToUtc = iso8601ParseM . fromMisoString

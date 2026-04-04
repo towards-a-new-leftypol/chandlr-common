@@ -40,9 +40,13 @@ instance FromJSON HttpResult where
         tag <- (m .: "tag") :: Parser MisoString
 
         case tag of
-            t | t == "Error"        -> Error <$> m .: "message"
-              | t == "HttpResponse" -> HttpResponse <$> m .: "status_code" <*> m .: "status_text" <*> m .: "body"
-              | otherwise           -> fail "Unknown HttpResult tag"
+            "Error"        -> Error <$> m .: "message"
+
+            "HttpResponse" -> HttpResponse <$> m .: "status_code"
+                                           <*> m .: "status_text"
+                                           <*> m .: "body"
+
+            _              -> fail "Unknown HttpResult tag"
 
     parseJSON _ = fail "Expected Object for HttpResult"
 
