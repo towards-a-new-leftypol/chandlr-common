@@ -16,7 +16,7 @@ import Miso.Html.Property
     , content_
     )
 import GHC.Generics
-import Data.Aeson (FromJSON)
+import Miso.JSON (FromJSON)
 
 data JSONSettings = JSONSettings
     { postgrest_url :: MisoString

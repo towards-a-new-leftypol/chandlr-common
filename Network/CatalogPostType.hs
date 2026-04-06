@@ -1,19 +1,17 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DeriveAnyClass #-}
-{-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE DerivingVia #-}
+{-# LANGUAGE ImportQualifiedPost #-}
 
 module Common.Network.CatalogPostType
     ( CatalogPost (..) )
     where
 
 import GHC.Generics
-import Data.Aeson (FromJSON, ToJSON)
+import Miso.JSON (FromJSON, ToJSON)
 import Data.Time.Clock (UTCTime) -- Required for timestamp with time zone
 import Miso.String (MisoString)
 import Common.AttachmentType (Dimension)
-import Common.MisoAeson
-import Miso.JSON qualified
 
 data CatalogPost = CatalogPost
     { post_id              :: Maybe Integer
@@ -41,4 +39,3 @@ data CatalogPost = CatalogPost
     }
     deriving stock (Show, Generic, Eq)
     deriving anyclass (FromJSON, ToJSON)
-    deriving (Miso.JSON.ToJSON, Miso.JSON.FromJSON) via (MisoAeson CatalogPost)

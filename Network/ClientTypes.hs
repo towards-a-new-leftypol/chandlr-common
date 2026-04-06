@@ -13,7 +13,7 @@ import Miso (Topic, topic)
 import Miso.JSON
 
 import qualified Common.Network.HttpTypes as Http
-import Common.Utils (isoToUtc, utcToIso)
+import Common.Utils ()
 
 data Action
     = Connect ReturnTopicName Http.HttpActionResult
@@ -59,7 +59,7 @@ data FetchCatalogArgs = FetchCatalogArgs
 instance ToJSON FetchCatalogArgs where
     toJSON (FetchCatalogArgs {..}) =
         object
-            [ "max_time"     .= String (utcToIso max_time)
+            [ "max_time"     .= toJSON max_time
             , "max_row_read" .= Number (fromIntegral max_row_read)
             ]
 
@@ -89,7 +89,7 @@ data Query
 instance ToJSON Query where
     toJSON (FetchLatest t) = object
         [ "tag"  .= String "FetchLatest"
-        , "args" .= String (utcToIso t)
+        , "args" .= toJSON t
         ]
     toJSON (GetThread a) = object
         [ "tag"  .= String "GetThread"
@@ -112,7 +112,7 @@ instance FromJSON Query where
     parseJSON (Object m) = do
         tag <- (m .: "tag") :: Parser MisoString
         case tag of
-            "FetchLatest"         -> FetchLatest       <$> (m .: "args" >>= isoToUtc)
+            "FetchLatest"         -> FetchLatest       <$> m .: "args"
             "GetThread"           -> GetThread         <$> m .: "args"
             "Search"              -> Search            <$> m .: "args"
             "DeleteIllegalPost"   -> DeleteIllegalPost <$> m .: "args"

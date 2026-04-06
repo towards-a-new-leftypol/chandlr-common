@@ -6,7 +6,7 @@ module Common.Network.SiteType where
 
 import GHC.Generics
 import Miso.String (MisoString)
-import Data.Aeson (FromJSON, ToJSON)
+import Miso.JSON (FromJSON, ToJSON)
 import Data.List.NonEmpty
 import Data.Maybe (fromJust)
 import qualified Common.Network.BoardType as B

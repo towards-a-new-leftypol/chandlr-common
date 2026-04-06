@@ -1,17 +1,15 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DeriveAnyClass #-}
-{-# LANGUAGE DerivingStrategies #-}
-{-# LANGUAGE DerivingVia #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module Common.FrontEnd.Types where
 
 import GHC.Generics
-import Data.Aeson (FromJSON, ToJSON)
+import Miso.JSON
+import Miso.String (MisoString)
 import Data.Time.Clock (UTCTime)
 import Miso (URI)
 import Data.IORef (IORef)
-import Common.MisoAeson
-import Miso.JSON qualified
 
 import Common.Network.CatalogPostType (CatalogPost)
 import qualified Common.Component.Thread.Model as Thread
@@ -21,20 +19,42 @@ import Common.FrontEnd.JSONSettings (JSONSettings)
 data InitialDataPayload = InitialDataPayload
     { timestamp :: UTCTime
     , initialData :: InitialData
-    } deriving (Generic, Eq)
-
-instance FromJSON InitialDataPayload
-instance ToJSON InitialDataPayload
+    } deriving (Eq, Generic, FromJSON, ToJSON)
 
 data InitialData
     = CatalogData [ CatalogPost ]
     | SearchData [ CatalogPost ]
     | ThreadData Site [ Thread.PostWithBody ]
     | Nil
-    deriving (Generic, Eq)
+    deriving (Eq)
 
-instance FromJSON InitialData
-instance ToJSON InitialData
+instance ToJSON InitialData where
+    toJSON (CatalogData posts) = object
+        [ "tag"  .= String "CatalogData"
+        , "args" .= toJSON posts
+        ]
+    toJSON (SearchData posts)  = object
+        [ "tag"  .= String "SearchData"
+        , "args" .= toJSON posts
+        ]
+    toJSON (ThreadData site posts) = object
+        [ "tag"  .= String "ThreadData"
+        , "args" .= object [ "site" .= toJSON site, "posts" .= toJSON posts ]
+        ]
+    toJSON Nil = object [ "tag" .= String "Nil" ]
+
+instance FromJSON InitialData where
+    parseJSON (Object m) = do
+        tag <- (m .: "tag") :: Parser MisoString
+        case tag of
+            "CatalogData"  -> CatalogData <$> m .: "args"
+            "SearchData"   -> SearchData  <$> m .: "args"
+            "ThreadData"   -> do
+                argsObj <- (m .: "args") :: Parser Object
+                ThreadData <$> argsObj .: "site" <*> argsObj .: "posts"
+            "Nil"          -> pure Nil
+            _              -> fail "Unknown InitialData tag"
+    parseJSON _ = fail "Expected Object for InitialData"
 
 data AppInitCtx = AppInitCtx
     { hydrate :: Bool
@@ -46,6 +66,4 @@ data AppInitCtx = AppInitCtx
 type InitCtxRef = IORef AppInitCtx
 
 data MessagesFromChildren = MsgClientMounted
-    deriving stock (Generic, Eq)
-    deriving anyclass (FromJSON, ToJSON)
-    deriving (Miso.JSON.ToJSON, Miso.JSON.FromJSON) via (MisoAeson MessagesFromChildren)
+    deriving (Eq, Generic, FromJSON, ToJSON)

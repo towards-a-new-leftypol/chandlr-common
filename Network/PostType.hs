@@ -6,8 +6,8 @@ module Common.Network.PostType where
 
 import GHC.Generics
 import Miso.String (MisoString)
+import Miso.JSON (FromJSON, ToJSON)
 import Data.Time.Clock (UTCTime)
-import Data.Aeson (FromJSON, ToJSON)
 import Common.AttachmentType (Attachment)
 import Common.Utils (fakeTime)
 

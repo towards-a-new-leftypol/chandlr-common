@@ -1,5 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+-- {-# OPTIONS_GHC -Wno-orphans #-}
 
 module Common.Utils where
 
@@ -24,6 +25,7 @@ import Data.Time.Clock
     )
 import Data.Time.Calendar (fromGregorian)
 import Data.Time.Format.ISO8601 (iso8601Show, iso8601ParseM)
+import Data.List.NonEmpty (NonEmpty, toList, fromList)
 
 import qualified Common.Network.HttpTypes as Http
 import Common.FrontEnd.Routes (Route)
@@ -92,3 +94,18 @@ utcToIso = toMisoString . iso8601Show
 
 isoToUtc :: MisoString -> Parser UTCTime
 isoToUtc = iso8601ParseM . fromMisoString
+
+instance ToJSON UTCTime where
+    toJSON = String . utcToIso
+
+instance FromJSON UTCTime where
+    parseJSON (String x) = isoToUtc x
+    parseJSON _ = fail "Expected String for UTCTime"
+
+
+instance (ToJSON a) => ToJSON (NonEmpty a) where
+    toJSON = toJSON . toList
+
+instance (FromJSON a) => FromJSON (NonEmpty a) where
+    parseJSON (Array (x:xs)) = traverse parseJSON (fromList (x:xs))
+    parseJSON _ = fail "Expected non empty Array for NonEmpty"

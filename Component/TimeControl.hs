@@ -1,10 +1,8 @@
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE DataKinds #-}
-{-# LANGUAGE RankNTypes #-}
+-- {-# LANGUAGE DataKinds #-}
+-- {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DeriveAnyClass #-}
-{-# LANGUAGE DerivingStrategies #-}
-{-# LANGUAGE DerivingVia #-}
 
 module Common.Component.TimeControl where
 
@@ -48,9 +46,7 @@ import Data.Time.Clock
 import Data.Time.Calendar (fromGregorian)
 import Common.FrontEnd.Types (InitCtxRef)
 import GHC.Generics
-import Common.MisoAeson
-import Miso.JSON qualified
-import Data.Aeson (FromJSON, ToJSON)
+import Miso.JSON (FromJSON, ToJSON)
 
 
 data Time
@@ -58,7 +54,7 @@ data Time
   | SlideInput MisoString
   | SlideChange MisoString
   | Publish Message
-  deriving stock Show
+  deriving Show
 
 data Model = Model
   { whereAt :: Integer
@@ -67,9 +63,7 @@ data Model = Model
 type TimeControl parent = Component parent Model Time
 
 newtype Message = Message UTCTime
-  deriving stock (Show, Generic)
-  deriving anyclass (FromJSON, ToJSON)
-  deriving (Miso.JSON.ToJSON, Miso.JSON.FromJSON) via (MisoAeson Message)
+  deriving (Show, Generic, FromJSON, ToJSON)
 
 
 timeControlTopic :: Topic Message

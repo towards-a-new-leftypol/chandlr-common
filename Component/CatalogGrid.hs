@@ -53,9 +53,6 @@ import Miso.String (toMisoString, fromMisoString, MisoString, intercalate)
 import qualified Miso as M
 import Miso.Binding ((-->))
 import Data.IORef (readIORef)
-#ifdef FRONT_END
-import Control.Monad.IO.Class (liftIO)
-#endif
 
 import Common.Network.CatalogPostType (CatalogPost)
 import qualified Common.Network.CatalogPostType as CatalogPost
@@ -93,13 +90,8 @@ app ctxRef =
         }
 
 
-#ifdef FRONT_END
-initializeModel :: InitCtxRef -> M.JSM Model
-initializeModel ctxRef = liftIO $ do
-#else
 initializeModel :: InitCtxRef -> IO Model
 initializeModel ctxRef = do
-#endif
     putStrLn "CatalogGrid initializeModel"
     ctx <- readIORef ctxRef
 

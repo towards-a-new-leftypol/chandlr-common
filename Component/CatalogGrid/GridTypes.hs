@@ -2,18 +2,16 @@
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DeriveAnyClass #-}
-{-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE DerivingVia #-}
+{-# LANGUAGE ImportQualifiedPost #-}
 
 module Common.Component.CatalogGrid.GridTypes where
 
 import GHC.Generics (Generic)
-import Data.Aeson (ToJSON, FromJSON)
+import Miso.JSON (ToJSON, FromJSON)
 import Miso (Topic, topic, Component)
 import Miso.String (MisoString)
 import Miso.Lens (Lens, LensCore (..))
-import Common.MisoAeson
-import Miso.JSON qualified
 
 import Common.Network.CatalogPostType (CatalogPost)
 
@@ -43,7 +41,6 @@ newtype OutMessage
     = SelectThread CatalogPost
     deriving stock (Generic, Eq)
     deriving anyclass (FromJSON, ToJSON)
-    deriving (Miso.JSON.ToJSON, Miso.JSON.FromJSON) via (MisoAeson OutMessage)
 
 catalogOutTopic :: Topic OutMessage
 catalogOutTopic = topic "catalog-out"

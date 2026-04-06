@@ -13,7 +13,7 @@ import Text.Parsec
 import Text.Parsec.String (Parser)
 import Data.Bifunctor (first)
 import GHC.Generics
-import Data.Aeson (FromJSON, ToJSON)
+import Miso.JSON (FromJSON, ToJSON)
 
 type UrlParseError = String
 

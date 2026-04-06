@@ -85,13 +85,8 @@ app ctxRef = M.Component
     , M.unmount = Nothing
     }
 
-#ifdef FRONT_END
-initializeModel :: InitCtxRef -> M.JSM Model
-initializeModel ctxRef = liftIO $ do
-#else
 initializeModel :: InitCtxRef -> IO Model
 initializeModel ctxRef = do
-#endif
   ctx <- readIORef ctxRef
 
   let settings = init_settings ctx

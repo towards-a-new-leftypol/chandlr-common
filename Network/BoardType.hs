@@ -6,7 +6,7 @@ module Common.Network.BoardType where
 
 import GHC.Generics
 import Miso.String (MisoString)
-import Data.Aeson (FromJSON, ToJSON)
+import Miso.JSON (FromJSON, ToJSON)
 import Data.List.NonEmpty
 
 import Common.Network.ThreadType (Thread, emptyThread)

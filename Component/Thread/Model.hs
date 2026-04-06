@@ -8,7 +8,7 @@ import Data.Time.Clock (UTCTime)
 import Miso.String (MisoString)
 import Miso.Lens (Lens, LensCore (..))
 import GHC.Generics
-import Data.Aeson (FromJSON, ToJSON)
+import Miso.JSON (FromJSON, ToJSON)
 
 import Common.Network.SiteType (Site, emptySite)
 import Common.Network.PostType (Post)

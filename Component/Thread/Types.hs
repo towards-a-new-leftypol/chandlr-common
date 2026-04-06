@@ -1,20 +1,13 @@
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE DeriveGeneric #-}
-{-# LANGUAGE DeriveAnyClass #-}
-{-# LANGUAGE DerivingStrategies #-}
-{-# LANGUAGE DerivingVia #-}
 
 module Common.Component.Thread.Types where
 
-import GHC.Generics (Generic)
-import Data.Aeson (ToJSON, FromJSON)
 import Data.Time.Clock (UTCTime)
 import Miso (MisoString, Topic, topic)
-import Miso.JSON qualified
+import Miso.JSON
 
 import Common.Component.Thread.Model (PostWithBody)
 import Common.Network.SiteType (Site)
-import Common.MisoAeson
 
 
 data Action
@@ -29,10 +22,32 @@ data Action
 data Message
     = RenderSite MisoString Site
     | PostDeleted [ Integer ]
-    deriving stock (Eq, Generic)
-    deriving anyclass (ToJSON, FromJSON)
-    deriving (Miso.JSON.ToJSON, Miso.JSON.FromJSON) via (MisoAeson Message)
+    deriving Eq
 
+instance ToJSON Message where
+    toJSON (RenderSite name site) = object
+        [ "tag"  .= String "RenderSite"
+        , "args" .= object [ "name" .= String name, "site" .= toJSON site ]
+        ]
+    toJSON (PostDeleted ids) = object
+        [ "tag"  .= String "PostDeleted"
+        , "args" .= Array (map (Number . fromIntegral) ids)
+        ]
+
+instance FromJSON Message where
+    parseJSON (Object m) = do
+        tag <- (m .: "tag") :: Parser MisoString
+
+        case tag of
+            "RenderSite" -> do
+                argsObj <- (m .: "args") :: Parser Object
+                RenderSite <$> argsObj .: "name" <*> argsObj .: "site"
+
+            "PostDeleted" -> PostDeleted <$> m .: "args"
+
+            _             -> fail "Unknown Message tag"
+
+    parseJSON _ = fail "Expected Object for Message"
 
 threadTopic :: Topic Message
 threadTopic = topic "thread"

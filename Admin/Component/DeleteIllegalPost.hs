@@ -3,8 +3,6 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE PatternSynonyms #-}
-{-# LANGUAGE DerivingStrategies #-}
-{-# LANGUAGE DerivingVia #-}
 
 module Common.Admin.Component.DeleteIllegalPost where
 
@@ -31,12 +29,10 @@ import Miso.CSS
     , display
     )
 import GHC.Generics (Generic)
-import Data.Aeson (ToJSON, FromJSON)
+import Miso.JSON (FromJSON, ToJSON)
 import Data.Maybe (isJust)
 import qualified Data.Map as Map
 import qualified Data.List.NonEmpty as L
-import Common.MisoAeson
-import Miso.JSON qualified
 
 import qualified Common.Component.Modal as Modal
 import qualified Common.Component.Thread.Model as T
@@ -81,9 +77,7 @@ data Action
     | Cancel
 
 newtype InMessage = InMessage T.Model
-    deriving stock (Generic)
-    deriving anyclass (ToJSON, FromJSON)
-    deriving (Miso.JSON.ToJSON, Miso.JSON.FromJSON) via (MisoAeson InMessage)
+    deriving (Generic, ToJSON, FromJSON)
 
 deleteIllegalPostInTopic :: Topic InMessage
 deleteIllegalPostInTopic = topic "deleteIllegal-in"
@@ -150,7 +144,7 @@ update (ClientResponse (Client.ReturnResult httpResult)) = do
                     , busy = True
                     }
                 )
-            publish
+            io_ $ publish
                 TT.threadTopic $
                 TT.PostDeleted $ map P.post_id $ postsFromSites sites
 
@@ -181,15 +175,16 @@ update Submit = do
                     io_ $ consoleLog "Error: DeleteIllegalPostComponent has nothing to post!"
 
                 Just threadModel -> do
-                    io_ $ consoleLog "DeleteIllegalPostComponent Submit!"
+                    io_ $ do
+                        consoleLog "DeleteIllegalPostComponent Submit!"
 
-                    publish Client.clientInTopic
-                        ( ReturnTopic
-                        , Client.DeleteIllegalPost $
-                            Client.DeleteIllegalPostArgs $
-                            P.post_id $
-                            post threadModel
-                        )
+                        publish Client.clientInTopic
+                            ( ReturnTopic
+                            , Client.DeleteIllegalPost $
+                                Client.DeleteIllegalPostArgs $
+                                P.post_id $
+                                post threadModel
+                            )
 
                     modify (\m -> m { busy = True })
 

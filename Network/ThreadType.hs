@@ -4,7 +4,7 @@
 module Common.Network.ThreadType where
 
 import GHC.Generics
-import Data.Aeson (FromJSON, ToJSON)
+import Miso.JSON (FromJSON, ToJSON)
 import Data.List.NonEmpty
 import Data.Time.Clock (UTCTime)
 
