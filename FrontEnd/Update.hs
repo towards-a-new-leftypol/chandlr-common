@@ -50,6 +50,7 @@ import qualified Common.FrontEnd.Types as T
 import qualified Common.Network.CatalogPostType as CatPost
 import qualified Common.Component.TimeControl as TC
 import qualified Common.FrontEnd.JSONSettings as Settings
+import Data.Coerce (coerce)
 
 import JSFFI.Profile (sectionEnd, toJSString, displayTotals)
 
@@ -70,7 +71,7 @@ mainUpdate (Initialize ctxRef) = do
     subscribe clientThreadReturnTopic (ClientResponse SenderThread) OnErrorMessage
     subscribe Grid.catalogOutTopic GridMessage OnErrorMessage
     subscribe Search.searchOutTopic SearchResults OnErrorMessage
-    subscribe TC.timeControlTopic (GoToTime . Then) OnErrorMessage
+    subscribe TC.timeControlTopic (GoToTime . Then . coerce) OnErrorMessage
 
     model <- get
 
@@ -123,10 +124,7 @@ mainUpdate (InitNoHydration ctx) = do
 
     model <- get
 
-    if client_mounted model then
-        issue ClientMounted
-    else
-        return ()
+    when (client_mounted model) $ issue ClientMounted
 
     where
         uri = T.init_uri ctx
@@ -143,26 +141,23 @@ mainUpdate ClientMounted = do
     io_ $ consoleLog "ClientMounted"
     model <- get
 
-    if initialized model then do
+    when (initialized model) $ do
         io_ $ do
             consoleLog "Http Client Mounted!"
             consoleLog $ "pg_api_root: " <> pg_api_root model
-            consoleLog $ "client_fetch_count: " <> (toMisoString $ client_fetch_count model)
+            consoleLog $ "client_fetch_count: " <> toMisoString (client_fetch_count model)
 
-        publish
-            Client.clientInTopic
-            ( Sender
-            , Client.InitModel $
-                Client.Model
-                    (pg_api_root model)
-                    (client_fetch_count model)
-            )
+            publish
+                Client.clientInTopic
+                ( Sender
+                , Client.InitModel $
+                    Client.Model
+                        (pg_api_root model)
+                        (client_fetch_count model)
+                )
 
         issue $ initial_action model
         modify $ \m -> m { initial_action = NoAction }
-
-    else
-        return ()
 
     modify $ \m -> m { client_mounted = True }
 
@@ -182,8 +177,8 @@ mainUpdate ThreadViewMounted = do
 
     model <- get
 
-    maybe
-        (io_ $ consoleLog "No thread_message available for sending in Main Model")
+    io_ $ maybe
+        (consoleLog "No thread_message available for sending in Main Model")
         (publish Thread.threadTopic)
         (thread_message model)
 
@@ -247,11 +242,11 @@ mainUpdate (ClientResponse _ (Client.ReturnResult _)) = return ()
 
 mainUpdate (GoToTime (Now t)) = do
     modify (\m -> m { current_time = t, between_pages = True })
-    publish Client.clientInTopic (SenderLatest, Client.FetchLatest t)
+    io_ $ publish Client.clientInTopic (SenderLatest, Client.FetchLatest t)
 
 mainUpdate (GoToTime (Then t)) = do
     modify (\m -> m { current_time = t, between_pages = True })
-    publish Client.clientInTopic (SenderLatest, Client.FetchLatest t)
+    io_ $ publish Client.clientInTopic (SenderLatest, Client.FetchLatest t)
 
     model <- get
 
@@ -270,7 +265,7 @@ mainUpdate (GetThread Client.GetThreadArgs {..}) = do
 
     modify (\m -> m { between_pages = True })
 
-    publish Client.clientInTopic (SenderThread, Client.GetThread Client.GetThreadArgs {..})
+    io_ $ publish Client.clientInTopic (SenderThread, Client.GetThread Client.GetThreadArgs {..})
 
 mainUpdate (ChangeURI uri) = do
     modify (\m -> m { current_uri = uri })
@@ -309,7 +304,7 @@ mainUpdate (SearchResults (intendPushUri, searchTerm, catalogPosts)) = do
 mainUpdate (NotifySearch (b, searchTerm)) = do
     io_ $ consoleLog $ "NotifySearch " <> searchTerm
     modify (\m -> m { search_term = searchTerm })
-    publish Search.searchInTopic (b, searchTerm)
+    io_ $ publish Search.searchInTopic (b, searchTerm)
 
 
 (</>) :: MisoString -> MisoString -> MisoString
