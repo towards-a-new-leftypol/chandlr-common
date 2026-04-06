@@ -46,7 +46,7 @@ import qualified Common.Network.ThreadType as T
 #ifdef FRONT_END
 import qualified Common.Component.Thread.Types as TT
 import qualified Common.Utils as Utils
-import JSFFI.Saddle
+import JSFFI.MisoFFI
     ( freezeBodyScrolling
     , unFreezeBodyScrolling
     )

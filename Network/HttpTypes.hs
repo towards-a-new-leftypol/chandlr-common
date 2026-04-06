@@ -5,7 +5,6 @@ module Common.Network.HttpTypes where
 
 import Miso (MisoString)
 import Control.Concurrent.MVar (MVar)
-import Language.Javascript.JSaddle.Monad (JSM)
 import Miso.JSON hiding (Error)
 import GHC.Float (int2Double)
 
@@ -50,4 +49,4 @@ instance FromJSON HttpResult where
 
     parseJSON _ = fail "Expected Object for HttpResult"
 
-type HttpActionResult = (JSM (), MVar HttpResult) -- (abort, result)
+type HttpActionResult = (IO (), MVar HttpResult) -- (abort, result)

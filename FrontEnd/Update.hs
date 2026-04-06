@@ -44,7 +44,7 @@ import qualified Common.Component.Thread as Thread
 import qualified Common.Utils as Utils
 import qualified Common.Component.CatalogGrid.GridTypes as Grid
 import Common.Network.SiteType (fromCatalogPost)
-import JSFFI.Saddle (encodeURIComponent)
+import JSFFI.MisoFFI (encodeURIComponent)
 import Common.FrontEnd.Routes
 import qualified Common.FrontEnd.Types as T
 import qualified Common.Network.CatalogPostType as CatPost
@@ -77,7 +77,7 @@ mainUpdate (Initialize ctxRef) = do
 
     io_ $ do
         consoleLog "MainComponent Initialize action"
-        consoleLog $ "MainComponent pg_api_root: " <> (pg_api_root model)
+        consoleLog $ "MainComponent pg_api_root: " <> pg_api_root model
 
     io $ do
         ctx <- liftIO $ readIORef ctxRef
@@ -215,7 +215,7 @@ mainUpdate (OnErrorMessage msg) =
     io_ $ consoleError ("Main Component OnErrorMessage decode failure: " <> toMisoString msg)
 
 mainUpdate (ClientResponse SenderLatest (Client.ReturnResult result)) = do
-    io_ $ consoleLog $ "ClientResponse - SenderLatest have encoded result"
+    io_ $ consoleLog "ClientResponse - SenderLatest have encoded result"
     Utils.helper result $
         \catalogPosts -> do
             io_ $ consoleLog $ "ClientResponse - SenderLatest, saving posts to model. number of posts: " <> toMisoString (show $ length catalogPosts)
