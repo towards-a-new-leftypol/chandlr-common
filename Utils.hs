@@ -23,6 +23,7 @@ import Data.Time.Clock
     ( UTCTime (..)
     , secondsToDiffTime
     )
+import Data.Time.LocalTime (ZonedTime, zonedTimeToUTC)
 import Data.Time.Calendar (fromGregorian)
 import Data.Time.Format.ISO8601 (iso8601Show, iso8601ParseM)
 import Data.List.NonEmpty (NonEmpty, toList, fromList)
@@ -93,7 +94,8 @@ utcToIso :: UTCTime -> MisoString
 utcToIso = toMisoString . iso8601Show
 
 isoToUtc :: MisoString -> Parser UTCTime
-isoToUtc = iso8601ParseM . fromMisoString
+-- isoToUtc = iso8601ParseM . fromMisoString
+isoToUtc t = zonedTimeToUTC <$> (iso8601ParseM (fromMisoString t) :: Parser ZonedTime)
 
 instance ToJSON UTCTime where
     toJSON = String . utcToIso

@@ -11,6 +11,7 @@ import GHC.Generics
 import Miso.JSON (FromJSON, ToJSON)
 import Data.Time.Clock (UTCTime) -- Required for timestamp with time zone
 import Miso.String (MisoString)
+
 import Common.AttachmentType (Dimension)
 
 data CatalogPost = CatalogPost
