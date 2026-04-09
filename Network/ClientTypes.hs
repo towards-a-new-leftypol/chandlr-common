@@ -54,7 +54,7 @@ instance FromJSON Model where
 data FetchCatalogArgs = FetchCatalogArgs
   { max_time :: UTCTime
   , max_row_read :: Int
-  }
+  } deriving Generic
 
 instance ToJSON FetchCatalogArgs where
     toJSON (FetchCatalogArgs {..}) =

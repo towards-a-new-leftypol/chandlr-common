@@ -26,7 +26,7 @@ data InitialData
     | SearchData [ CatalogPost ]
     | ThreadData Site [ Thread.PostWithBody ]
     | Nil
-    deriving (Eq)
+    deriving (Eq, Generic)
 
 instance ToJSON InitialData where
     toJSON (CatalogData posts) = object

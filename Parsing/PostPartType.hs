@@ -1,7 +1,9 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE DeriveGeneric #-}
 
 module Common.Parsing.PostPartType where
 
+import GHC.Generics
 import Miso.String (MisoString)
 import Data.Map (Map)
 import Miso.JSON
@@ -26,7 +28,7 @@ data PostPart
     | Italics       [ PostPart ]
     | Strikethrough [ PostPart ]
     | Code          [ PostPart ]
-    deriving (Show, Eq)
+    deriving (Show, Eq, Generic)
 
 instance ToJSON PostPart where
     toJSON (SimpleText s)        = object [ "tag" .= String "SimpleText",        "args" .= String s ]

@@ -1,8 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
--- {-# LANGUAGE DataKinds #-}
--- {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE DerivingStrategies #-}
 
 module Common.Component.TimeControl where
 
@@ -63,7 +62,8 @@ data Model = Model
 type TimeControl parent = Component parent Model Time
 
 newtype Message = Message UTCTime
-  deriving (Show, Generic, FromJSON, ToJSON)
+  deriving stock (Show, Generic)
+  deriving anyclass (FromJSON, ToJSON)
 
 
 timeControlTopic :: Topic Message

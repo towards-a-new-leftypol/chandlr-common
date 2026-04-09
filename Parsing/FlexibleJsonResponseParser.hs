@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE DeriveGeneric #-}
 {-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
 {-# HLINT ignore "Use <&>" #-}
 
@@ -28,6 +29,7 @@ import Miso.String (MisoString)
 import Data.Maybe (fromJust)
 import qualified Data.Map.Strict as Map
 import qualified Data.List.NonEmpty as L
+import GHC.Generics
 
 import qualified Common.Network.SiteType as Site
 import qualified Common.Network.BoardType as B
@@ -36,6 +38,7 @@ import qualified Common.Network.PostType as P
 import qualified Common.AttachmentType as A
 
 newtype SSite = SSite Site.Site
+    deriving Generic
 
 instance FromJSON SSite where
   parseJSON v = parseSitesFromJSON v >>= return . SSite . head
