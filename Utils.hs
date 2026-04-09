@@ -23,10 +23,11 @@ import Data.Time.Clock
     ( UTCTime (..)
     , secondsToDiffTime
     )
-import Data.Time.LocalTime (ZonedTime, zonedTimeToUTC)
+-- import Data.Time.LocalTime (ZonedTime, zonedTimeToUTC)
 import Data.Time.Calendar (fromGregorian)
-import Data.Time.Format.ISO8601 (iso8601Show, iso8601ParseM)
+import Data.Time.Format.ISO8601 (iso8601Show)
 import Data.List.NonEmpty (NonEmpty, toList, fromList)
+import Data.Time.Format (parseTimeM, defaultTimeLocale)
 
 import qualified Common.Network.HttpTypes as Http
 import Common.FrontEnd.Routes (Route)
@@ -95,7 +96,12 @@ utcToIso = toMisoString . iso8601Show
 
 isoToUtc :: MisoString -> Parser UTCTime
 -- isoToUtc = iso8601ParseM . fromMisoString
-isoToUtc t = zonedTimeToUTC <$> (iso8601ParseM (fromMisoString t) :: Parser ZonedTime)
+-- isoToUtc t = zonedTimeToUTC <$> (iso8601ParseM (fromMisoString t) :: Parser ZonedTime)
+isoToUtc t = do
+    let str = fromMisoString t
+    case parseTimeM True defaultTimeLocale "%Y-%m-%dT%H:%M:%S%QZ" str of
+        Just utc -> pure utc
+        Nothing  -> fail "Invalid ISO8601 timestamp"
 
 instance ToJSON UTCTime where
     toJSON = String . utcToIso
