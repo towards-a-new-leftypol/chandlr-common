@@ -31,15 +31,15 @@ data InitialData
 instance ToJSON InitialData where
     toJSON (CatalogData posts) = object
         [ "tag"  .= String "CatalogData"
-        , "args" .= toJSON posts
+        , "contents" .= toJSON posts
         ]
     toJSON (SearchData posts)  = object
         [ "tag"  .= String "SearchData"
-        , "args" .= toJSON posts
+        , "contents" .= toJSON posts
         ]
     toJSON (ThreadData site posts) = object
         [ "tag"  .= String "ThreadData"
-        , "args" .= object [ "site" .= toJSON site, "posts" .= toJSON posts ]
+        , "contents" .= object [ "site" .= toJSON site, "posts" .= toJSON posts ]
         ]
     toJSON Nil = object [ "tag" .= String "Nil" ]
 
@@ -47,10 +47,10 @@ instance FromJSON InitialData where
     parseJSON (Object m) = do
         tag <- (m .: "tag") :: Parser MisoString
         case tag of
-            "CatalogData"  -> CatalogData <$> m .: "args"
-            "SearchData"   -> SearchData  <$> m .: "args"
+            "CatalogData"  -> CatalogData <$> m .: "contents"
+            "SearchData"   -> SearchData  <$> m .: "contents"
             "ThreadData"   -> do
-                argsObj <- (m .: "args") :: Parser Object
+                argsObj <- (m .: "contents") :: Parser Object
                 ThreadData <$> argsObj .: "site" <*> argsObj .: "posts"
             "Nil"          -> pure Nil
             _              -> fail "Unknown InitialData tag"

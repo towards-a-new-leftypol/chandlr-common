@@ -89,34 +89,34 @@ data Query
 instance ToJSON Query where
     toJSON (FetchLatest t) = object
         [ "tag"  .= String "FetchLatest"
-        , "args" .= toJSON t
+        , "contents" .= toJSON t
         ]
     toJSON (GetThread a) = object
         [ "tag"  .= String "GetThread"
-        , "args" .= toJSON a
+        , "contents" .= toJSON a
         ]
     toJSON (Search q) = object
         [ "tag"  .= String "Search"
-        , "args" .= String q
+        , "contents" .= String q
         ]
     toJSON (DeleteIllegalPost a) = object
         [ "tag"  .= String "DeleteIllegalPost"
-        , "args" .= toJSON a
+        , "contents" .= toJSON a
         ]
     toJSON (InitModel m) = object
         [ "tag"  .= String "InitModel"
-        , "args" .= toJSON m
+        , "contents" .= toJSON m
         ]
 
 instance FromJSON Query where
     parseJSON (Object m) = do
         tag <- (m .: "tag") :: Parser MisoString
         case tag of
-            "FetchLatest"         -> FetchLatest       <$> m .: "args"
-            "GetThread"           -> GetThread         <$> m .: "args"
-            "Search"              -> Search            <$> m .: "args"
-            "DeleteIllegalPost"   -> DeleteIllegalPost <$> m .: "args"
-            "InitModel"           -> InitModel         <$> m .: "args"
+            "FetchLatest"         -> FetchLatest       <$> m .: "contents"
+            "GetThread"           -> GetThread         <$> m .: "contents"
+            "Search"              -> Search            <$> m .: "contents"
+            "DeleteIllegalPost"   -> DeleteIllegalPost <$> m .: "contents"
+            "InitModel"           -> InitModel         <$> m .: "contents"
             _                     -> fail "Unknown Query tag"
 
     parseJSON _ = fail "Expected Object for Query"

@@ -27,11 +27,11 @@ data Message
 instance ToJSON Message where
     toJSON (RenderSite name site) = object
         [ "tag"  .= String "RenderSite"
-        , "args" .= object [ "name" .= String name, "site" .= toJSON site ]
+        , "contents" .= object [ "name" .= String name, "site" .= toJSON site ]
         ]
     toJSON (PostDeleted ids) = object
         [ "tag"  .= String "PostDeleted"
-        , "args" .= Array (map (Number . fromIntegral) ids)
+        , "contents" .= Array (map (Number . fromIntegral) ids)
         ]
 
 instance FromJSON Message where
@@ -40,10 +40,10 @@ instance FromJSON Message where
 
         case tag of
             "RenderSite" -> do
-                argsObj <- (m .: "args") :: Parser Object
+                argsObj <- (m .: "contents") :: Parser Object
                 RenderSite <$> argsObj .: "name" <*> argsObj .: "site"
 
-            "PostDeleted" -> PostDeleted <$> m .: "args"
+            "PostDeleted" -> PostDeleted <$> m .: "contents"
 
             _             -> fail "Unknown Message tag"
 
