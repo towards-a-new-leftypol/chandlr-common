@@ -80,6 +80,7 @@ app ctxRef =
             where
                 actionFromChildMessage :: MessagesFromChildren -> Action
                 actionFromChildMessage MsgClientMounted = ClientMounted
+                actionFromChildMessage MsgThreadViewMounted = ThreadViewMounted
 
 
 initializeModel :: InitCtxRef -> IO Model

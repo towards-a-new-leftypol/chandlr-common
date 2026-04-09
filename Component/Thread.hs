@@ -28,6 +28,7 @@ import Miso
   , subscribe
   , publish
   , get
+  , mailParent
   )
 import Miso.Html
   ( div_
@@ -106,7 +107,10 @@ initializeModel ctxRef = do
 
 
 update :: Action -> Effect parent Model Action
-update Initialize = subscribe threadTopic OnMessage OnMessageError
+update Initialize = do
+    subscribe threadTopic OnMessage OnMessageError
+    mailParent MsgThreadViewMounted
+
 update (OnMessage (RenderSite _ s)) = do
     modify (\m -> m { site = s })
 

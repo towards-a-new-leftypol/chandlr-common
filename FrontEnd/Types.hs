@@ -65,5 +65,16 @@ data AppInitCtx = AppInitCtx
 
 type InitCtxRef = IORef AppInitCtx
 
-data MessagesFromChildren = MsgClientMounted
-    deriving (Eq, Generic, FromJSON, ToJSON)
+data MessagesFromChildren
+    = MsgClientMounted
+    | MsgThreadViewMounted
+    deriving Eq
+
+instance ToJSON MessagesFromChildren where
+    toJSON MsgClientMounted     = String "MsgClientMounted"
+    toJSON MsgThreadViewMounted = String "MsgThreadViewMounted"
+
+instance FromJSON MessagesFromChildren where
+    parseJSON (String "MsgClientMounted") = pure MsgClientMounted
+    parseJSON (String "MsgThreadViewMounted") = pure MsgThreadViewMounted
+    parseJSON _ = fail "Expected JSON String for MessagesFromChildren deserialization"
