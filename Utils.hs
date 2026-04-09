@@ -4,6 +4,7 @@
 
 module Common.Utils where
 
+import Prelude hiding (last)
 import Miso
     ( Effect
     , consoleError
@@ -14,7 +15,7 @@ import Miso
     , MisoString
     )
 import Miso.JSON
-import Miso.String (toMisoString, fromMisoString)
+import Miso.String (toMisoString, fromMisoString, last)
 import Servant.Miso.Router (route)
 import Data.Proxy (Proxy (..))
 import Servant.API hiding (URI)
@@ -99,9 +100,16 @@ isoToUtc :: MisoString -> Parser UTCTime
 -- isoToUtc t = zonedTimeToUTC <$> (iso8601ParseM (fromMisoString t) :: Parser ZonedTime)
 isoToUtc t = do
     let str = fromMisoString t
-    case parseTimeM True defaultTimeLocale "%Y-%m-%dT%H:%M:%S%QZ" str of
+        fmt = formatType t
+    case parseTimeM True defaultTimeLocale fmt str of
         Just utc -> pure utc
-        Nothing  -> fail "Invalid ISO8601 timestamp"
+        Nothing  -> fail $ "Invalid ISO8601 timestamp: " ++ str
+
+    where
+        formatType :: MisoString -> String
+        formatType s
+            | last s == 'Z' = "%Y-%m-%dT%H:%M:%S%QZ"
+            | otherwise = "%Y-%m-%dT%H:%M:%S%Q%z"
 
 instance ToJSON UTCTime where
     toJSON = String . utcToIso
