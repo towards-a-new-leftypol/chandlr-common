@@ -2,6 +2,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE PatternSynonyms #-}
 
 module Common.Admin.Component.DeleteIllegalPost where
@@ -77,7 +78,8 @@ data Action
     | Cancel
 
 newtype InMessage = InMessage T.Model
-    deriving (Generic, ToJSON, FromJSON)
+  deriving stock Generic
+  deriving anyclass (FromJSON, ToJSON)
 
 deleteIllegalPostInTopic :: Topic InMessage
 deleteIllegalPostInTopic = topic "deleteIllegal-in"

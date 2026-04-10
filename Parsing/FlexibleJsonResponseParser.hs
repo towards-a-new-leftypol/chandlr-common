@@ -36,6 +36,7 @@ import qualified Common.Network.BoardType as B
 import qualified Common.Network.ThreadType as T
 import qualified Common.Network.PostType as P
 import qualified Common.AttachmentType as A
+import Orphans
 
 newtype SSite = SSite Site.Site
     deriving Generic
