@@ -19,7 +19,7 @@ import Common.FrontEnd.JSONSettings (JSONSettings)
 data InitialDataPayload = InitialDataPayload
     { timestamp :: UTCTime
     , initialData :: InitialData
-    } deriving (Eq, Generic, FromJSON, ToJSON)
+    } deriving (Eq, Generic, FromJSON)
 
 data InitialData
     = CatalogData [ CatalogPost ]
@@ -28,21 +28,6 @@ data InitialData
     | Nil
     deriving (Eq, Generic)
 
-instance ToJSON InitialData where
-    toJSON (CatalogData posts) = object
-        [ "tag"  .= String "CatalogData"
-        , "contents" .= toJSON posts
-        ]
-    toJSON (SearchData posts)  = object
-        [ "tag"  .= String "SearchData"
-        , "contents" .= toJSON posts
-        ]
-    toJSON (ThreadData site posts) = object
-        [ "tag"  .= String "ThreadData"
-        , "contents" .= object [ "site" .= toJSON site, "posts" .= toJSON posts ]
-        ]
-    toJSON Nil = object [ "tag" .= String "Nil" ]
-
 instance FromJSON InitialData where
     parseJSON (Object m) = do
         tag <- (m .: "tag") :: Parser MisoString
@@ -50,8 +35,8 @@ instance FromJSON InitialData where
             "CatalogData"  -> CatalogData <$> m .: "contents"
             "SearchData"   -> SearchData  <$> m .: "contents"
             "ThreadData"   -> do
-                argsObj <- (m .: "contents") :: Parser Object
-                ThreadData <$> argsObj .: "site" <*> argsObj .: "posts"
+                (site, posts) <- m .: "contents"
+                pure $ ThreadData site posts
             "Nil"          -> pure Nil
             _              -> fail "Unknown InitialData tag"
     parseJSON _ = fail "Expected Object for InitialData"

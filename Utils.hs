@@ -24,7 +24,6 @@ import Data.Time.Clock
     ( UTCTime (..)
     , secondsToDiffTime
     )
--- import Data.Time.LocalTime (ZonedTime, zonedTimeToUTC)
 import Data.Time.Calendar (fromGregorian)
 import Data.Time.Format.ISO8601 (iso8601Show)
 import Data.List.NonEmpty (NonEmpty, toList, fromList)
@@ -96,8 +95,6 @@ utcToIso :: UTCTime -> MisoString
 utcToIso = toMisoString . iso8601Show
 
 isoToUtc :: MisoString -> Parser UTCTime
--- isoToUtc = iso8601ParseM . fromMisoString
--- isoToUtc t = zonedTimeToUTC <$> (iso8601ParseM (fromMisoString t) :: Parser ZonedTime)
 isoToUtc t = do
     let str = fromMisoString t
         fmt = formatType t

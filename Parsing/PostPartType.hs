@@ -4,7 +4,7 @@
 module Common.Parsing.PostPartType where
 
 import GHC.Generics
-import Miso.String (MisoString)
+import Miso.String (MisoString, fromMisoString)
 import Data.Map (Map)
 import Miso.JSON
 
@@ -37,8 +37,8 @@ instance ToJSON PostPart where
     toJSON (Quote e)             = object
         [ "tag"  .= String "Quote"
         , "contents" .= case e of
-              Left err  -> object [ "tag" .= String "Left",  "value" .= toJSON err ]
-              Right url -> object [ "tag" .= String "Right", "value" .= toJSON url ]
+              Left err  -> object [ "Left"  .= toJSON err ]
+              Right url -> object [ "Right" .= toJSON url ]
         ]
     toJSON (GreenText ps)        = object [ "tag" .= String "GreenText",         "contents" .= toJSON ps ]
     toJSON (OrangeText ps)       = object [ "tag" .= String "OrangeText",        "contents" .= toJSON ps ]
@@ -53,18 +53,17 @@ instance ToJSON PostPart where
 instance FromJSON PostPart where
     parseJSON (Object m) = do
         tag <- (m .: "tag") :: Parser MisoString
+
         case tag of
             "SimpleText"   -> SimpleText <$> m .: "contents"
             "PostedUrl"    -> PostedUrl  <$> m .: "contents"
             "Skip"         -> pure Skip
             "Quote"        -> do
                 argsObj <- (m .: "contents") :: Parser Object
-                qTag    <- argsObj .: "tag"
-                case qTag :: MisoString of
-                    "Left"  -> Quote . Left  <$> argsObj .: "value"
-                    "Right" -> Quote . Right <$> argsObj .: "value"
-                    _       -> fail "Expected 'Left' or 'Right' in Quote args"
-
+                l <- (argsObj .:? "Left") :: Parser (Maybe MisoString)
+                case l of
+                    Nothing -> Quote . Right <$> argsObj .: "Right"
+                    Just e -> pure $ Quote $ Left $ fromMisoString e
             "GreenText"     -> GreenText      <$> m .: "contents"
             "OrangeText"    -> OrangeText     <$> m .: "contents"
             "RedText"       -> RedText        <$> m .: "contents"
