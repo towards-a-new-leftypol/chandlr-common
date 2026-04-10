@@ -17,17 +17,17 @@ module Common.Parsing.FlexibleJsonResponseParser
 )
 where
 
-import Miso.JSON
+import Data.Aeson
     ( Value (..)
     , Object
     , (.:)
     , (.:?)
     , FromJSON (..)
-    , Parser
     )
-import Miso.String (MisoString)
+import Data.Aeson.Types (Parser)
+import Data.Vector (toList)
+import qualified Data.Aeson.KeyMap as Map
 import Data.Maybe (fromJust)
-import qualified Data.Map.Strict as Map
 import qualified Data.List.NonEmpty as L
 import GHC.Generics
 
@@ -165,18 +165,18 @@ parseNextObject Attachment (Object o) = do
     return (attachments ++ restOfThings)
 
 parseNextObject t (Array arr) =
-    mapM (parseNextObject t) arr >>= return . concat . (map collapseThings)
+    mapM (parseNextObject t) (toList arr) >>= return . concat . (map collapseThings)
 parseNextObject _ (String _) = fail "Unexpected String JSON Value"
 parseNextObject _ (Number _) = fail "Unexpected Number JSON Value"
 parseNextObject _ (Bool _) = fail "Unexpected Bool JSON Value"
 parseNextObject _ Null = fail "Unexpected Null JSON Value"
 
 
-nextObjects :: Object -> [ (MisoString, ObjectType) ]
+nextObjects :: Object -> [ (Map.Key, ObjectType) ]
 nextObjects o = filter (\(k, _) -> Map.member k o) objectTypeKeys
 
 
-objectTypeKeys :: [ (MisoString, ObjectType) ]
+objectTypeKeys :: [ (Map.Key, ObjectType) ]
 objectTypeKeys =
     [ ("sites", Site)
     , ("boards", Board)
@@ -189,7 +189,7 @@ objectTypeKeys =
 parseSitesFromJSON :: Value -> Parser [ Site.Site ]
 parseSitesFromJSON (Object obj) = (: []) <$> parseTopObject obj
 parseSitesFromJSON (Array arr) =
-    mapM parseSitesFromJSON arr >>= return . concat
+    mapM parseSitesFromJSON (toList arr) >>= return . concat
 
 parseSitesFromJSON _ = fail "Expected an array or an object at the top level"
 
