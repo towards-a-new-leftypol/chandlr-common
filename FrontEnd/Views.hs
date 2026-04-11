@@ -44,12 +44,7 @@ timeControl ctxRef =
 
 
 grid :: InitCtxRef -> View Model Action
-grid ctxRef = div_
-    [ key_ ("catalog-grid" :: MisoString) ]
-    [ mount_
-      --[ onMounted CatalogViewMounted ]
-      (Grid.app ctxRef)
-    ]
+grid ctxRef = mount_ (Grid.app ctxRef)
 
 
 search :: View Model Action
@@ -61,12 +56,7 @@ pageWrapperWithDefaults _ inner_content =
     div_ [ key_ ("top-level" :: MisoString) ]
         [ div_
             []
-            [ mount_
-                -- [ onMounted ClientMounted
-                -- , onUnmounted ClientUnmounted
-                -- ]
-                Client.app
-            ]
+            [ mount_ Client.app ]
         , div_
             [ key_ ("delete-illegal-post" :: MisoString) ]
             [ mount_ DIP.app ]
@@ -112,12 +102,8 @@ threadView :: InitCtxRef -> Text -> Text -> BoardThreadId -> Model -> View Model
 threadView ctxRef site_name board_pathpart board_thread_id m =
     pageWrapperWithDefaults m $
         div_
-            [ key_ ("thread-view" :: MisoString) ]
-            [ mount_
-                -- [ onMounted ThreadViewMounted
-                -- ]
-                (Thread.app ctxRef)
-            ]
+            []
+            [ mount_ (Thread.app ctxRef) ]
 
 
 page404 :: View model Action
