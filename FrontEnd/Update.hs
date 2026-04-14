@@ -50,7 +50,6 @@ import qualified Common.FrontEnd.Types as T
 import qualified Common.Network.CatalogPostType as CatPost
 import qualified Common.Component.TimeControl as TC
 import qualified Common.FrontEnd.JSONSettings as Settings
-import Data.Coerce (coerce)
 
 import JSFFI.Profile (sectionEnd, toJSString, displayTotals)
 
@@ -71,7 +70,7 @@ mainUpdate (Initialize ctxRef) = do
     subscribe clientThreadReturnTopic (ClientResponse SenderThread) OnErrorMessage
     subscribe Grid.catalogOutTopic GridMessage OnErrorMessage
     subscribe Search.searchOutTopic SearchResults OnErrorMessage
-    subscribe TC.timeControlTopic (GoToTime . Then . coerce) OnErrorMessage
+    subscribe TC.timeControlTopic (GoToTime . timeFromTimeMessage) OnErrorMessage
 
     model <- get
 
@@ -104,6 +103,10 @@ mainUpdate (Initialize ctxRef) = do
 
         clientThreadReturnTopic :: Topic Client.MessageOut
         clientThreadReturnTopic = topic SenderThread
+
+        timeFromTimeMessage :: TC.Message -> Time
+        timeFromTimeMessage (TC.Message True  t) = Now t
+        timeFromTimeMessage (TC.Message False t) = Then t
 
 mainUpdate (InitNoHydration ctx) = do
     io_ $ consoleLog "InitNoHydration - initializing model from settings"
@@ -243,6 +246,18 @@ mainUpdate (ClientResponse _ (Client.ReturnResult _)) = return ()
 mainUpdate (GoToTime (Now t)) = do
     modify (\m -> m { current_time = t, between_pages = True })
     io_ $ publish Client.clientInTopic (SenderLatest, Client.FetchLatest t)
+
+    model <- get
+
+    io_ $ do
+        consoleLog $ "calling replaceURI on " <> toMisoString (show (new_current_uri model))
+        replaceURI $ new_current_uri model
+
+    where
+        new_current_uri :: Model -> URI
+        new_current_uri m = (current_uri m)
+            { uriQueryString = Map.empty
+            }
 
 mainUpdate (GoToTime (Then t)) = do
     modify (\m -> m { current_time = t, between_pages = True })

@@ -49,19 +49,22 @@ import Miso.JSON (FromJSON, ToJSON)
 
 
 data Time
-  = Now
-  | SlideInput MisoString
+  = SlideInput MisoString
   | SlideChange MisoString
   | Publish Message
   deriving Show
 
 data Model = Model
   { whereAt :: Integer
+  , atNow     :: Bool
   } deriving Eq
 
 type TimeControl parent = Component parent Model Time
 
-newtype Message = Message UTCTime
+data Message = Message
+    { msgAtNow :: Bool -- now or earlier
+    , utcTime :: UTCTime
+    }
   deriving stock (Show, Generic)
   deriving anyclass (FromJSON, ToJSON)
 
@@ -100,9 +103,9 @@ update (SlideChange nstr) = do
 
     now <- liftIO getCurrentTime
 
-    let newTime = interpolateTimeHours n now
+    let (isNow, newTime) = interpolateTimeHours n now
 
-    return $ Publish $ Message newTime
+    return $ Publish $ Message isNow newTime
 
   where
     n :: Integer
@@ -116,11 +119,13 @@ earliest = UTCTime (fromGregorian 2020 12 20) (secondsToDiffTime 82644)
 
 
 -- Linear interpolation function using hours
-interpolateTimeHours :: Integer -> UTCTime -> UTCTime
+-- the Boolean means is it right now
+interpolateTimeHours :: Integer -> UTCTime -> (Bool, UTCTime)
 interpolateTimeHours n currentTime
-  | n == 0 = currentTime
-  | n == -500 = earliest
-  | otherwise = addUTCTime (fromIntegral hoursToAdjust * secondsInHour) currentTime
+  | n == 0 = (True, currentTime)
+  | n == -500 = (False, earliest)
+  | otherwise = (False,
+      addUTCTime (fromIntegral hoursToAdjust * secondsInHour) currentTime)
 
   where
     -- Calculate the total number of hours between the current time and the target date
@@ -137,7 +142,7 @@ app
     :: InitCtxRef
     -> TimeControl parent
 app _ = M.Component
-    { M.model = Model 0
+    { M.model = Model 0 True
     , M.hydrateModel = Nothing
     , M.update = update
     , M.view = view
