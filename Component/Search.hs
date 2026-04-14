@@ -25,6 +25,7 @@ import Miso
   , topic
   )
 import qualified Miso as M
+import Miso.Binding ((-->))
 
 import Common.Component.Search.SearchTypes
 import Common.Component.Search.View
@@ -41,10 +42,13 @@ update Initialize = do
     io_ $ consoleLog "Search component Initialize!"
     subscribe clientReturnTopic SearchResult OnMessageError
     subscribe searchInTopic OnMessage OnMessageError
+    io_ $ publish searchOutTopic Mounted
 
     where
         clientReturnTopic :: Topic Client.MessageOut
         clientReturnTopic = topic ReturnTopic
+
+update OnUnmount = io_ $ publish searchOutTopic UnMounted
 
 update (SearchChange q) =
     modify (\m -> m { searchTerm = q })
@@ -71,7 +75,7 @@ update (SearchResult (Client.ReturnResult result)) = do
     Utils.helper result $ \searchResults -> do
         model <- get
         io_ $ publish
-            searchOutTopic
+            searchOutTopic $ SearchResults
                 ( intendPushUri model
                 , searchTerm model
                 , searchResults
@@ -81,6 +85,7 @@ update (OnMessageError msg) =
     io_ $ consoleError msg
 
 update (OnMessage (b, query)) = do
+    io_ $ consoleLog "Search OnMessage"
     modify (\m -> m { searchTerm = query, intendPushUri = b })
     issue $ ChangeAndSubmit query
 
@@ -96,8 +101,9 @@ app = M.Component
     , M.logLevel = M.DebugAll
     , M.scripts = []
     , M.mailbox = const Nothing
-    , M.bindings = []
+    , M.bindings =
+        [ FE.getSetSearchTerm --> getSetSearchTerm ]
     , M.eventPropagation = False
     , M.mount = Just Initialize
-    , M.unmount = Nothing
+    , M.unmount = Just OnUnmount
     }

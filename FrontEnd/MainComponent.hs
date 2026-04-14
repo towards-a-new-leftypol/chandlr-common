@@ -73,6 +73,8 @@ app ctxRef =
             , admin = False
             , initialized = False
             , client_mounted = False
+            , search_mounted = False
+            , search_message = Nothing
             }
 
         handleMail :: Value -> Maybe Action
@@ -108,6 +110,8 @@ initializeModel ctxRef = do
               , admin = Settings.admin settings
               , initialized = True
               , client_mounted = False
+              , search_mounted = False
+              , search_message = Nothing
               }
 
     where

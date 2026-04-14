@@ -38,6 +38,8 @@ import qualified Network.Client as Client
 import Common.FrontEnd.Types (InitCtxRef)
 import qualified Common.Admin.Component.DeleteIllegalPost as DIP
 
+import Debug.Trace (trace)
+
 timeControl :: InitCtxRef -> View Model Action
 timeControl ctxRef =
     div_ [ key_ ("time-control" :: MisoString) ] [ mount_ $ TC.app ctxRef ]
@@ -52,7 +54,8 @@ search = div_ [ key_ ("search" :: MisoString) ] [ mount_ Search.app ]
 
 
 pageWrapperWithDefaults :: Model -> View model Action -> View model Action
-pageWrapperWithDefaults _ inner_content =
+pageWrapperWithDefaults m inner_content =
+    trace ("pageWrapperWithDefaults being called. Number of items in catalog_grid: " ++ (show $ length $ catalog_posts m)) $
     div_ [ key_ ("top-level" :: MisoString) ]
         [ div_
             []

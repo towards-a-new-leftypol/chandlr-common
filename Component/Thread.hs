@@ -62,6 +62,7 @@ import qualified Common.Admin.Component.DeleteIllegalPost as DIP
 import Common.Admin.DeleteBtn (deleteBtn)
 import Common.Component.PostViews (op, reply)
 
+import Miso.JSON (encode)
 
 type ThreadComponent parent = Component parent Model Action
 
@@ -133,7 +134,7 @@ update (OnMessageError msg) =
     io_ $ consoleError ("Thread Component Message decode failure: " <> toMisoString msg)
 
 update (UpdatePostBodies t pwbs) = do
-    io_ $ consoleLog "Thread - update UpdatePostBodies case"
+    io_ $ consoleLog $ "Thread - update UpdatePostBodies case: " <> toMisoString (length pwbs) <> " " <> encode t
     modify (\m -> m { post_bodies = pwbs, current_time = t })
 
 update (OnDeleteBtn pwb) = do

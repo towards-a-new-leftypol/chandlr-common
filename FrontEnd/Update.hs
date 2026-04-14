@@ -279,9 +279,31 @@ mainUpdate (ChangeURI uri) = do
         io_ $ consoleLog "Between pages."
         modify (\m -> m { between_pages = False })
 
-mainUpdate (SearchResults (intendPushUri, searchTerm, catalogPosts)) = do
+mainUpdate (SearchResults Search.Mounted) = do
+    io_ $ consoleLog "main Update - Search mounted"
+    model <- get
+
+    case search_message model of
+        Nothing -> do
+            io_ $ consoleLog "no messages to send to search component."
+            modify (\m -> m { search_mounted = True })
+
+        Just x -> do
+            io_ $ do
+                consoleLog "sending queued up message to search component"
+                publish Search.searchInTopic x
+            modify (\m -> m { search_mounted = True, search_message = Nothing })
+
+mainUpdate (SearchResults Search.UnMounted) = do
+    io_ $ consoleLog "main Update - Search unmounted"
+    modify (\m -> m { search_mounted = False })
+
+mainUpdate (SearchResults (Search.SearchResults (intendPushUri, searchTerm, catalogPosts))) = do
     io_ $ consoleLog $ "MainComponent - SearchResults. intendPushUri: " <> (toMisoString $ show intendPushUri) <> ", searchTerm: " <> searchTerm <> ", number of results: " <> (toMisoString $ show $ length catalogPosts)
-    modify (\m -> m { catalog_posts = catalogPosts, between_pages = intendPushUri })
+    modify (\m -> m
+        { catalog_posts = catalogPosts
+        , between_pages = intendPushUri
+        , search_term = searchTerm })
 
     model <- get
 
@@ -304,7 +326,17 @@ mainUpdate (SearchResults (intendPushUri, searchTerm, catalogPosts)) = do
 mainUpdate (NotifySearch (b, searchTerm)) = do
     io_ $ consoleLog $ "NotifySearch " <> searchTerm
     modify (\m -> m { search_term = searchTerm })
-    io_ $ publish Search.searchInTopic (b, searchTerm)
+
+    model <- get
+
+    let msg = (b, searchTerm)
+
+    when (search_mounted model) $
+        io_ $ do
+            consoleLog "NotifySearch - publishing message to searchInTopic"
+            publish Search.searchInTopic msg
+
+    modify (\m -> m { search_message = Just msg })
 
 
 (</>) :: MisoString -> MisoString -> MisoString

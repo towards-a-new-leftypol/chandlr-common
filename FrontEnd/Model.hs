@@ -8,6 +8,7 @@ import Miso.Lens (Lens, LensCore (..))
 import Common.FrontEnd.Action (Action)
 import qualified Common.Component.Thread.Types  as Thread
 import Common.Network.CatalogPostType (CatalogPost)
+import qualified Common.Component.Search.SearchTypes as Search
 
 data Model = Model
     { current_uri :: URI
@@ -23,6 +24,8 @@ data Model = Model
     , admin :: Bool
     , initialized :: Bool
     , client_mounted :: Bool
+    , search_mounted :: Bool
+    , search_message :: Maybe Search.MessageIn
     } deriving Eq
 
 getSetCatalogPosts :: Lens Model [ CatalogPost ]
@@ -42,7 +45,6 @@ getSetSearchTerm =
     Lens
         search_term
         (\s model -> model { search_term = s })
-
 
 getSetAdmin :: Lens Model Bool
 getSetAdmin =
