@@ -37,6 +37,7 @@ import Common.FrontEnd.Routes (BoardThreadId)
 import qualified Network.Client as Client
 import Common.FrontEnd.Types (InitCtxRef)
 import qualified Common.Admin.Component.DeleteIllegalPost as DIP
+import qualified Common.Component.NavigationBar.View as Nav
 
 import Debug.Trace (trace)
 
@@ -64,7 +65,9 @@ pageWrapperWithDefaults m inner_content =
             [ key_ ("delete-illegal-post" :: MisoString) ]
             [ mount_ DIP.app ]
         -- , pre_ [] [ text $ "between_pages: " <> if between_pages then "True" else "False" ]
-        , inner_content
+        , Nav.navbar
+        , div_ [ class_ "page-inner-content" ] [ inner_content ]
+        , Nav.supportingSvgs
         ]
 
 
