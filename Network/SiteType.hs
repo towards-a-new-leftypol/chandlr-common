@@ -47,7 +47,7 @@ fromCatalogPost p =
           , B.name     = Nothing
           , B.pathpart = Ct.pathpart p
           , B.site_id  = Ct.site_id p
-          , B.threads  = singleton thread
+          , B.threads  = thread : []
           }
 
         thread = T.Thread

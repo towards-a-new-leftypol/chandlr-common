@@ -4,7 +4,6 @@
 
 module Common.Component.BodyRender where
 
-import Prelude hiding (head)
 import Miso
     ( text
     , View
@@ -28,7 +27,7 @@ import Miso.Html.Property
 import Miso.String (toMisoString, MisoString, replace)
 import System.FilePath ((</>))
 import Data.Maybe (fromJust)
-import Data.List.NonEmpty (head, toList)
+import qualified Data.List.NonEmpty as L
 
 import Common.Parsing.PostPartType (PostPart (..))
 import Common.Parsing.QuoteLinkParser
@@ -101,9 +100,9 @@ renderPostPart site (Quote parse_result) = elems parse_result
 
                 post_id = toMisoString $ show pid
 
-                current_board = toMisoString $ Board.pathpart $ head $ Site.boards site
+                current_board = toMisoString $ Board.pathpart $ L.head $ Site.boards site
 
-                op_id = Post.board_post_id $ head $ Thread.posts $ head $ Board.threads $ head $ Site.boards site
+                op_id = Post.board_post_id $ L.head $ Thread.posts $ head $ Board.threads $ L.head $ Site.boards site
 
 
         full_url :: ParsedURL -> Maybe MisoString
@@ -168,7 +167,7 @@ getPostWithBodies s = zip posts bodies
         getBody (Just b) = parsePostBody b
 
         posts :: [ Post.Post ]
-        posts = toList $ Thread.posts $ head $ Board.threads $ head $ Site.boards s
+        posts = L.toList $ Thread.posts $ head $ Board.threads $ L.head $ Site.boards s
 
 
 getRidOfCarriageReturn :: MisoString -> MisoString

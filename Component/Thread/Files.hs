@@ -3,7 +3,7 @@
 
 module Common.Component.Thread.Files where
 
-import Prelude hiding (head, take)
+import Prelude hiding (take)
 import Miso
   ( View
   , Attribute
@@ -28,7 +28,7 @@ import Miso.Html.Property
   , data_
   )
 import Miso.CSS (styleInline_)
-import Data.List.NonEmpty (head)
+import qualified Data.List.NonEmpty as L
 import Data.Foldable (toList)
 import Miso.String (MisoString, append, toMisoString, take)
 import qualified Miso.String as Str
@@ -154,7 +154,7 @@ file media_root site multifile a = div_
             (head (Board.threads board)))
 
     board :: Board.Board
-    board = head $ Site.boards site
+    board = L.head $ Site.boards site
 
     size_style_attr :: [ Attribute a ]
     size_style_attr = concatMap (mk_size_style_attr . thumb_dimensions) $ toList $ Attachment.resolution a

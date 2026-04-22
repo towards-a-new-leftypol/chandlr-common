@@ -120,7 +120,7 @@ collapseThings things
 
       boardsWThreads
         | null threads = boards
-        | otherwise = map (\b -> b { B.threads = L.fromList threadsWPosts }) boards
+        | otherwise = map (\b -> b { B.threads = threadsWPosts }) boards
 
       sitesWBoards
         | null boards = sites

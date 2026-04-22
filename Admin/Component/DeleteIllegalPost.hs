@@ -311,5 +311,5 @@ view m = div_ hide render
 postsFromSites :: [ Site.Site ] -> [ P.Post ]
 postsFromSites
     = concatMap (L.toList . T.posts)
-    . concatMap (L.toList . B.threads)
+    . concatMap B.threads
     . concatMap (L.toList . Site.boards)

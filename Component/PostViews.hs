@@ -74,7 +74,7 @@ op introExtras m op_post backlinks =
         board = head $ Site.boards site_
 
         thread :: Thread
-        thread = head $ Board.threads board
+        thread = L.head $ Board.threads board
 
         body :: [ PostWithBody ] -> [ View model a ]
         body [] = []
@@ -131,4 +131,4 @@ reply introExtras m backlinks pwb@(post, parts) = div_
         board = head $ Site.boards site_
 
         thread :: Thread
-        thread = head $ Board.threads board
+        thread = L.head $ Board.threads board

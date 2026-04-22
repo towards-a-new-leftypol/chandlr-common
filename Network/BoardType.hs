@@ -7,16 +7,15 @@ module Common.Network.BoardType where
 import GHC.Generics
 import Miso.String (MisoString)
 import Miso.JSON (FromJSON, ToJSON)
-import Data.List.NonEmpty
 
-import Common.Network.ThreadType (Thread, emptyThread)
+import Common.Network.ThreadType (Thread)
 
 data Board = Board
   { board_id :: Int
   , name     :: Maybe MisoString
   , pathpart :: MisoString
   , site_id  :: Int
-  , threads  :: NonEmpty Thread
+  , threads  :: [ Thread ]
   } deriving (Show, Generic, FromJSON, ToJSON, Eq)
 
 emptyBoard :: Board
@@ -25,5 +24,5 @@ emptyBoard = Board
     , name = Nothing
     , pathpart = ""
     , site_id = -1
-    , threads = singleton emptyThread
+    , threads = []
     }
