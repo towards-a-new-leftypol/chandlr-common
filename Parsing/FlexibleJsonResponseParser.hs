@@ -290,7 +290,7 @@ parseBoard o = do
         , B.name     = name_
         , B.pathpart = pathpart_
         , B.site_id  = site_id_
-        , B.threads  = undefined
+        , B.threads  = []
         }
 
 

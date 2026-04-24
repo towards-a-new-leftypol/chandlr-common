@@ -64,7 +64,7 @@ instance ToJSON FetchCatalogArgs where
             ]
 
 data SearchPostsArgs = SearchPostsArgs
-  { search_text :: MisoString
+  { search_text :: String
   , max_rows :: Int
   } deriving (Generic, ToJSON)
 

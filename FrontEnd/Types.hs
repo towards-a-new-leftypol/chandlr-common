@@ -19,6 +19,7 @@ import Common.FrontEnd.JSONSettings (JSONSettings)
 data InitialDataPayload = InitialDataPayload
     { timestamp :: UTCTime
     , initialData :: InitialData
+    , sitesAndBoards :: [ Site ]
     } deriving (Eq, Generic, FromJSON)
 
 data InitialData

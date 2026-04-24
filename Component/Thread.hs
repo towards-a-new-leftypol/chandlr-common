@@ -95,7 +95,7 @@ initializeModel ctxRef = do
   let initialPayload = init_payload ctx
 
   case initialPayload of
-    (InitialDataPayload t (ThreadData s pwbs)) ->
+    (InitialDataPayload t (ThreadData s pwbs) _) ->
           return Model
             { site = s
             , media_root = Settings.media_root settings
