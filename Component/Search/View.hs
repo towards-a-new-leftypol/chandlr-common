@@ -35,7 +35,7 @@ view = const $ form_
         ]
     , input_
         [ type_ "text"
-        , name_ "search"
+        , name_ "q"
         , onChange $ SearchChange
         ]
     ]
