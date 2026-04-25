@@ -64,7 +64,7 @@ instance ToJSON FetchCatalogArgs where
             ]
 
 data SearchPostsArgs = SearchPostsArgs
-  { search_text :: String
+  { search_text :: MisoString
   , max_rows :: Int
   } deriving (Generic, ToJSON)
 
@@ -84,6 +84,7 @@ data Query
     | Search MisoString
     | DeleteIllegalPost DeleteIllegalPostArgs
     | InitModel Model
+    | LoadAllSitesAndBoards
     deriving Eq
 
 instance ToJSON Query where
@@ -107,17 +108,20 @@ instance ToJSON Query where
         [ "tag"  .= String "InitModel"
         , "contents" .= toJSON m
         ]
+    toJSON LoadAllSitesAndBoards = object
+        [ "tag"  .= String "LoadAllSitesAndBoards" ]
 
 instance FromJSON Query where
     parseJSON (Object m) = do
         tag <- (m .: "tag") :: Parser MisoString
         case tag of
-            "FetchLatest"         -> FetchLatest       <$> m .: "contents"
-            "GetThread"           -> GetThread         <$> m .: "contents"
-            "Search"              -> Search            <$> m .: "contents"
-            "DeleteIllegalPost"   -> DeleteIllegalPost <$> m .: "contents"
-            "InitModel"           -> InitModel         <$> m .: "contents"
-            _                     -> fail "Unknown Query tag"
+            "FetchLatest"           -> FetchLatest       <$> m .: "contents"
+            "GetThread"             -> GetThread         <$> m .: "contents"
+            "Search"                -> Search            <$> m .: "contents"
+            "DeleteIllegalPost"     -> DeleteIllegalPost <$> m .: "contents"
+            "InitModel"             -> InitModel         <$> m .: "contents"
+            "LoadAllSitesAndBoards" -> pure LoadAllSitesAndBoards
+            _                       -> fail "Unknown Query tag"
 
     parseJSON _ = fail "Expected Object for Query"
 

@@ -62,12 +62,16 @@ pattern SenderLatest = "main-latest"
 pattern SenderThread :: Client.ReturnTopicName
 pattern SenderThread = "main-thread"
 
+pattern SitesAndBoards :: Client.ReturnTopicName
+pattern SitesAndBoards = "main-thread"
+
 
 mainUpdate :: Action -> Effect ROOT Model Action
 mainUpdate NoAction = return ()
 mainUpdate (Initialize ctxRef) = do
     subscribe clientLatestReturnTopic (ClientResponse SenderLatest) OnErrorMessage
     subscribe clientThreadReturnTopic (ClientResponse SenderThread) OnErrorMessage
+    subscribe clientSitesAndBoardsTopic (ClientResponse SitesAndBoards) OnErrorMessage
     subscribe Grid.catalogOutTopic GridMessage OnErrorMessage
     subscribe Search.searchOutTopic SearchResults OnErrorMessage
     subscribe TC.timeControlTopic (GoToTime . timeFromTimeMessage) OnErrorMessage
@@ -104,6 +108,9 @@ mainUpdate (Initialize ctxRef) = do
         clientThreadReturnTopic :: Topic Client.MessageOut
         clientThreadReturnTopic = topic SenderThread
 
+        clientSitesAndBoardsTopic :: Topic Client.MessageOut
+        clientSitesAndBoardsTopic = topic SitesAndBoards
+
         timeFromTimeMessage :: TC.Message -> Time
         timeFromTimeMessage (TC.Message True  t) = Now t
         timeFromTimeMessage (TC.Message False t) = Then t
@@ -116,13 +123,15 @@ mainUpdate (InitNoHydration ctx) = do
         , media_root_ = toMisoString $ Settings.media_root settings
         , current_time = current_time_
         , search_term = searchTermFromUri uri
-        , initial_action = initialActionFromRoute (m { current_time = current_time_ }) uri
+        , on_client_mounted_initial_actions =
+            [ initialActionFromRoute (m { current_time = current_time_ }) uri
+            , InitAllSitesAndBoards
+            ]
         , thread_message = Nothing
         , pg_api_root = toMisoString $ Settings.postgrest_url settings
         , client_fetch_count = Settings.postgrest_fetch_count settings
         , between_pages = False
         , admin = Settings.admin settings
-        , initialized = True
         }
 
     model <- get
@@ -140,29 +149,36 @@ mainUpdate (InitNoHydration ctx) = do
                 Utils.Search (Just q) -> toMisoString  q
                 _ -> ""
 
+-- This may also come from the mailbox, see MainComponent handleMail
 mainUpdate ClientMounted = do
     io_ $ consoleLog "ClientMounted"
     model <- get
 
-    when (initialized model) $ do
-        io_ $ do
-            consoleLog "Http Client Mounted!"
-            consoleLog $ "pg_api_root: " <> pg_api_root model
-            consoleLog $ "client_fetch_count: " <> toMisoString (client_fetch_count model)
+    io_ $ do
+        consoleLog "Http Client Mounted!"
+        consoleLog $ "pg_api_root: " <> pg_api_root model
+        consoleLog $ "client_fetch_count: " <> toMisoString (client_fetch_count model)
 
-            publish
-                Client.clientInTopic
-                ( Sender
-                , Client.InitModel $
-                    Client.Model
-                        (pg_api_root model)
-                        (client_fetch_count model)
-                )
+        publish
+            Client.clientInTopic
+            ( Sender
+            , Client.InitModel $
+                Client.Model
+                    (pg_api_root model)
+                    (client_fetch_count model)
+            )
 
-        issue $ initial_action model
-        modify $ \m -> m { initial_action = NoAction }
+    mapM_ issue $ on_client_mounted_initial_actions model
 
-    modify $ \m -> m { client_mounted = True }
+    modify $ \m -> m
+        { on_client_mounted_initial_actions = []
+        , client_mounted = True
+        }
+
+mainUpdate InitAllSitesAndBoards = do
+    io_ $ do
+        consoleLog "Update - InitAllSitesAndBoards"
+        publish Client.clientInTopic (SitesAndBoards, Client.LoadAllSitesAndBoards)
 
 mainUpdate ClientUnmounted = io_ $ consoleLog "Http Client Unmounted!"
 
@@ -240,6 +256,15 @@ mainUpdate (ClientResponse SenderThread (Client.ReturnResult result)) = do
                 }
             )
         issue ThreadViewMounted
+
+mainUpdate (ClientResponse SitesAndBoards (Client.ReturnResult result)) = do
+    io_ $ consoleLog $ SitesAndBoards <> " - Has result. Storing result in model."
+
+    Utils.helper result $ \sites ->
+        modify (\m -> m
+            { current_sites_and_boards = sites
+            , sites_and_boards_loaded = True
+            })
 
 mainUpdate (ClientResponse _ (Client.ReturnResult _)) = return ()
 

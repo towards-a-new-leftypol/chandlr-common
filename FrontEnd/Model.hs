@@ -9,23 +9,27 @@ import Common.FrontEnd.Action (Action)
 import qualified Common.Component.Thread.Types  as Thread
 import Common.Network.CatalogPostType (CatalogPost)
 import qualified Common.Component.Search.SearchTypes as Search
+import Common.Network.SiteType (Site)
 
 data Model = Model
     { current_uri :: URI
     , media_root_ :: MisoString
     , current_time :: UTCTime
     , search_term :: MisoString
-    , initial_action :: Action
+    , on_client_mounted_initial_actions ::  [ Action ]
     , thread_message :: Maybe Thread.Message
     , pg_api_root :: MisoString
     , client_fetch_count :: Int
     , catalog_posts :: [ CatalogPost ]
     , between_pages :: Bool
     , admin :: Bool
-    , initialized :: Bool
+    -- , initialized :: Bool
     , client_mounted :: Bool
     , search_mounted :: Bool
     , search_message :: Maybe Search.MessageIn
+    , current_sites_and_boards :: [ Site ]
+    , hydrated :: Bool
+    , sites_and_boards_loaded :: Bool
     } deriving Eq
 
 getSetCatalogPosts :: Lens Model [ CatalogPost ]

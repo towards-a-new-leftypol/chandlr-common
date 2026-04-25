@@ -30,6 +30,7 @@ data Action
     | NoAction
     | Initialize InitCtxRef
     | InitNoHydration AppInitCtx
+    | InitAllSitesAndBoards
     deriving Eq
 
 

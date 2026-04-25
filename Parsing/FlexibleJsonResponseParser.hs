@@ -1,5 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE CPP #-}
 {-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
 {-# HLINT ignore "Use <&>" #-}
 
@@ -17,6 +18,18 @@ module Common.Parsing.FlexibleJsonResponseParser
 )
 where
 
+#ifdef FRONT_END
+import Miso.JSON
+    ( Value (..)
+    , Object
+    , (.:)
+    , (.:?)
+    , FromJSON (..)
+    , Parser
+    )
+import Miso.String (MisoString)
+import qualified Data.Map.Strict as Map
+#else
 import Data.Aeson
     ( Value (..)
     , Object
@@ -27,6 +40,8 @@ import Data.Aeson
 import Data.Aeson.Types (Parser)
 import Data.Vector (toList)
 import qualified Data.Aeson.KeyMap as Map
+import Orphans
+#endif
 import Data.Maybe (fromJust)
 import qualified Data.List.NonEmpty as L
 import GHC.Generics
@@ -36,7 +51,6 @@ import qualified Common.Network.BoardType as B
 import qualified Common.Network.ThreadType as T
 import qualified Common.Network.PostType as P
 import qualified Common.AttachmentType as A
-import Orphans
 
 newtype SSite = SSite Site.Site
     deriving Generic
@@ -166,18 +180,30 @@ parseNextObject Attachment (Object o) = do
     return (attachments ++ restOfThings)
 
 parseNextObject t (Array arr) =
+#ifdef FRONT_END
+    mapM (parseNextObject t) arr >>= return . concat . (map collapseThings)
+#else
     mapM (parseNextObject t) (toList arr) >>= return . concat . (map collapseThings)
+#endif
 parseNextObject _ (String _) = fail "Unexpected String JSON Value"
 parseNextObject _ (Number _) = fail "Unexpected Number JSON Value"
 parseNextObject _ (Bool _) = fail "Unexpected Bool JSON Value"
 parseNextObject _ Null = fail "Unexpected Null JSON Value"
 
 
+#ifdef FRONT_END
+nextObjects :: Object -> [ (MisoString, ObjectType) ]
+#else
 nextObjects :: Object -> [ (Map.Key, ObjectType) ]
+#endif
 nextObjects o = filter (\(k, _) -> Map.member k o) objectTypeKeys
 
 
+#ifdef FRONT_END
+objectTypeKeys :: [ (MisoString, ObjectType) ]
+#else
 objectTypeKeys :: [ (Map.Key, ObjectType) ]
+#endif
 objectTypeKeys =
     [ ("sites", Site)
     , ("boards", Board)
@@ -190,7 +216,11 @@ objectTypeKeys =
 parseSitesFromJSON :: Value -> Parser [ Site.Site ]
 parseSitesFromJSON (Object obj) = (: []) <$> parseTopObject obj
 parseSitesFromJSON (Array arr) =
+#ifdef FRONT_END
+    mapM parseSitesFromJSON arr >>= return . concat
+#else
     mapM parseSitesFromJSON (toList arr) >>= return . concat
+#endif
 
 parseSitesFromJSON _ = fail "Expected an array or an object at the top level"
 

@@ -64,17 +64,23 @@ app ctxRef =
             , media_root_ = ""
             , current_time = earliest
             , search_term = ""
-            , initial_action = NoAction
+
+            , on_client_mounted_initial_actions = []
+                -- ^ For no hydration, this will have the initial_action and a getSitesAndBoards message. Otherwise (upon hydration) it's set to empty
+
             , thread_message = Nothing
             , pg_api_root = ""
             , client_fetch_count = 0
             , catalog_posts = []
             , between_pages = False
             , admin = False
-            , initialized = False
+            -- , initialized = False -- TODO: get rid of this, it doesn't reflect everything being mounted, we need a better way if we want components to display ghost elements before they're loaded
             , client_mounted = False
             , search_mounted = False
             , search_message = Nothing
+            , current_sites_and_boards = []
+            , hydrated = False
+            , sites_and_boards_loaded = False
             }
 
         handleMail :: Value -> Maybe Action
@@ -101,17 +107,20 @@ initializeModel ctxRef = do
               , media_root_ = toMisoString $ Settings.media_root settings
               , current_time = timestamp initialPayload
               , search_term = searchTermFromUri uri
-              , initial_action = NoAction
+              , on_client_mounted_initial_actions = []
               , thread_message = Nothing
               , pg_api_root = toMisoString $ Settings.postgrest_url settings
               , client_fetch_count = Settings.postgrest_fetch_count settings
               , catalog_posts = Grid.initialItems $ initialData initialPayload
               , between_pages = False
               , admin = Settings.admin settings
-              , initialized = True
+              -- , initialized = True
               , client_mounted = False
               , search_mounted = False
               , search_message = Nothing
+              , current_sites_and_boards = sitesAndBoards initialPayload
+              , hydrated = hydrate ctx
+              , sites_and_boards_loaded = True
               }
 
     where
