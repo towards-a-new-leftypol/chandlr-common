@@ -43,13 +43,14 @@ import qualified Common.Network.ClientTypes as Client
 import qualified Common.Component.Thread as Thread
 import qualified Common.Utils as Utils
 import qualified Common.Component.CatalogGrid.GridTypes as Grid
-import Common.Network.SiteType (fromCatalogPost)
+import Common.Network.SiteType (fromCatalogPost, Site)
 import JSFFI.MisoFFI (encodeURIComponent)
 import Common.FrontEnd.Routes
 import qualified Common.FrontEnd.Types as T
 import qualified Common.Network.CatalogPostType as CatPost
 import qualified Common.Component.TimeControl as TC
 import qualified Common.FrontEnd.JSONSettings as Settings
+import Common.Parsing.FlexibleJsonResponseParser as Flx
 
 import JSFFI.Profile (sectionEnd, toJSString, displayTotals)
 
@@ -63,7 +64,7 @@ pattern SenderThread :: Client.ReturnTopicName
 pattern SenderThread = "main-thread"
 
 pattern SitesAndBoards :: Client.ReturnTopicName
-pattern SitesAndBoards = "main-thread"
+pattern SitesAndBoards = "main-sites_and_boards"
 
 
 mainUpdate :: Action -> Effect ROOT Model Action
@@ -262,7 +263,7 @@ mainUpdate (ClientResponse SitesAndBoards (Client.ReturnResult result)) = do
 
     Utils.helper result $ \sites ->
         modify (\m -> m
-            { current_sites_and_boards = sites
+            { current_sites_and_boards = sitesFromSSites sites
             , sites_and_boards_loaded = True
             })
 
@@ -413,3 +414,11 @@ initialActionFromRoute model uri = fromRight NoAction routing_result
             where
                 unescaped_search_query =
                     toMisoString $ unEscapeString $ search_query
+
+
+siteFromSSite :: Flx.SSite -> Site
+siteFromSSite (SSite s) = s
+
+
+sitesFromSSites :: [ Flx.SSite ] -> [ Site ]
+sitesFromSSites = map siteFromSSite
