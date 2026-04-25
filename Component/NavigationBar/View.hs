@@ -94,7 +94,7 @@ supportingSvgs = section_
         [ path_
             [ strokeLinejoin_ "miter"
             , textProp "vector-effect" "non-scaling-stroke"
-            , d_ "M 25 8 L 15 8 L 92 50 L 15 92 L 25 92"
+            , d_ "M 15 8 L 92 50 L 15 92"
             ]
         ]
     , svg_
