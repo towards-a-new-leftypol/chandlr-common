@@ -10,7 +10,9 @@ import Miso.Svg.Property hiding (path_)
 import Miso.Svg.Element
 import qualified Miso.CSS as CSS
 
-navbar :: View model action
+import Common.Component.NavigationBar.Action
+
+navbar :: View model Action
 navbar = div_
     [class_ "navbar"]
     [ div_
@@ -21,7 +23,9 @@ navbar = div_
         [ div_
             [class_ "breadcrumbs"]
             [ div_
-                [class_ "breadcrumb breadcrumb--clickable"]
+                [ class_ "breadcrumb breadcrumb--clickable"
+                , onClick ClickSites
+                ]
                 [ span_ [] ["Example"]
                 , svg_
                     [class_ "breadcrumb--chevron-svg-forward"]
