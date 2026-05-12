@@ -2,7 +2,7 @@
 
 module Common.Component.NavigationBar.NavMenu where
 
-import Miso (View)
+import Miso (View, MisoString, text)
 import Miso.Html hiding (style_)
 import Miso.Html.Property
 import Miso.CSS
@@ -15,14 +15,26 @@ import Common.Component.NavigationBar.Model
 import qualified Common.Component.Modal as Modal
 
 navmenu :: Model -> View Model Action
-navmenu False = div_ [ style_ [ display "none" ] ] []
-navmenu True = div_ [ class_ "modal-dialog" ]
+navmenu (Model Closed) = div_ [ style_ [ display "none" ] ] []
+navmenu m = div_ [ class_ "modal-dialog" ]
     [ Modal.view
         Modal.Model
             { Modal.cancel = CancelMenu
             , Modal.submit = SubmitMenuChoice
-            , Modal.content = h1_ [] [ "Hello NavMenu" ]
-            , Modal.title = "Asdf asdf asdf"
+            , Modal.content = content m
+            , Modal.title = title m
             , Modal.action = "Apply"
             }
     ]
+
+    where
+        content :: Model -> View Model Action
+        content m_ = h1_ [] [ text $ title m_ ]
+        -- content (Model ChooseSites) = h1_ [] [ "Choose Sites" ]
+        -- content (Model ChooseBoards) = h1_ [] [ "Choose Boards" ]
+        -- content (Model Closed) = undefined
+
+        title :: Model -> MisoString
+        title (Model ChooseSites) = "Choose Sites"
+        title (Model ChooseBoards) = "Choose Boards"
+        title _ = ""

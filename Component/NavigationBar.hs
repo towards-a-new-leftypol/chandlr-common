@@ -19,20 +19,27 @@ import Common.Component.NavigationBar.Model
 import Common.Component.NavigationBar.NavMenu
 
 app :: Component parent Model Action
-app = component False update view
+app = component initialModel update view
+
+initialModel :: Model
+initialModel = Model Closed
 
 update :: Action -> Effect a Model Action
 update ClickSites = do
-    io_ $ consoleLog "Select Sites Clicked!"
-    modify $ const True
+    io_ $ consoleLog "Choose Sites Clicked!"
+    modify $ const $ Model ChooseSites
+
+update ClickBoards = do
+    io_ $ consoleLog "Choose Boards Clicked!"
+    modify $ const $ Model ChooseBoards
 
 update SubmitMenuChoice = do
     io_ $ consoleLog "Submit Menu Choice!"
-    modify $ const False
+    modify $ const $ Model Closed
 
 update CancelMenu = do
     io_ $ consoleLog "CloseMenu!"
-    modify $ const False
+    modify $ const $ Model Closed
 
 view :: Model -> View Model Action
 view m = div_ []

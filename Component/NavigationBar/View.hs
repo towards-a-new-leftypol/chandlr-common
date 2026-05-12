@@ -44,7 +44,9 @@ navbar = div_
                     ]
                 ]
             , div_
-                [class_ "breadcrumb breadcrumb--clickable"]
+                [ class_ "breadcrumb breadcrumb--clickable"
+                , onClick ClickBoards
+                ]
                 [ svg_
                     [class_ "breadcrumb--chevron-svg-aft"]
                     [use_ [href_ "#svg-chevron-right-aft"]]
@@ -79,7 +81,7 @@ navbar = div_
 supportingSvgs :: View model action
 supportingSvgs = section_
     [CSS.style_ ["display" =: "none"]]
-    [ svg_
+    [ symbol_
         [ preserveAspectRatio_ "none"
         , viewBox_ "0 0 100 100"
         , id_ "svg-chevron-right-forward"
@@ -90,7 +92,7 @@ supportingSvgs = section_
             , d_ "M 0 8 L 15 8 L 92 50 L 15 92 L 0 92"
             ]
         ]
-    , svg_
+    , symbol_
         [ preserveAspectRatio_ "none"
         , viewBox_ "0 0 100 100"
         , id_ "svg-chevron-right-aft"
@@ -101,7 +103,7 @@ supportingSvgs = section_
             , d_ "M 15 8 L 92 50 L 15 92"
             ]
         ]
-    , svg_
+    , symbol_
         [viewBox_ "0 0 10 10", id_ "svg-dot"]
         [ path_
             [ strokeLinecap_ "round"
