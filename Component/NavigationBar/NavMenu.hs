@@ -2,20 +2,16 @@
 
 module Common.Component.NavigationBar.NavMenu where
 
-import Miso (View, MisoString, text)
+import Miso (View, MisoString, text, vfrag)
 import Miso.Html hiding (style_)
 import Miso.Html.Property
-import Miso.CSS
-    ( style_
-    , display
-    )
 
 import Common.Component.NavigationBar.Action
 import Common.Component.NavigationBar.Model
 import qualified Common.Component.Modal as Modal
 
 navmenu :: Model -> View Model Action
-navmenu (Model Closed) = div_ [ style_ [ display "none" ] ] []
+navmenu (Model Closed) = vfrag []
 navmenu m = div_ [ class_ "modal-dialog" ]
     [ Modal.view
         Modal.Model
