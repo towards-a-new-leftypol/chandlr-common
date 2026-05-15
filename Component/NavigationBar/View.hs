@@ -79,8 +79,10 @@ navbar = div_
     ]
 
 supportingSvgs :: View model action
-supportingSvgs = section_
-    [CSS.style_ ["display" =: "none"]]
+supportingSvgs = svg_
+    [ CSS.style_ ["display" =: "none"]
+    , aria_ "hidden" "true"
+    ]
     [ symbol_
         [ preserveAspectRatio_ "none"
         , viewBox_ "0 0 100 100"
@@ -112,3 +114,31 @@ supportingSvgs = section_
             ]
         ]
     ]
+
+{-
+Hamburger menu from youtube:
+<svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24" focusable="false" aria-hidden="true" style="pointer-events: none; display: inherit; width: 100%; height: 100%;">
+<path d="M20 5H4a1 1 0 000 2h16a1 1 0 100-2Zm0 6H4a1 1 0 000 2h16a1 1 0 000-2Zm0 6H4a1 1 0 000 2h16a1 1 0 000-2Z"></path>
+</svg>
+
+maybe it should be a logo instead, ie a picture of Chandler maybe with a css filter on it?
+
+Also probably need something like this in the head to prevent the svgs breadcrumb--chevron-svg-forward
+from flashing:
+
+  <style>
+    /* 1. Declare order: 'critical' first, 'main' second */
+    @layer critical, main;
+
+    /* 2. Critical rules to neutralize the black triangle flash */
+    @layer critical {
+      .breadcrumb--chevron-svg-forward use {
+        visibility: hidden; /* prevents the fallback shape from painting */
+        fill: transparent;
+        width: 1em;         /* reserve layout space */
+        height: 1em; /* or whatever from newstyle.css */
+        display: inline-block;
+      }
+    }
+  </style>
+-}
