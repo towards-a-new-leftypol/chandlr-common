@@ -15,6 +15,7 @@ import Miso
     , text
     , View
     , toMisoString
+    , vfrag
     )
 
 import qualified Miso as M
@@ -199,12 +200,12 @@ update = undefined
 #endif
 
 view :: Model -> View model Action
-view m = div_ hide render
+view m = vfrag hide
 
     where
         hide
-            | isJust $ threadData m = [ class_ "modal-dialog" ]
-            | otherwise = [ style_ [ display "none" ] ]
+            | isJust $ threadData m = [ div_ [ class_ "modal-dialog" ] render ]
+            | otherwise = []
 
         render =
             case threadData m of

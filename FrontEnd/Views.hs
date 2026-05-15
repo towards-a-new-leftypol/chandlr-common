@@ -15,6 +15,7 @@ import Miso
     , text
     , key_
     , mount_
+    , vfrag
     )
 import Miso.Html.Property (class_)
 import Miso.Html
@@ -43,8 +44,7 @@ import qualified Common.Component.NavigationBar as Nav
 import Debug.Trace (trace)
 
 timeControl :: InitCtxRef -> View Model Action
-timeControl ctxRef =
-    div_ [ key_ ("time-control" :: MisoString) ] [ mount_ $ TC.app ctxRef ]
+timeControl ctxRef = vfrag [ mount_ $ TC.app ctxRef ]
 
 
 grid :: InitCtxRef -> View Model Action
@@ -58,13 +58,9 @@ search = div_ [ key_ ("search" :: MisoString) ] [ mount_ Search.app ]
 pageWrapperWithDefaults :: Model -> View model Action -> View model Action
 pageWrapperWithDefaults m inner_content =
     trace ("pageWrapperWithDefaults being called. Number of items in catalog_grid: " ++ (show $ length $ catalog_posts m)) $
-    div_ [ key_ ("top-level" :: MisoString) ]
-        [ div_
-            []
-            [ mount_ Client.app ]
-        , div_
-            [ key_ ("delete-illegal-post" :: MisoString) ]
-            [ mount_ DIP.app ]
+    vfrag
+        [ mount_ Client.app
+        , mount_ DIP.app
         -- , pre_ [] [ text $ "between_pages: " <> if between_pages then "True" else "False" ]
         , mount_ Nav.app
         , div_ [ class_ "page-inner-content" ] [ inner_content ]
@@ -73,7 +69,7 @@ pageWrapperWithDefaults m inner_content =
 
 
 catalogView :: InitCtxRef -> Maybe String -> Model -> View Model Action
-catalogView ctxRef _ m = pageWrapperWithDefaults m $ div_ []
+catalogView ctxRef _ m = pageWrapperWithDefaults m $ vfrag
     [ div_
         [ class_ "page_heading" ]
         [ h1_ [] [ text "Overboard Catalog" ]
@@ -86,7 +82,7 @@ catalogView ctxRef _ m = pageWrapperWithDefaults m $ div_ []
 
 
 searchView :: InitCtxRef -> Maybe String -> Model -> View Model Action
-searchView ctxRef _ m = pageWrapperWithDefaults m $ div_ []
+searchView ctxRef _ m = pageWrapperWithDefaults m $ vfrag
     [ div_
         [ class_ "page_heading" ]
         (
@@ -107,10 +103,7 @@ searchView ctxRef _ m = pageWrapperWithDefaults m $ div_ []
 
 threadView :: InitCtxRef -> Text -> Text -> BoardThreadId -> Model -> View Model Action
 threadView ctxRef site_name board_pathpart board_thread_id m =
-    pageWrapperWithDefaults m $
-        div_
-            []
-            [ mount_ (Thread.app ctxRef) ]
+    pageWrapperWithDefaults m $ vfrag [ mount_ (Thread.app ctxRef) ]
 
 
 page404 :: View model Action
