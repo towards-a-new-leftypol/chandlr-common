@@ -26,10 +26,6 @@ import Miso.Html.Element
     , span_
     , pre_
     )
-import Miso.CSS
-    ( style_
-    , display
-    )
 import GHC.Generics (Generic)
 import Miso.JSON (FromJSON, ToJSON)
 import Data.Maybe (isJust)
