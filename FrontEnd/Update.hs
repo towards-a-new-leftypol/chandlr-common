@@ -77,6 +77,7 @@ mainUpdate (Initialize ctxRef) = do
     subscribe Grid.catalogOutTopic GridMessage OnErrorMessage
     subscribe Search.searchOutTopic SearchResults OnErrorMessage
     subscribe TC.timeControlTopic (GoToTime . timeFromTimeMessage) OnErrorMessage
+    subscribe NavB.navigationBarTopic actionFromNavBarMessage OnErrorMessage
 
     model <- get
 
@@ -116,6 +117,9 @@ mainUpdate (Initialize ctxRef) = do
         timeFromTimeMessage :: TC.Message -> Time
         timeFromTimeMessage (TC.Message True  t) = Now t
         timeFromTimeMessage (TC.Message False t) = Then t
+
+        actionFromNavBarMessage :: NavB.OutMessage -> Action
+        actionFromNavBarMessage NavB.GoToCatalog = GoBackToCatalog
 
 mainUpdate (InitNoHydration ctx) = do
     io_ $ consoleLog "InitNoHydration - initializing model from settings"
@@ -379,6 +383,9 @@ mainUpdate (NotifySearch (b, searchTerm)) = do
             publish Search.searchInTopic msg
 
     modify (\m -> m { search_message = Just msg })
+
+mainUpdate GoBackToCatalog =
+    io_ $ consoleLog $ "GoBackToCatalog"
 
 
 (</>) :: MisoString -> MisoString -> MisoString

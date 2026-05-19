@@ -31,6 +31,7 @@ data Action
     | Initialize InitCtxRef
     | InitNoHydration AppInitCtx
     | InitAllSitesAndBoards
+    | GoBackToCatalog
     deriving Eq
 
 
