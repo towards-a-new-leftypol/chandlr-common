@@ -55,3 +55,9 @@ getSetAdmin =
     Lens
         admin
         (\s model -> model { admin = s })
+
+getSetSitesAndBoards :: Lens Model [ Site ]
+getSetSitesAndBoards =
+    Lens
+        current_sites_and_boards
+        (\xs model -> model { current_sites_and_boards = xs })

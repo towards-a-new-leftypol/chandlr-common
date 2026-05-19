@@ -55,7 +55,7 @@ search :: View Model Action
 search = div_ [ key_ ("search" :: MisoString) ] [ mount_ Search.app ]
 
 
-pageWrapperWithDefaults :: Model -> View model Action -> View model Action
+pageWrapperWithDefaults :: Model -> View Model Action -> View Model Action
 pageWrapperWithDefaults m inner_content =
     trace ("pageWrapperWithDefaults being called. Number of items in catalog_grid: " ++ (show $ length $ catalog_posts m)) $
     vfrag

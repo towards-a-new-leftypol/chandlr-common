@@ -9,6 +9,8 @@ import Miso.String (MisoString)
 import Miso.JSON (FromJSON, ToJSON)
 import Data.List.NonEmpty
 import Data.Maybe (fromJust)
+import Data.Ord (comparing)
+
 import qualified Common.Network.BoardType as B
 import qualified Common.Network.CatalogPostType as Ct
 import qualified Common.Network.ThreadType as T
@@ -22,6 +24,8 @@ data Site = Site
   , boards  :: NonEmpty B.Board
   } deriving (Show, Generic, FromJSON, ToJSON, Eq)
 
+instance Ord Site where
+  compare = comparing site_id
 
 emptySite :: Site
 emptySite = Site
