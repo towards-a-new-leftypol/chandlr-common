@@ -27,13 +27,14 @@ navmenu m = div_ [ class_ "modal-dialog" ]
     [ Modal.view
         Modal.Model
             { Modal.cancel = CancelMenu
-            , Modal.submit = SubmitMenuChoice
+            , Modal.submit = case menuState m of
+                ChooseSites -> ClickBoards
+                _           -> SubmitMenuChoice
             , Modal.content = content m
             , Modal.title = title m
             , Modal.action = "Apply"
             }
     ]
-
     where
         content :: Model -> View Model Action
         content Model { menuState = Closed } = vfrag []
@@ -42,7 +43,7 @@ navmenu m = div_ [ class_ "modal-dialog" ]
                 [ chooseBoards m_ ]
         content m_@Model { menuState = ChooseSites } = div_
                 [ class_ "modal-dialog__content" ]
-                [ div_ [ class_ "modal-dialog__inline-content" ] allOrNone
+                [ div_ [ class_ "modal-dialog__inline-content" ] allOrNoneSites
                 , chooseSites m_
                 ]
 
@@ -52,18 +53,36 @@ navmenu m = div_ [ class_ "modal-dialog" ]
         title _ = ""
 
 
-allOrNone :: [ View model Action ]
-allOrNone =
+allOrNoneSites :: [ View model Action ]
+allOrNoneSites =
+    [ div_
+        [ class_ "button"
+        , onClick SelectAllSites
+        ] [ span_ [] [ "All" ] ]
+    , div_
+        [ class_ "button"
+        , onClick SelectNoSites
+        ] [ span_ [] [ "None" ] ]
+    ]
+
+allOrNoneBoards :: [ View model Action ]
+allOrNoneBoards =
     [ div_ [ class_ "button" ] [ span_ [] [ "All" ] ]
     , div_ [ class_ "button" ] [ span_ [] [ "None" ] ]
     ]
 
 
 chooseBoards ::  Model -> View Model Action
-chooseBoards model = vfrag $
-    [ siteBoardsSection (site, L.toList (Site.boards site))
-    | site <- sites
-    ]
+chooseBoards model
+    | currentSites model == emptyCurrentSites =
+        button_
+            [ class_ "modal-dialog__button"
+            , onClick ClickSites
+            ] [ text "Select sites" ]
+    | otherwise = vfrag $
+        [ siteBoardsSection (site, L.toList (Site.boards site))
+        | site <- sites
+        ]
 
     where
         sites :: [ Site.Site ]
@@ -75,7 +94,7 @@ chooseBoards model = vfrag $
         siteBoardsSection :: (Site.Site, [ Board.Board ]) -> View Model Action
         siteBoardsSection (s, bs) = vfrag
             [ div_ [ class_ "modal-dialog__inline-content" ]
-                (h2_ [] [ text $ Site.name s ] : allOrNone)
+                (h2_ [] [ text $ Site.name s ] : allOrNoneBoards)
             , div_ [ class_ "modal-dialog__grid-column-content" ] (map pickBoard bs)
             ]
 

@@ -51,6 +51,7 @@ import qualified Common.Network.CatalogPostType as CatPost
 import qualified Common.Component.TimeControl as TC
 import qualified Common.FrontEnd.JSONSettings as Settings
 import Common.Parsing.FlexibleJsonResponseParser as Flx
+import qualified Common.Component.NavigationBar as NavB
 
 import JSFFI.Profile (sectionEnd, toJSString, displayTotals)
 

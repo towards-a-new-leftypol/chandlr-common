@@ -8,7 +8,8 @@ import Miso
     , View
     , LogLevel (DebugAll)
     , uriSub
-    , URI (..)
+    , URI
+    , emptyURI
     )
 import qualified Miso as M
 import Miso.JSON (Value)
@@ -60,7 +61,7 @@ app ctxRef =
     where
         emptyModel :: Model
         emptyModel = Model
-            { current_uri = URI "" "" Map.empty
+            { current_uri = emptyURI
             , media_root_ = ""
             , current_time = earliest
             , search_term = ""

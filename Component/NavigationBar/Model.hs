@@ -1,7 +1,8 @@
 module Common.Component.NavigationBar.Model where
 
+import Miso (URI)
 import Miso.Lens (Lens, LensCore (..))
-import Data.Set (Set)
+import Data.Set (Set, empty)
 
 import Common.Network.SiteType (Site)
 
@@ -9,6 +10,7 @@ data Model = Model
     { menuState :: MenuState
     , sitesAndBoards :: [ Site ]
     , currentSites :: CurrentSites
+    , currentUri :: URI
     } deriving Eq
 
 getSetSitesAndBoards :: Lens Model [ Site ]
@@ -17,6 +19,12 @@ getSetSitesAndBoards =
         sitesAndBoards
         (\xs model -> model { sitesAndBoards = xs })
 
+getSetCurrentUri :: Lens Model URI
+getSetCurrentUri =
+    Lens
+        currentUri
+        (\x model -> model { currentUri = x })
+
 data MenuState
     = ChooseSites
     | ChooseBoards
@@ -24,3 +32,6 @@ data MenuState
     deriving Eq
 
 data CurrentSites = All | CurrentSites (Set Site)  deriving Eq
+
+emptyCurrentSites :: CurrentSites
+emptyCurrentSites = CurrentSites empty

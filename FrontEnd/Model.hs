@@ -61,3 +61,9 @@ getSetSitesAndBoards =
     Lens
         current_sites_and_boards
         (\xs model -> model { current_sites_and_boards = xs })
+
+getSetCurrentUri :: Lens Model URI
+getSetCurrentUri =
+    Lens
+        current_uri
+        (\x model -> model { current_uri = x })

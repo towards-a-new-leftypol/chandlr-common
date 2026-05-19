@@ -10,3 +10,5 @@ data Action
     | SubmitMenuChoice
     | ToggleSite Site
     | ToggleBoard Board
+    | SelectAllSites
+    | SelectNoSites
