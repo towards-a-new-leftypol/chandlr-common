@@ -8,8 +8,9 @@ import GHC.Generics
 import Miso.JSON
 import Miso.String (MisoString)
 import Data.Time.Clock (UTCTime)
-import Miso (URI)
+import Miso (URI (uriQueryString))
 import Data.IORef (IORef)
+import qualified Data.Map.Strict as Map
 
 import Common.Network.CatalogPostType (CatalogPost)
 import qualified Common.Component.Thread.Model as Thread
@@ -64,3 +65,21 @@ instance FromJSON MessagesFromChildren where
     parseJSON (String "MsgClientMounted") = pure MsgClientMounted
     parseJSON (String "MsgThreadViewMounted") = pure MsgThreadViewMounted
     parseJSON _ = fail "Expected JSON String for MessagesFromChildren deserialization"
+
+data Time = Now UTCTime | Then UTCTime
+    deriving (Eq, Show)
+
+
+timeFromInitialPayload :: AppInitCtx -> Time
+timeFromInitialPayload ctx =
+    (
+        if Map.member "t" (uriQueryString uri)
+        then
+            Then
+        else
+            Now
+    ) (timestamp p)
+
+    where
+        p = init_payload ctx
+        uri = init_uri ctx

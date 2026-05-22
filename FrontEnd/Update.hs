@@ -23,7 +23,7 @@ import Miso
     , Topic
     , topic
     )
-import Miso.Subscription.History (replaceURI)
+import Miso.Subscription.History (replaceURI, pushURI)
 import Servant.Miso.Router (route)
 import Miso.String (MisoString, toMisoString)
 import qualified Data.Map.Strict as Map
@@ -35,6 +35,7 @@ import Network.URI (unEscapeString)
 import Data.IORef (modifyIORef, readIORef)
 import Control.Monad.IO.Class (liftIO)
 import Control.Monad (when)
+import Data.Time.Clock (getCurrentTime)
 
 import Common.FrontEnd.Action
 import Common.FrontEnd.Model
@@ -76,7 +77,7 @@ mainUpdate (Initialize ctxRef) = do
     subscribe clientSitesAndBoardsTopic (ClientResponse SitesAndBoards) OnErrorMessage
     subscribe Grid.catalogOutTopic GridMessage OnErrorMessage
     subscribe Search.searchOutTopic SearchResults OnErrorMessage
-    subscribe TC.timeControlTopic (GoToTime . timeFromTimeMessage) OnErrorMessage
+    subscribe TC.timeControlTopic (GoToTime False . timeFromTimeMessage) OnErrorMessage
     subscribe NavB.navigationBarTopic actionFromNavBarMessage OnErrorMessage
 
     model <- get
@@ -114,9 +115,9 @@ mainUpdate (Initialize ctxRef) = do
         clientSitesAndBoardsTopic :: Topic Client.MessageOut
         clientSitesAndBoardsTopic = topic SitesAndBoards
 
-        timeFromTimeMessage :: TC.Message -> Time
-        timeFromTimeMessage (TC.Message True  t) = Now t
-        timeFromTimeMessage (TC.Message False t) = Then t
+        timeFromTimeMessage :: TC.Message -> T.Time
+        timeFromTimeMessage (TC.Message True  t) = T.Now t
+        timeFromTimeMessage (TC.Message False t) = T.Then t
 
         actionFromNavBarMessage :: NavB.OutMessage -> Action
         actionFromNavBarMessage NavB.GoToCatalog = GoBackToCatalog
@@ -147,7 +148,7 @@ mainUpdate (InitNoHydration ctx) = do
     where
         uri = T.init_uri ctx
         settings = T.init_settings ctx
-        current_time_ = T.timestamp $ T.init_payload ctx
+        current_time_ = T.timeFromInitialPayload ctx
 
         searchTermFromUri :: URI -> MisoString
         searchTermFromUri u =
@@ -274,15 +275,15 @@ mainUpdate (ClientResponse SitesAndBoards (Client.ReturnResult result)) = do
 
 mainUpdate (ClientResponse _ (Client.ReturnResult _)) = return ()
 
-mainUpdate (GoToTime (Now t)) = do
-    modify (\m -> m { current_time = t, between_pages = True })
+mainUpdate (GoToTime r (T.Now t)) = do
+    modify (\m -> m { current_time = T.Now t, between_pages = True })
     io_ $ publish Client.clientInTopic (SenderLatest, Client.FetchLatest t)
 
     model <- get
 
     io_ $ do
         consoleLog $ "calling replaceURI on " <> toMisoString (show (new_current_uri model))
-        replaceURI $ new_current_uri model
+        (if r then replaceURI else pushURI) $ new_current_uri model
 
     where
         new_current_uri :: Model -> URI
@@ -290,15 +291,15 @@ mainUpdate (GoToTime (Now t)) = do
             { uriQueryString = Map.empty
             }
 
-mainUpdate (GoToTime (Then t)) = do
-    modify (\m -> m { current_time = t, between_pages = True })
+mainUpdate (GoToTime r (T.Then t)) = do
+    modify (\m -> m { current_time = T.Then t, between_pages = True })
     io_ $ publish Client.clientInTopic (SenderLatest, Client.FetchLatest t)
 
     model <- get
 
     io_ $ do
         consoleLog $ "calling replaceURI on " <> toMisoString (show (new_current_uri model))
-        replaceURI $ new_current_uri model
+        (if r then replaceURI else pushURI) $ new_current_uri model
 
     where
         new_current_uri :: Model -> URI
@@ -384,8 +385,22 @@ mainUpdate (NotifySearch (b, searchTerm)) = do
 
     modify (\m -> m { search_message = Just msg })
 
-mainUpdate GoBackToCatalog =
-    io_ $ consoleLog $ "GoBackToCatalog"
+mainUpdate GoBackToCatalog = do
+    io_ $ consoleLog "GoBackToCatalog"
+
+    model <- get
+
+    modify $ \m -> m { current_uri = let c = current_uri m in c { Miso.uriPath = "" } }
+
+    case current_time model of
+        T.Now _ -> do
+            io $ do
+                consoleLog "GoBackToCatalog Now"
+                t <- getCurrentTime
+                pure $ GoToTime False $ T.Now t
+        x -> do
+            io_ $ consoleLog "GoBackToCatalog Then"
+            issue $ GoToTime False x
 
 
 (</>) :: MisoString -> MisoString -> MisoString
@@ -405,8 +420,8 @@ initialActionFromRoute model uri = fromRight NoAction routing_result
         handlers = h_latest :<|> h_thread :<|> h_search
 
         h_latest :: Maybe String -> Model -> Action
-        h_latest Nothing m = GoToTime $ Now $ current_time m
-        h_latest (Just t) _ = GoToTime $ Then $ read t
+        h_latest Nothing m = GoToTime True $ current_time m
+        h_latest (Just t) _ = GoToTime True $ T.Then $ read t
 
         h_thread :: Text -> Text -> BoardThreadId -> Model -> Action
         h_thread website board_pathpart board_thread_id _ =
@@ -417,7 +432,7 @@ initialActionFromRoute model uri = fromRight NoAction routing_result
                 }
 
         h_search :: Maybe String -> Model -> Action
-        h_search Nothing m = GoToTime $ Now $ current_time m
+        h_search Nothing m = GoToTime True $ current_time m
         h_search (Just search_query) _ = NotifySearch (False, unescaped_search_query)
             where
                 unescaped_search_query =

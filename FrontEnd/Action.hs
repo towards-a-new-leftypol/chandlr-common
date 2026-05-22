@@ -1,6 +1,5 @@
 module Common.FrontEnd.Action where
 
-import Data.Time.Clock (UTCTime)
 import Miso.String (MisoString)
 import Miso (URI)
 
@@ -9,17 +8,14 @@ import qualified Common.Network.CatalogPostType as CatalogPost
 import qualified Common.Component.Search.SearchTypes as Search
 import qualified Common.Network.ClientTypes as Client
 import qualified Common.Component.CatalogGrid.GridTypes as Grid
-import Common.FrontEnd.Types (InitCtxRef, AppInitCtx)
-
-data Time = Now UTCTime | Then UTCTime
-    deriving Eq
+import Common.FrontEnd.Types (InitCtxRef, AppInitCtx, Time)
 
 data Action
     = GetThread Client.GetThreadArgs
     | GridMessage Grid.OutMessage
     | ClientResponse Client.ReturnTopicName Client.MessageOut
     | OnErrorMessage MisoString
-    | GoToTime Time
+    | GoToTime { replaceOrPush :: Bool, newTime :: Time }
     | ChangeURI URI
     | SearchResults Search.MessageOut
     | NotifySearch Search.MessageIn

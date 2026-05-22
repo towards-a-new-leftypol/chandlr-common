@@ -18,7 +18,6 @@ import Data.Proxy
 import Servant.API hiding (URI)
 import Servant.Miso.Router (route)
 import Data.IORef (readIORef)
-import qualified Data.Map.Strict as Map
 
 import qualified Common.FrontEnd.JSONSettings as Settings
 import qualified Common.Component.CatalogGrid as Grid
@@ -63,7 +62,7 @@ app ctxRef =
         emptyModel = Model
             { current_uri = emptyURI
             , media_root_ = ""
-            , current_time = earliest
+            , current_time = Then earliest
             , search_term = ""
 
             , on_client_mounted_initial_actions = []
@@ -106,7 +105,7 @@ initializeModel ctxRef = do
           Model
               { current_uri = init_uri ctx
               , media_root_ = toMisoString $ Settings.media_root settings
-              , current_time = timestamp initialPayload
+              , current_time = timeFromInitialPayload ctx
               , search_term = searchTermFromUri uri
               , on_client_mounted_initial_actions = []
               , thread_message = Nothing

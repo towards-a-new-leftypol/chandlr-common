@@ -2,7 +2,6 @@ module Common.FrontEnd.Model where
 
 import Miso (URI)
 import Miso.String (MisoString)
-import Data.Time.Clock (UTCTime)
 import Miso.Lens (Lens, LensCore (..))
 
 import Common.FrontEnd.Action (Action)
@@ -10,11 +9,12 @@ import qualified Common.Component.Thread.Types  as Thread
 import Common.Network.CatalogPostType (CatalogPost)
 import qualified Common.Component.Search.SearchTypes as Search
 import Common.Network.SiteType (Site)
+import Common.FrontEnd.Types (Time)
 
 data Model = Model
     { current_uri :: URI
     , media_root_ :: MisoString
-    , current_time :: UTCTime
+    , current_time :: Time
     , search_term :: MisoString
     , on_client_mounted_initial_actions ::  [ Action ]
     , thread_message :: Maybe Thread.Message
