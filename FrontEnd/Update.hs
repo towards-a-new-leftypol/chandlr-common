@@ -10,7 +10,6 @@ import Miso
     , Effect
     , ROOT
     , publish
-    , pushURI
     , consoleLog
     , consoleError
     , io_
@@ -233,6 +232,7 @@ mainUpdate (GridMessage (Grid.SelectThread catalog_post)) = do
             { uriPath = CatPost.site_name catalog_post
                     </> CatPost.pathpart catalog_post
                     </> toMisoString (show $ CatPost.board_thread_id catalog_post)
+            , uriFragment = ""
             , uriQueryString = Map.empty
             }
 
@@ -289,6 +289,7 @@ mainUpdate (GoToTime r (T.Now t)) = do
         new_current_uri :: Model -> URI
         new_current_uri m = (current_uri m)
             { uriQueryString = Map.empty
+            , uriFragment = ""
             }
 
 mainUpdate (GoToTime r (T.Then t)) = do
