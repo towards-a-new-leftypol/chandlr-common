@@ -157,7 +157,6 @@ gridItem m post =
                   [ class_ "meta" ]
                   [ "R: "
                   , b_ [][ text post_count_str ]
-                  , "+"
                   ]
               ] ++ (intro subject) ++ body
             )
