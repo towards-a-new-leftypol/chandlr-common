@@ -25,43 +25,13 @@ data Action
 data Model = Uninitialized | Model
   { pgApiRoot :: MisoString
   , fetchCount :: Int
-  } deriving (Eq, Show)
-
-instance ToJSON Model where
-    toJSON Uninitialized = object [ "tag" .= String "Uninitialized" ]
-    toJSON Model {..} =
-        object
-            [ "tag"        .= String "Model"
-            , "pgApiRoot"  .= String pgApiRoot
-            , "fetchCount" .= Number (fromIntegral fetchCount)
-            ]
-
-instance FromJSON Model where
-    parseJSON (Object m) = do
-        tag <- (m .: "tag") :: Parser MisoString
-
-        case tag of
-            "Uninitialized" -> pure Uninitialized
-
-            "Model"         -> Model <$> m .: "pgApiRoot"
-                                     <*> m .: "fetchCount"
-
-            _               -> fail "Unknown Model tag"
-
-    parseJSON _ = fail "Expected Object for HttpResult"
-
+  } deriving (Eq, Show, Generic, ToJSON, FromJSON)
 
 data FetchCatalogArgs = FetchCatalogArgs
-  { max_time :: UTCTime
-  , max_row_read :: Int
-  } deriving Generic
+  { selected_time :: UTCTime
+  , thread_count :: Int
+  } deriving (Generic, ToJSON, FromJSON)
 
-instance ToJSON FetchCatalogArgs where
-    toJSON (FetchCatalogArgs {..}) =
-        object
-            [ "max_time"     .= toJSON max_time
-            , "max_row_read" .= Number (fromIntegral max_row_read)
-            ]
 
 data SearchPostsArgs = SearchPostsArgs
   { search_text :: MisoString
@@ -85,45 +55,7 @@ data Query
     | DeleteIllegalPost DeleteIllegalPostArgs
     | InitModel Model
     | LoadAllSitesAndBoards
-    deriving Eq
-
-instance ToJSON Query where
-    toJSON (FetchLatest t) = object
-        [ "tag"  .= String "FetchLatest"
-        , "contents" .= toJSON t
-        ]
-    toJSON (GetThread a) = object
-        [ "tag"  .= String "GetThread"
-        , "contents" .= toJSON a
-        ]
-    toJSON (Search q) = object
-        [ "tag"  .= String "Search"
-        , "contents" .= String q
-        ]
-    toJSON (DeleteIllegalPost a) = object
-        [ "tag"  .= String "DeleteIllegalPost"
-        , "contents" .= toJSON a
-        ]
-    toJSON (InitModel m) = object
-        [ "tag"  .= String "InitModel"
-        , "contents" .= toJSON m
-        ]
-    toJSON LoadAllSitesAndBoards = object
-        [ "tag"  .= String "LoadAllSitesAndBoards" ]
-
-instance FromJSON Query where
-    parseJSON (Object m) = do
-        tag <- (m .: "tag") :: Parser MisoString
-        case tag of
-            "FetchLatest"           -> FetchLatest       <$> m .: "contents"
-            "GetThread"             -> GetThread         <$> m .: "contents"
-            "Search"                -> Search            <$> m .: "contents"
-            "DeleteIllegalPost"     -> DeleteIllegalPost <$> m .: "contents"
-            "InitModel"             -> InitModel         <$> m .: "contents"
-            "LoadAllSitesAndBoards" -> pure LoadAllSitesAndBoards
-            _                       -> fail "Unknown Query tag"
-
-    parseJSON _ = fail "Expected Object for Query"
+    deriving (Eq, Generic, ToJSON, FromJSON)
 
 
 newtype MessageOut = ReturnResult Http.HttpResult
