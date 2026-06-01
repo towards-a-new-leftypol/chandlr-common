@@ -78,9 +78,10 @@ app ctxRef =
             , client_mounted = False
             , search_mounted = False
             , search_message = Nothing
-            , current_sites_and_boards = []
+            , all_sites_and_boards = []
             , hydrated = False
             , sites_and_boards_loaded = False
+            , selected_boards = Nothing
             }
 
         handleMail :: Value -> Maybe Action
@@ -118,9 +119,10 @@ initializeModel ctxRef = do
               , client_mounted = False
               , search_mounted = False
               , search_message = Nothing
-              , current_sites_and_boards = sitesAndBoards initialPayload
+              , all_sites_and_boards = sitesAndBoards initialPayload
               , hydrated = hydrate ctx
               , sites_and_boards_loaded = True
+              , selected_boards = Nothing
               }
 
     where

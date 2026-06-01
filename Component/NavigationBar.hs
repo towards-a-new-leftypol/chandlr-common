@@ -21,7 +21,6 @@ import Miso
     , topic
     , get
     , publish
-    , toMisoString
     , issue
     )
 
@@ -51,7 +50,7 @@ initialModel :: Model
 initialModel = Model
   { menuState = Closed
   , sitesAndBoards = []
-  , currentSites = All
+  , currentSites = CurrentSites Set.empty
   , currentUri = emptyURI
   , selectedBoards = Set.empty
   }
@@ -98,6 +97,7 @@ update (ToggleSite s) = do
 
 update (ToggleBoard b) = do
     io_ $ consoleLog $ "toggle board" <> Board.pathpart b
+
     modify $ \m ->
         if Set.member b (selectedBoards m)
         then
@@ -105,8 +105,7 @@ update (ToggleBoard b) = do
         else
             m { selectedBoards = Set.insert b (selectedBoards m) }
 
-    model <- get
-    io_ $ consoleLog $ toMisoString (Set.size (selectedBoards model)) <> " boards selected."
+    issue ReloadCatalogGridBecauseSelectedBoardsChanged
 
 update (AddFromSite s) = do
     io_ $ consoleLog $ "AddFromSite " <> Site.name s
@@ -114,6 +113,7 @@ update (AddFromSite s) = do
         { selectedBoards = selectedBoards m
             `Set.union` Set.fromList (toList $ Site.boards s)
         }
+    issue ReloadCatalogGridBecauseSelectedBoardsChanged
 
 update (RemoveFromSite s) = do
     io_ $ consoleLog $ "RemoveFromSite " <> Site.name s
@@ -121,20 +121,30 @@ update (RemoveFromSite s) = do
         { selectedBoards = selectedBoards m
             `Set.difference` Set.fromList (toList $ Site.boards s)
         }
+    issue ReloadCatalogGridBecauseSelectedBoardsChanged
 
-update SelectAllSites =
-  modify $ \m -> m
-      { currentSites = CurrentSites (Set.fromList $ sitesAndBoards m)
-      , selectedBoards = Set.fromList $
-          concatMap (toList . Site.boards) $ sitesAndBoards m
-      }
-      -- todo issue change back to main component
+update SelectAllSites = do
+    modify $ \m -> m
+        { currentSites = CurrentSites (Set.fromList $ sitesAndBoards m)
+        , selectedBoards = Set.fromList $
+            concatMap (toList . Site.boards) $ sitesAndBoards m
+        }
+    issue ReloadCatalogGridBecauseSelectedBoardsChanged
 
-update SelectNoSites =
+update SelectNoSites = do
   modify $ \m -> m
       { currentSites = emptyCurrentSites
       , selectedBoards = Set.empty
       }
+  issue ReloadCatalogGridBecauseSelectedBoardsChanged
+
+update ReloadCatalogGridBecauseSelectedBoardsChanged = do
+    model <- get
+
+    io_ $ do
+        consoleLog "ReloadCatalogGridBecauseSelectedBoardsChanged"
+        publish navigationBarTopic
+            (SelectedBoardsChanged $ Set.toList $ selectedBoards model)
 
 view :: Model -> View Model Action
 view m = vfrag
@@ -158,7 +168,9 @@ changeMenuStateOrNavigate newstate = do
         modify $ \m -> m { menuState = newstate }
 
 
-data OutMessage = GoToCatalog
+data OutMessage
+    = GoToCatalog
+    | SelectedBoardsChanged [ Board.Board ]
     deriving (Generic, FromJSON, ToJSON)
 
 navigationBarTopic :: Topic OutMessage

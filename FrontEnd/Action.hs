@@ -8,6 +8,7 @@ import qualified Common.Network.CatalogPostType as CatalogPost
 import qualified Common.Component.Search.SearchTypes as Search
 import qualified Common.Network.ClientTypes as Client
 import qualified Common.Component.CatalogGrid.GridTypes as Grid
+import Common.Network.BoardType (Board)
 import Common.FrontEnd.Types (InitCtxRef, AppInitCtx, Time)
 
 data Action
@@ -28,6 +29,7 @@ data Action
     | InitNoHydration AppInitCtx
     | InitAllSitesAndBoards
     | GoBackToCatalog
+    | ReloadGridWithBoards [ Board ]
     deriving Eq
 
 

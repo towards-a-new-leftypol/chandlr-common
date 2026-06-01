@@ -14,3 +14,4 @@ data Action
     | SelectNoSites
     | AddFromSite Site
     | RemoveFromSite Site
+    | ReloadCatalogGridBecauseSelectedBoardsChanged

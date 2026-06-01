@@ -44,6 +44,7 @@ import qualified Common.Component.Thread as Thread
 import qualified Common.Utils as Utils
 import qualified Common.Component.CatalogGrid.GridTypes as Grid
 import Common.Network.SiteType (fromCatalogPost, Site)
+import qualified Common.Network.BoardType as Board
 import JSFFI.MisoFFI (encodeURIComponent)
 import Common.FrontEnd.Routes
 import qualified Common.FrontEnd.Types as T
@@ -120,6 +121,9 @@ mainUpdate (Initialize ctxRef) = do
 
         actionFromNavBarMessage :: NavB.OutMessage -> Action
         actionFromNavBarMessage NavB.GoToCatalog = GoBackToCatalog
+        actionFromNavBarMessage (NavB.SelectedBoardsChanged boards) =
+            ReloadGridWithBoards boards
+
 
 mainUpdate (InitNoHydration ctx) = do
     io_ $ consoleLog "InitNoHydration - initializing model from settings"
@@ -269,7 +273,7 @@ mainUpdate (ClientResponse SitesAndBoards (Client.ReturnResult result)) = do
 
     Utils.helper result $ \sites ->
         modify (\m -> m
-            { current_sites_and_boards = sitesFromSSites sites
+            { all_sites_and_boards = sitesFromSSites sites
             , sites_and_boards_loaded = True
             })
 
@@ -277,9 +281,13 @@ mainUpdate (ClientResponse _ (Client.ReturnResult _)) = return ()
 
 mainUpdate (GoToTime r (T.Now t)) = do
     modify (\m -> m { current_time = T.Now t, between_pages = True })
-    io_ $ publish Client.clientInTopic (SenderLatest, Client.FetchLatest t)
-
     model <- get
+
+    io_ $ publish
+        Client.clientInTopic
+        ( SenderLatest
+        , Client.FetchLatest t (map Board.board_id <$> selected_boards model)
+        )
 
     io_ $ do
         consoleLog $ "calling replaceURI on " <> toMisoString (show (new_current_uri model))
@@ -294,9 +302,13 @@ mainUpdate (GoToTime r (T.Now t)) = do
 
 mainUpdate (GoToTime r (T.Then t)) = do
     modify (\m -> m { current_time = T.Then t, between_pages = True })
-    io_ $ publish Client.clientInTopic (SenderLatest, Client.FetchLatest t)
-
     model <- get
+
+    io_ $ publish
+        Client.clientInTopic
+        ( SenderLatest
+        , Client.FetchLatest t (map Board.board_id <$> selected_boards model)
+        )
 
     io_ $ do
         consoleLog $ "calling replaceURI on " <> toMisoString (show (new_current_uri model))
@@ -403,6 +415,11 @@ mainUpdate GoBackToCatalog = do
             io_ $ consoleLog "GoBackToCatalog Then"
             issue $ GoToTime False x
 
+mainUpdate (ReloadGridWithBoards boards) = do
+    io_ $ consoleLog "ReloadGridWithBoards"
+    modify $ \m -> m { selected_boards = Just boards }
+    model <- get
+    issue $ GoToTime True (current_time model)
 
 (</>) :: MisoString -> MisoString -> MisoString
 (</>) a b = a <> "/" <> b

@@ -2,10 +2,9 @@ module Common.Component.NavigationBar.Model where
 
 import Miso (URI)
 import Miso.Lens (Lens, LensCore (..))
-import Data.Set (Set, empty, fromList)
-import Data.List.NonEmpty (toList)
+import Data.Set (Set, empty)
 
-import Common.Network.SiteType (Site, boards)
+import Common.Network.SiteType (Site)
 import Common.Network.BoardType (Board)
 
 data Model = Model
@@ -22,7 +21,6 @@ getSetSitesAndBoards =
         sitesAndBoards
         (\xs model -> model
             { sitesAndBoards = xs
-            , selectedBoards = fromList (concatMap (toList . boards) xs)
             }
         )
 

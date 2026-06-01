@@ -30,6 +30,7 @@ data Model = Uninitialized | Model
 data FetchCatalogArgs = FetchCatalogArgs
   { selected_time :: UTCTime
   , thread_count :: Int
+  , board_ids :: Maybe [ Int ]
   } deriving (Generic, ToJSON, FromJSON)
 
 
@@ -49,7 +50,7 @@ type ReturnTopicName = MisoString
 type MessageIn = (ReturnTopicName, Query)
 
 data Query
-    = FetchLatest UTCTime
+    = FetchLatest UTCTime (Maybe [ Int ])
     | GetThread GetThreadArgs
     | Search MisoString
     | DeleteIllegalPost DeleteIllegalPostArgs

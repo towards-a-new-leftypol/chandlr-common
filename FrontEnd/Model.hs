@@ -9,6 +9,7 @@ import qualified Common.Component.Thread.Types  as Thread
 import Common.Network.CatalogPostType (CatalogPost)
 import qualified Common.Component.Search.SearchTypes as Search
 import Common.Network.SiteType (Site)
+import Common.Network.BoardType (Board)
 import Common.FrontEnd.Types (Time)
 
 data Model = Model
@@ -27,9 +28,10 @@ data Model = Model
     , client_mounted :: Bool
     , search_mounted :: Bool
     , search_message :: Maybe Search.MessageIn
-    , current_sites_and_boards :: [ Site ]
+    , all_sites_and_boards :: [ Site ]
     , hydrated :: Bool
     , sites_and_boards_loaded :: Bool
+    , selected_boards :: Maybe [ Board ]
     } deriving Eq
 
 getSetCatalogPosts :: Lens Model [ CatalogPost ]
@@ -59,8 +61,8 @@ getSetAdmin =
 getSetSitesAndBoards :: Lens Model [ Site ]
 getSetSitesAndBoards =
     Lens
-        current_sites_and_boards
-        (\xs model -> model { current_sites_and_boards = xs })
+        all_sites_and_boards
+        (\xs model -> model { all_sites_and_boards = xs })
 
 getSetCurrentUri :: Lens Model URI
 getSetCurrentUri =
