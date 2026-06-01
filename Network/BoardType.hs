@@ -7,6 +7,7 @@ module Common.Network.BoardType where
 import GHC.Generics
 import Miso.String (MisoString)
 import Miso.JSON (FromJSON, ToJSON)
+import Data.Ord (comparing)
 
 import Common.Network.ThreadType (Thread)
 
@@ -17,6 +18,9 @@ data Board = Board
   , site_id  :: Int
   , threads  :: [ Thread ]
   } deriving (Show, Generic, FromJSON, ToJSON, Eq)
+
+instance Ord Board where
+  compare = comparing board_id
 
 emptyBoard :: Board
 emptyBoard = Board

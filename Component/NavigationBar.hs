@@ -21,11 +21,14 @@ import Miso
     , topic
     , get
     , publish
+    , toMisoString
+    , issue
     )
 
 import Miso.JSON (FromJSON, ToJSON)
 import qualified Data.Set as Set
 import GHC.Generics
+import Data.List.NonEmpty (toList)
 
 import Common.Component.NavigationBar.Action
 import Common.Component.NavigationBar.View
@@ -33,6 +36,7 @@ import Common.Component.NavigationBar.Model
 import Common.Component.NavigationBar.NavMenu
 import qualified Common.FrontEnd.Model as FE
 import qualified Common.Network.BoardType as Board
+import qualified Common.Network.SiteType as Site
 import Common.Utils
 
 app :: Component FE.Model Model Action
@@ -49,6 +53,7 @@ initialModel = Model
   , sitesAndBoards = []
   , currentSites = All
   , currentUri = emptyURI
+  , selectedBoards = Set.empty
   }
 
 update :: Action -> Effect a Model Action
@@ -78,24 +83,58 @@ update (ToggleSite s) = do
                 withoutS = Set.delete s allSites
 
             modify (\m -> m { currentSites = CurrentSites withoutS })
+            issue $ RemoveFromSite s
 
         CurrentSites selectedSites ->
             if Set.member s selectedSites
             then do
                 let withoutS = Set.delete s selectedSites
                 modify (\m -> m { currentSites = CurrentSites withoutS })
+                issue $ RemoveFromSite s
             else do
                 let withS = Set.insert s selectedSites
                 modify (\m -> m { currentSites = CurrentSites withS })
+                issue $ AddFromSite s
 
 update (ToggleBoard b) = do
     io_ $ consoleLog $ "toggle board" <> Board.pathpart b
+    modify $ \m ->
+        if Set.member b (selectedBoards m)
+        then
+            m { selectedBoards = Set.delete b (selectedBoards m) }
+        else
+            m { selectedBoards = Set.insert b (selectedBoards m) }
+
+    model <- get
+    io_ $ consoleLog $ toMisoString (Set.size (selectedBoards model)) <> " boards selected."
+
+update (AddFromSite s) = do
+    io_ $ consoleLog $ "AddFromSite " <> Site.name s
+    modify $ \m -> m
+        { selectedBoards = selectedBoards m
+            `Set.union` Set.fromList (toList $ Site.boards s)
+        }
+
+update (RemoveFromSite s) = do
+    io_ $ consoleLog $ "RemoveFromSite " <> Site.name s
+    modify $ \m -> m
+        { selectedBoards = selectedBoards m
+            `Set.difference` Set.fromList (toList $ Site.boards s)
+        }
 
 update SelectAllSites =
-  modify (\m -> m { currentSites = CurrentSites (Set.fromList $ sitesAndBoards m) })
+  modify $ \m -> m
+      { currentSites = CurrentSites (Set.fromList $ sitesAndBoards m)
+      , selectedBoards = Set.fromList $
+          concatMap (toList . Site.boards) $ sitesAndBoards m
+      }
+      -- todo issue change back to main component
 
 update SelectNoSites =
-  modify (\m -> m { currentSites = emptyCurrentSites })
+  modify $ \m -> m
+      { currentSites = emptyCurrentSites
+      , selectedBoards = Set.empty
+      }
 
 view :: Model -> View Model Action
 view m = vfrag

@@ -12,3 +12,5 @@ data Action
     | ToggleBoard Board
     | SelectAllSites
     | SelectNoSites
+    | AddFromSite Site
+    | RemoveFromSite Site

@@ -65,10 +65,10 @@ allOrNoneSites =
         ] [ span_ [] [ "None" ] ]
     ]
 
-allOrNoneBoards :: [ View model Action ]
-allOrNoneBoards =
-    [ div_ [ class_ "button" ] [ span_ [] [ "All" ] ]
-    , div_ [ class_ "button" ] [ span_ [] [ "None" ] ]
+allOrNoneBoards :: Site.Site -> [ View model Action ]
+allOrNoneBoards s =
+    [ div_ [ class_ "button", onClick $ AddFromSite s ] [ span_ [] [ "All" ] ]
+    , div_ [ class_ "button", onClick $ RemoveFromSite s ] [ span_ [] [ "None" ] ]
     ]
 
 
@@ -80,7 +80,7 @@ chooseBoards model
             , onClick ClickSites
             ] [ text "Select sites" ]
     | otherwise = vfrag $
-        [ siteBoardsSection (site, L.toList (Site.boards site))
+        [ siteBoardsSection model (site, L.toList (Site.boards site))
         | site <- sites
         ]
 
@@ -91,23 +91,23 @@ chooseBoards model
                 All -> sitesAndBoards model
                 CurrentSites selectedSites -> Set.toList selectedSites
 
-        siteBoardsSection :: (Site.Site, [ Board.Board ]) -> View Model Action
-        siteBoardsSection (s, bs) = vfrag
+        siteBoardsSection :: Model -> (Site.Site, [ Board.Board ]) -> View Model Action
+        siteBoardsSection m (s, bs) = vfrag
             [ div_ [ class_ "modal-dialog__inline-content" ]
-                (h2_ [] [ text $ Site.name s ] : allOrNoneBoards)
-            , div_ [ class_ "modal-dialog__grid-column-content" ] (map pickBoard bs)
+                (h2_ [] [ text $ Site.name s ] : allOrNoneBoards s)
+            , div_ [ class_ "modal-dialog__grid-column-content" ] (map (pickBoard m) bs)
             ]
 
-        pickBoard :: Board.Board -> View Model Action
+        pickBoard :: Model -> Board.Board -> View Model Action
         pickBoard
-         b = div_
+            m b = div_
                 classes
                 [ input_
                     [ name_ "include-board"
                     , id_ ident
                     , type_ "checkbox"
                     , onChange $ const $ ToggleBoard b
-                    -- , checked_ False
+                    , checked_ selected
                     ]
                 , label_
                     [ for_ ident ]
@@ -120,7 +120,7 @@ chooseBoards model
                 ident = "board-" <> toMisoString (Board.board_id b)
 
                 selected :: Bool
-                selected = False
+                selected = Set.member b (selectedBoards m)
 
                 classes :: [ Attribute a ]
                 classes
