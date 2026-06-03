@@ -11,6 +11,7 @@ import Servant.API
 type Route a
     =    R_Latest a
     :<|> R_Thread a
+    :<|> R_Board a
     :<|> R_SearchResults a
 
 type R_Latest a
@@ -28,6 +29,11 @@ type R_Thread a
 type R_SearchResults a
     = "search"
     :> QueryParam "q" String
+    :> a
+
+type R_Board a
+    =  Capture "website" Text
+    :> Capture "board"  Text
     :> a
 
 type BoardThreadId = Integer

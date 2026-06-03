@@ -7,6 +7,7 @@ module Common.FrontEnd.Views
     ( catalogView
     , searchView
     , threadView
+    , boardView
     , page404
     ) where
 
@@ -68,11 +69,11 @@ pageWrapperWithDefaults m inner_content =
         ]
 
 
-catalogView :: InitCtxRef -> Maybe String -> Model -> View Model Action
-catalogView ctxRef _ m = pageWrapperWithDefaults m $ vfrag
+commonCatalogView :: InitCtxRef -> Model -> View Model Action
+commonCatalogView ctxRef m = pageWrapperWithDefaults m $ vfrag
     [ div_
         [ class_ "page_heading" ]
-        [ h1_ [] [ text "Overboard Catalog" ]
+        [ h1_ [] [ text $ page_title m ]
         , time_ [] [ text $ toMisoString $ show $ current_time m ]
         ]
     , timeControl ctxRef
@@ -80,6 +81,11 @@ catalogView ctxRef _ m = pageWrapperWithDefaults m $ vfrag
     , grid ctxRef
     ]
 
+catalogView :: InitCtxRef -> Maybe String -> Model -> View Model Action
+catalogView ctxRef _ m = commonCatalogView ctxRef m
+
+boardView :: InitCtxRef -> a -> a -> Model -> View Model Action
+boardView ctxRef _ _ m = commonCatalogView ctxRef m
 
 searchView :: InitCtxRef -> Maybe String -> Model -> View Model Action
 searchView ctxRef _ m = pageWrapperWithDefaults m $ vfrag

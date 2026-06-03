@@ -63,7 +63,7 @@ helper result onSuccess =
     helperE result onSuccess (io_ . consoleError)
 
 
-data PageType = Catalog | Search (Maybe String) | Thread
+data PageType = Catalog | Search (Maybe String) | Thread | Board
     deriving Eq
 
 
@@ -75,9 +75,9 @@ pageTypeFromURI = do
     where
         routeResult uri = route (Proxy :: Proxy (Route (View () ()))) handlers (const uri) undefined
 
-        handlers = hLatest :<|> hThread :<|> hSearch
+        handlers = hLatest :<|> hThread :<|> hBoard :<|> hSearch
 
-        hLatest :: m -> a -> PageType
+        hLatest :: a -> m -> PageType
         hLatest = const $ const Catalog
 
         hThread :: a -> a -> b -> m -> PageType
@@ -85,6 +85,9 @@ pageTypeFromURI = do
 
         hSearch :: Maybe String -> m -> PageType
         hSearch = const . Search
+
+        hBoard :: a -> a -> m -> PageType
+        hBoard = const $ const $ const Board
 
 
 fakeTime :: UTCTime

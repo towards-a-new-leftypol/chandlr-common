@@ -17,6 +17,7 @@ data Model = Model
     , media_root_ :: MisoString
     , current_time :: Time
     , search_term :: MisoString
+    , page_title :: MisoString
     , on_client_mounted_initial_actions ::  [ Action ]
     , thread_message :: Maybe Thread.Message
     , pg_api_root :: MisoString

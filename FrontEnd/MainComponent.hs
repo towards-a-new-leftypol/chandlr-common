@@ -64,6 +64,7 @@ app ctxRef =
             , media_root_ = ""
             , current_time = Then earliest
             , search_term = ""
+            , page_title = ""
 
             , on_client_mounted_initial_actions = []
                 -- ^ For no hydration, this will have the initial_action and a getSitesAndBoards message. Otherwise (upon hydration) it's set to empty
@@ -108,6 +109,7 @@ initializeModel ctxRef = do
               , media_root_ = toMisoString $ Settings.media_root settings
               , current_time = timeFromInitialPayload ctx
               , search_term = searchTermFromUri uri
+              , page_title = "Overboard Catalog"
               , on_client_mounted_initial_actions = []
               , thread_message = Nothing
               , pg_api_root = toMisoString $ Settings.postgrest_url settings
@@ -146,4 +148,5 @@ mainView ctxRef model = mainView_
         handlers
             =    catalogView ctxRef
             :<|> threadView ctxRef
+            :<|> boardView ctxRef
             :<|> searchView ctxRef
