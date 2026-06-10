@@ -15,6 +15,7 @@ data Post = Post
   , creation_time     :: UTCTime
   , body              :: Maybe Text
   , subject           :: Maybe Text
+  , local_idx         :: Int
   , name              :: Maybe Text
   , email             :: Maybe Text
   , body_search_index :: Text

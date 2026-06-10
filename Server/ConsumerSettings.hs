@@ -23,8 +23,6 @@ data ConsumerJSONSettings = ConsumerJSONSettings
     , postgrest_url :: String
     , jwt :: Text
     , media_root_path :: String
-    , http_fill_all :: Bool
-    , http_sync_continously :: Bool
     , sync_max_concurrent_workers :: Int
     , sync_loop_timeout_microseconds :: Int
     } deriving (Show, Generic)
