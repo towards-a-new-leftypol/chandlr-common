@@ -1,6 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE CPP #-}
 
 module Common.Component.NavigationBar where
 
@@ -23,6 +24,7 @@ import Miso
     , publish
     , issue
     , MisoString
+    , toMisoString
     )
 
 import Miso.JSON (FromJSON, ToJSON)
@@ -39,18 +41,13 @@ import qualified Common.FrontEnd.Model as FE
 import qualified Common.Network.BoardType as Board
 import qualified Common.Network.SiteType as Site
 import Common.Utils
-import JSFFI.MisoFFI (deleteCookie)
+#ifdef FRONT_END
+import JSFFI.MisoFFI (deleteCookie, setCookie)
+import Common.BitField
+#endif
 
 boardsSelCookieName :: MisoString
 boardsSelCookieName = "b"
-
-app :: Component FE.Model Model Action
-app = (component initialModel update view)
-  { bindings =
-    [ FE.getSetSitesAndBoards --> getSetSitesAndBoards
-    , FE.getSetCurrentUri --> getSetCurrentUri
-    ]
-  }
 
 initialModel :: Model
 initialModel = Model
@@ -60,6 +57,17 @@ initialModel = Model
   , currentUri = emptyURI
   , selectedBoards = Set.empty
   , allBoardsSelected = True
+  }
+
+app :: Component FE.Model Model Action
+#ifndef FRONT_END
+app = component initialModel undefined view
+#else
+app = (component initialModel update view)
+  { bindings =
+    [ FE.getSetSitesAndBoards --> getSetSitesAndBoards
+    , FE.getSetCurrentUri --> getSetCurrentUri
+    ]
   }
 
 update :: Action -> Effect a Model Action
@@ -167,7 +175,10 @@ update ReloadCatalogGridBecauseSelectedBoardsChanged = do
         then
             void $ deleteCookie boardsSelCookieName
         else
-            undefined
+            let cookieval = toMisoString $ show $
+                    bitFieldFromInts $ Set.map Board.board_id $ selectedBoards model
+            in void $ setCookie boardsSelCookieName cookieval
+#endif
 
 
 view :: Model -> View Model Action
