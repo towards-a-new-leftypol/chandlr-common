@@ -26,6 +26,7 @@ import Miso.Html.Property
   , download_
   , target_
   , data_
+  , classList_
   )
 import Miso.CSS (styleInline_)
 import qualified Data.List.NonEmpty as L
@@ -44,6 +45,8 @@ import qualified Common.AttachmentType as Attachment
 import Common.Network.Units (bytesToHumanReadable)
 import Data.Maybe (fromMaybe)
 
+import Debug.Trace (trace)
+
 max_thumbnail_width :: Int
 max_thumbnail_width = 255
 
@@ -55,21 +58,17 @@ max_original_filename_display_length = 25
 
 files :: MisoString -> Site -> Post -> View model a
 files media_root site post = div_
-  [ class_ "files" ]
-  ( map (file media_root site multi) as )
+  [ class_ "files asdf" ]
+  ( map (file media_root site (trace ("Files multi: " <> show multi) multi)) as )
 
   where
-    multi = length as > 1
+    multi = trace ("Files - length of attachments: " <> show (length as)) (length as > 1)
 
     as = Post.attachments post
 
 file :: MisoString -> Site -> Bool -> Attachment -> View model a
 file media_root site multifile a = div_
-  ( [ class_ "file" ] ++
-    if multifile then
-      [ class_ "multifile" ] ++ file_elem_size_attr
-    else []
-  )
+  (classList_ [ ("file", True), ("multifile", multifile) ] : file_elem_size_attr)
   [ p_
       [ class_ "fileinfo" ]
       [ span_ [] [ "File: " ]
@@ -182,4 +181,3 @@ file media_root site multifile a = div_
       where
           mw = min max_thumbnail_width width
           mh = min max_thumbnail_height height
-

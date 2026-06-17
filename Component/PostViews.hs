@@ -6,7 +6,6 @@ import Prelude hiding (head)
 import Miso
   ( View
   , text
-  , Attribute
   , toMisoString, key_
   )
 import Miso.Html
@@ -15,6 +14,7 @@ import Miso.Html
 import Miso.Html.Property
   ( class_
   , id_
+  , classList_
   )
 import Data.List.NonEmpty (head)
 import qualified Data.List as L
@@ -43,12 +43,15 @@ op
 op introExtras m op_post backlinks =
     [ files_or_embed_view
     , div_
-        (
-            class_ (if admin m then "post op post-with-admin" else "post op")
-            : id_ (toMisoString $ show $ Post.board_post_id op_post)
-            : key_ ("post#" <> show (Post.post_id op_post))
-            : multi op_post
-        )
+        [ classList_
+            [ ("post", True)
+            , ("op", True)
+            , ("post-with-admin", admin m)
+            , ("multifile", multi op_post)
+            ]
+        , id_ (toMisoString $ show $ Post.board_post_id op_post)
+        , key_ ("post#" <> show (Post.post_id op_post))
+        ]
         ( intro site_ board thread op_post backlinks (current_time m)
         : introExtras (L.head $ post_bodies m)
         ++
@@ -81,10 +84,8 @@ op introExtras m op_post backlinks =
         body (x:_) = Body.render site_ $ snd x
 
 
-multi :: Post -> [ Attribute a ]
-multi post
-    | length (Post.attachments post) > 1 = [ class_ "multifile" ]
-    | otherwise = []
+multi :: Post -> Bool
+multi post = length (Post.attachments post) > 1
 
 
 reply
@@ -102,10 +103,14 @@ reply introExtras m backlinks pwb@(post, parts) = div_
         [ class_ "sidearrows" ]
         [ text ">>" ]
     , div_
-        ( class_ (if admin m then "post reply post-with-admin" else "post reply")
-        : multi post
-        )
-
+        [ classList_
+            [
+            ("post", True)
+            , ("reply", True)
+            , ("post-with-admin", admin m)
+            , ("multifile", multi post)
+            ]
+        ]
         ( intro site_ board thread post backlinks (current_time m)
         : introExtras pwb
         ++

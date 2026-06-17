@@ -435,7 +435,7 @@ initialActionFromRoute model uri = fromRight NoAction routing_result
                 (const uri)
                 model
 
-        handlers = h_latest :<|> h_thread :<|> h_search
+        handlers = h_latest :<|> h_thread :<|> h_board :<|> h_search
 
         h_latest :: Maybe String -> Model -> Action
         h_latest Nothing m = GoToTime True $ current_time m
@@ -455,6 +455,9 @@ initialActionFromRoute model uri = fromRight NoAction routing_result
             where
                 unescaped_search_query =
                     toMisoString $ unEscapeString $ search_query
+
+        h_board :: Text -> Text -> Model -> Action
+        h_board website board_pathpart m = undefined
 
 
 siteFromSSite :: Flx.SSite -> Site
