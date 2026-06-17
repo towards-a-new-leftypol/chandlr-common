@@ -13,6 +13,7 @@ data Model = Model
     , currentSites :: CurrentSites
     , currentUri :: URI
     , selectedBoards :: Set Board
+    , allBoardsSelected :: Bool
     } deriving Eq
 
 getSetSitesAndBoards :: Lens Model [ Site ]

@@ -22,12 +22,14 @@ import Miso
     , get
     , publish
     , issue
+    , MisoString
     )
 
 import Miso.JSON (FromJSON, ToJSON)
 import qualified Data.Set as Set
 import GHC.Generics
 import Data.List.NonEmpty (toList)
+import Control.Monad (void)
 
 import Common.Component.NavigationBar.Action
 import Common.Component.NavigationBar.View
@@ -37,6 +39,10 @@ import qualified Common.FrontEnd.Model as FE
 import qualified Common.Network.BoardType as Board
 import qualified Common.Network.SiteType as Site
 import Common.Utils
+import JSFFI.MisoFFI (deleteCookie)
+
+boardsSelCookieName :: MisoString
+boardsSelCookieName = "b"
 
 app :: Component FE.Model Model Action
 app = (component initialModel update view)
@@ -53,6 +59,7 @@ initialModel = Model
   , currentSites = CurrentSites Set.empty
   , currentUri = emptyURI
   , selectedBoards = Set.empty
+  , allBoardsSelected = True
   }
 
 update :: Action -> Effect a Model Action
@@ -81,18 +88,27 @@ update (ToggleSite s) = do
                 allSites = Set.fromList $ sitesAndBoards model
                 withoutS = Set.delete s allSites
 
-            modify (\m -> m { currentSites = CurrentSites withoutS })
+            modify $ \m -> m
+                { currentSites = CurrentSites withoutS
+                , allBoardsSelected = False
+                }
             issue $ RemoveFromSite s
 
         CurrentSites selectedSites ->
             if Set.member s selectedSites
             then do
                 let withoutS = Set.delete s selectedSites
-                modify (\m -> m { currentSites = CurrentSites withoutS })
+                modify $ \m -> m
+                    { currentSites = CurrentSites withoutS
+                    , allBoardsSelected = False
+                    }
                 issue $ RemoveFromSite s
             else do
                 let withS = Set.insert s selectedSites
-                modify (\m -> m { currentSites = CurrentSites withS })
+                modify $ \m -> m
+                    { currentSites = CurrentSites withS
+                    , allBoardsSelected = False
+                    }
                 issue $ AddFromSite s
 
 update (ToggleBoard b) = do
@@ -128,6 +144,7 @@ update SelectAllSites = do
         { currentSites = CurrentSites (Set.fromList $ sitesAndBoards m)
         , selectedBoards = Set.fromList $
             concatMap (toList . Site.boards) $ sitesAndBoards m
+        , allBoardsSelected = True
         }
     issue ReloadCatalogGridBecauseSelectedBoardsChanged
 
@@ -145,6 +162,13 @@ update ReloadCatalogGridBecauseSelectedBoardsChanged = do
         consoleLog "ReloadCatalogGridBecauseSelectedBoardsChanged"
         publish navigationBarTopic
             (SelectedBoardsChanged $ Set.toList $ selectedBoards model)
+
+        if allBoardsSelected model
+        then
+            void $ deleteCookie boardsSelCookieName
+        else
+            undefined
+
 
 view :: Model -> View Model Action
 view m = vfrag
