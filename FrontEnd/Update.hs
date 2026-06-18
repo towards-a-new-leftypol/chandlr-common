@@ -437,9 +437,9 @@ initialActionFromRoute model uri = fromRight NoAction routing_result
 
         handlers = h_latest :<|> h_thread :<|> h_board :<|> h_search
 
-        h_latest :: Maybe String -> Model -> Action
-        h_latest Nothing m = GoToTime True $ current_time m
-        h_latest (Just t) _ = GoToTime True $ T.Then $ read t
+        h_latest :: Maybe String -> c -> Model -> Action
+        h_latest Nothing _ m = GoToTime True $ current_time m
+        h_latest (Just t) _ _ = GoToTime True $ T.Then $ read t
 
         h_thread :: Text -> Text -> BoardThreadId -> Model -> Action
         h_thread website board_pathpart board_thread_id _ =
