@@ -6,15 +6,13 @@
 module Common.Component.NavigationBar where
 
 import Miso
-    ( Component (bindings)
+    ( Component
     , component
     , Effect
     , io_
-    , consoleLog
     , View
     , modify
     , vfrag
-    , (-->)
     , get
     , URI
     , emptyURI
@@ -22,16 +20,12 @@ import Miso
     , topic
     , get
     , publish
-    , issue
     , MisoString
-    , toMisoString
     )
 
 import Miso.JSON (FromJSON, ToJSON)
 import qualified Data.Set as Set
 import GHC.Generics
-import Data.List.NonEmpty (toList)
-import Control.Monad (void)
 
 import Common.Component.NavigationBar.Action
 import Common.Component.NavigationBar.View
@@ -39,11 +33,20 @@ import Common.Component.NavigationBar.Model
 import Common.Component.NavigationBar.NavMenu
 import qualified Common.FrontEnd.Model as FE
 import qualified Common.Network.BoardType as Board
-import qualified Common.Network.SiteType as Site
 import Common.Utils
 #ifdef FRONT_END
 import JSFFI.MisoFFI (deleteCookie, setCookie)
 import Common.BitField
+import qualified Common.Network.SiteType as Site
+import Data.List.NonEmpty (toList)
+import Control.Monad (void)
+import Miso
+    ( Component (bindings)
+    , consoleLog
+    , (-->)
+    , issue
+    , toMisoString
+    )
 #endif
 
 boardsSelCookieName :: MisoString

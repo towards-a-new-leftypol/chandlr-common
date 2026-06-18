@@ -40,7 +40,7 @@ import Data.Aeson
 import Data.Aeson.Types (Parser)
 import Data.Vector (toList)
 import qualified Data.Aeson.KeyMap as Map
-import Orphans
+import Orphans ()
 #endif
 import Data.Maybe (fromJust)
 import qualified Data.List.NonEmpty as L

@@ -7,9 +7,10 @@ module Common.FrontEnd.Routes where
 
 import Data.Text (Text)
 import Servant.API
+import Common.Cookies (WithCookie)
 
 type Route a
-    =    R_Latest a
+    =    WithCookie (R_Latest a)
     :<|> R_Thread a
     :<|> R_Board a
     :<|> R_SearchResults a

@@ -41,6 +41,7 @@ import Common.FrontEnd.Types (InitCtxRef)
 import qualified Common.Admin.Component.DeleteIllegalPost as DIP
 import qualified Common.Component.NavigationBar.View as Nav
 import qualified Common.Component.NavigationBar as Nav
+import Common.Cookies (CookieJar)
 
 import Debug.Trace (trace)
 
@@ -81,8 +82,8 @@ commonCatalogView ctxRef m = pageWrapperWithDefaults m $ vfrag
     , grid ctxRef
     ]
 
-catalogView :: InitCtxRef -> Maybe String -> Model -> View Model Action
-catalogView ctxRef _ m = commonCatalogView ctxRef m
+catalogView :: InitCtxRef -> Maybe String -> Maybe CookieJar -> Model -> View Model Action
+catalogView ctxRef _ _ m = commonCatalogView ctxRef m
 
 boardView :: InitCtxRef -> a -> a -> Model -> View Model Action
 boardView ctxRef _ _ m = commonCatalogView ctxRef m

@@ -11,9 +11,12 @@ import Data.Bits
 import Data.Set (Set)
 import qualified Data.Set as S
 
+-- | For each Int i in the given set, set the ith bit to 1 in the BitField, which we represent with an Integer
+-- but this Integer is treated as an unbounded binary number
 bitFieldFromInts :: Set Int -> Integer
 bitFieldFromInts = bitFieldFromIntsDesc . S.toDescList
 
+-- | Inverse of bitFieldFromInts
 intsFromBitField :: Integer -> Set Int
 intsFromBitField = S.fromList . f
     where

@@ -77,8 +77,8 @@ pageTypeFromURI = do
 
         handlers = hLatest :<|> hThread :<|> hBoard :<|> hSearch
 
-        hLatest :: a -> m -> PageType
-        hLatest = const $ const Catalog
+        hLatest :: a -> h -> m -> PageType
+        hLatest = const $ const $ const Catalog
 
         hThread :: a -> a -> b -> m -> PageType
         hThread = const $ const $ const $ const Thread
