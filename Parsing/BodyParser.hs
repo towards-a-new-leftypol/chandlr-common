@@ -40,7 +40,7 @@ parsePostBody :: MisoString -> [ PostPart ]
 parsePostBody htmltxt =
     case tokensToForest $ canonicalizeTokens $ parseTokens $ fromMisoString htmltxt of
         Left err ->
-            unsafePerformIO (print err >> return [])
+            unsafePerformIO (print err >> return [ SimpleText htmltxt ])
 
         Right forest -> forestToPostParts forest
 
