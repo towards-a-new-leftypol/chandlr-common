@@ -1,5 +1,7 @@
 module Common.Component.NavigationBar.Action where
 
+import Data.Set (Set)
+
 import Common.Network.SiteType (Site)
 import Common.Network.BoardType (Board)
 
@@ -15,4 +17,6 @@ data Action
     | AddFromSite Site
     | RemoveFromSite Site
     | ReloadCatalogGridBecauseSelectedBoardsChanged
+    | InitSelectedSites (Set Int)
     | Initialize
+    | Noop
