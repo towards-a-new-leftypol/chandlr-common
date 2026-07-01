@@ -242,7 +242,7 @@ update ReloadCatalogGridBecauseSelectedBoardsChanged = do
 view :: Model -> View Model Action
 view m = vfrag
     [ navmenu m
-    , navbar
+    , navbar m
     ]
 
 shouldNavigateBackToCatalog :: URI -> Bool

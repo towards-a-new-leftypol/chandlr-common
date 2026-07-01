@@ -2,45 +2,48 @@
 
 module Common.Component.NavigationBar.View where
 
-import Miso (View, (=:))
+import Miso (View, (=:), MisoString, toMisoString, URI (..), text)
 import Miso.Html.Property
 import Miso.Property
 import Miso.Html
 import Miso.Svg.Property hiding (path_)
 import Miso.Svg.Element
 import qualified Miso.CSS as CSS
+import qualified Data.Set as Set
+import Data.Proxy (Proxy (..))
+import Servant.API hiding (URI)
+import Common.FrontEnd.Routes (Route)
+import Servant.Miso.Router (route)
+import Data.Either (fromRight)
 
 import Common.Component.NavigationBar.Action
+import Common.Component.NavigationBar.Model
+import qualified Common.Network.BoardType as Board
+import qualified Common.Network.SiteType as Site
 
-navbar :: View model Action
-navbar = div_
-    [class_ "navbar"]
+navbar :: Model -> View Model Action
+navbar m = div_
+    [ class_ "navbar" ]
     [ div_
-        [class_ "menu_button"]
-        [div_ [class_ "menu_button--burger-icon"] []]
+        [ class_ "menu_button" ]
+        [ div_ [ class_ "menu_button--burger-icon" ] [] ]
     , div_
-        [class_ "breadcrumbs--wrapper"]
+        [ class_ "breadcrumbs--wrapper" ]
         [ div_
-            [class_ "breadcrumbs"]
-            [ div_
+            [ class_ "breadcrumbs" ]
+            ([ div_
                 [ class_ "breadcrumb breadcrumb--clickable"
                 , onClick ClickSites
                 ]
-                [ span_ [] ["Example"]
+                [ span_ [] [ text $ sitesText m ]
                 , svg_
                     [class_ "breadcrumb--chevron-svg-forward"]
                     [use_ [href_ "#svg-chevron-right-forward"]]
                 , div_
                     [class_ "breadcrumb--dots"]
-                    [ svg_
-                        [class_ "breadcrumb--dots-dot"]
-                        [use_ [href_ "#svg-dot"]]
-                    , svg_
-                        [class_ "breadcrumb--dots-dot"]
-                        [use_ [href_ "#svg-dot"]]
-                    , svg_
-                        [class_ "breadcrumb--dots-dot"]
-                        [use_ [href_ "#svg-dot"]]
+                    [ svg_ [class_ "breadcrumb--dots-dot"] [use_ [href_ "#svg-dot"]]
+                    , svg_ [class_ "breadcrumb--dots-dot"] [use_ [href_ "#svg-dot"]]
+                    , svg_ [class_ "breadcrumb--dots-dot"] [use_ [href_ "#svg-dot"]]
                     ]
                 ]
             , div_
@@ -50,33 +53,82 @@ navbar = div_
                 [ svg_
                     [class_ "breadcrumb--chevron-svg-aft"]
                     [use_ [href_ "#svg-chevron-right-aft"]]
-                , span_ [] ["/b/, and 5 other boards"]
+                , span_ [] [ text $ boardsText m ]
                 , svg_
                     [class_ "breadcrumb--chevron-svg-forward"]
                     [use_ [href_ "#svg-chevron-right-forward"]]
                 , div_
                     [class_ "breadcrumb--dots"]
-                    [ svg_
-                        [class_ "breadcrumb--dots-dot"]
-                        [use_ [href_ "#svg-dot"]]
-                    , svg_
-                        [class_ "breadcrumb--dots-dot"]
-                        [use_ [href_ "#svg-dot"]]
-                    , svg_
-                        [class_ "breadcrumb--dots-dot"]
-                        [use_ [href_ "#svg-dot"]]
+                    [ svg_ [class_ "breadcrumb--dots-dot"] [use_ [href_ "#svg-dot"]]
+                    , svg_ [class_ "breadcrumb--dots-dot"] [use_ [href_ "#svg-dot"]]
+                    , svg_ [class_ "breadcrumb--dots-dot"] [use_ [href_ "#svg-dot"]]
                     ]
                 ]
-            , div_
-                [class_ "breadcrumb"]
-                [ svg_
-                    [class_ "breadcrumb--chevron-svg-aft"]
-                    [use_ [href_ "#svg-chevron-right-aft"]]
-                , span_ [] ["13337.html"]
-                ]
             ]
+            ++ maybeThreadCrumb m
+            )
         ]
     ]
+
+sitesText :: Model -> MisoString
+sitesText m
+    | allBoardsSelected m = "All websites"
+    | otherwise = case currentSites m of
+        All -> "All sites"
+        CurrentSites sSet
+            | Set.null sSet -> "<Nothing>"
+            | Set.size sSet == 1 ->
+                Site.name (Set.findMin sSet)
+            | otherwise ->
+                Site.name (Set.findMin sSet)
+                    <> " +" <> toMisoString (Set.size sSet - 1) <> " sites"
+
+boardsText :: Model -> MisoString
+boardsText m
+    | allBoardsSelected m = "All Boards"
+    | Set.null (selectedBoards m) = "<Nothing>"
+    | Set.size (selectedBoards m) == 1 =
+        "/" <> Board.pathpart (Set.findMin (selectedBoards m)) <> "/"
+    | otherwise =
+        "/" <> Board.pathpart (Set.findMin (selectedBoards m)) <> "/ +"
+            <> toMisoString (Set.size (selectedBoards m) - 1)
+            <> " boards"
+
+maybeThreadCrumb :: Model -> [ View Model Action ]
+maybeThreadCrumb m =
+    case maybeBoardThreadId (currentUri m) of
+        Nothing -> []
+        Just x ->
+            [ div_
+                [ class_ "breadcrumb" ]
+                [ svg_
+                    [ class_ "breadcrumb--chevron-svg-aft" ]
+                    [ use_ [ href_ "#svg-chevron-right-aft" ] ]
+                , span_ [] [ text x ]
+                ]
+            ]
+
+
+maybeBoardThreadId :: URI -> Maybe MisoString
+maybeBoardThreadId = fromRight Nothing . routeResult
+
+    where
+        routeResult uri = route (Proxy :: Proxy (Route (View () ()))) handlers (const uri) undefined
+
+        handlers = hLatest :<|> hThread :<|> hBoard :<|> hSearch
+
+        hLatest :: a -> h -> m -> Maybe MisoString
+        hLatest = const $ const $ const Nothing
+
+        hThread :: a -> a -> Integer -> m -> Maybe MisoString
+        hThread _ _ x _ = Just $ toMisoString  $ show x <> ".html"
+
+        hSearch :: Maybe String -> m -> Maybe MisoString
+        hSearch = const $ const Nothing
+
+        hBoard :: a -> a -> m -> Maybe MisoString
+        hBoard = const $ const $ const Nothing
+
 
 supportingSvgs :: View model action
 supportingSvgs = svg_

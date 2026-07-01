@@ -68,7 +68,7 @@ data PageType = Catalog | Search (Maybe String) | Thread | Board
 
 
 pageTypeFromURI :: URI -> PageType
-pageTypeFromURI = do
+pageTypeFromURI =
     -- default to Catalog in case of routing error.
     fromRight Catalog . routeResult
 
