@@ -23,8 +23,7 @@ data Paths = Paths
   } deriving (Show)
 
 data Attachment = Attachment
-    { attachment_id     :: Integer
-    , mimetype          :: Text
+    { mimetype          :: Text
     , creation_time     :: UTCTime
     , sha256_hash       :: Text
     , phash             :: Maybe Int64

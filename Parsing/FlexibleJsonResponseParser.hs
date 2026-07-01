@@ -257,7 +257,6 @@ objIsPost o =
 
 parseAttachment :: Object -> Parser A.Attachment
 parseAttachment o = do
-    attachment_id_     <- o .:  "attachment_id"
     mimetype_          <- o .:  "mimetype"
     creation_time_     <- o .:  "creation_time"
     sha256_hash_       <- o .:  "sha256_hash"
@@ -274,8 +273,7 @@ parseAttachment o = do
     attachment_idx_    <- o .:  "attachment_idx"
 
     pure $ A.Attachment
-        { A.attachment_id     = attachment_id_
-        , A.mimetype          = mimetype_
+        { A.mimetype          = mimetype_
         , A.creation_time     = creation_time_
         , A.sha256_hash       = sha256_hash_
         , A.phash             = phash_
