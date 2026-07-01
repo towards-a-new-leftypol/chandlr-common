@@ -28,7 +28,6 @@ import Miso.Html.Property
   , data_
   , classList_
   )
-import Miso.CSS (styleInline_)
 import qualified Data.List.NonEmpty as L
 import Data.Foldable (toList)
 import Miso.String (MisoString, append, toMisoString, take)
@@ -58,7 +57,7 @@ max_original_filename_display_length = 25
 
 files :: MisoString -> Site -> Post -> View model a
 files media_root site post = div_
-  [ class_ "files asdf" ]
+  [ class_ "files" ]
   ( map (file media_root site (trace ("Files multi: " <> show multi) multi)) as )
 
   where
@@ -68,7 +67,7 @@ files media_root site post = div_
 
 file :: MisoString -> Site -> Bool -> Attachment -> View model a
 file media_root site multifile a = div_
-  (classList_ [ ("file", True), ("multifile", multifile) ] : file_elem_size_attr)
+  [ classList_ [ ("file", True), ("multifile", multifile) ] ]
   [ p_
       [ class_ "fileinfo" ]
       [ span_ [] [ "File: " ]
@@ -157,13 +156,6 @@ file media_root site multifile a = div_
 
     size_style_attr :: [ Attribute a ]
     size_style_attr = concatMap (mk_size_style_attr . thumb_dimensions) $ toList $ Attachment.resolution a
-
-    file_elem_size_attr :: [ Attribute a ]
-    file_elem_size_attr = map (mk_file_elem_width_style . thumb_dimensions) $ toList $ Attachment.resolution a
-
-    mk_file_elem_width_style :: Dimension -> Attribute a
-    mk_file_elem_width_style Dimension {..} =
-      styleInline_ $ "width: " <> toPx (width + 40)
 
     mk_size_style_attr :: Dimension -> [ Attribute a ]
     mk_size_style_attr Dimension {..} =

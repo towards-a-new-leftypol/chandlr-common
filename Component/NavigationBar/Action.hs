@@ -15,3 +15,4 @@ data Action
     | AddFromSite Site
     | RemoveFromSite Site
     | ReloadCatalogGridBecauseSelectedBoardsChanged
+    | Initialize

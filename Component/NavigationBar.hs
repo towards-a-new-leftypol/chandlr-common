@@ -21,6 +21,7 @@ import Miso
     , get
     , publish
     , MisoString
+    , fromMisoString
     )
 
 import Miso.JSON (FromJSON, ToJSON)
@@ -35,13 +36,13 @@ import qualified Common.FrontEnd.Model as FE
 import qualified Common.Network.BoardType as Board
 import Common.Utils
 #ifdef FRONT_END
-import JSFFI.MisoFFI (deleteCookie, setCookie)
+import JSFFI.MisoFFI (deleteCookie, setCookie, getCookie)
 import Common.BitField
 import qualified Common.Network.SiteType as Site
 import Data.List.NonEmpty (toList)
 import Control.Monad (void)
 import Miso
-    ( Component (bindings)
+    ( Component (bindings, mount)
     , consoleLog
     , (-->)
     , issue
@@ -67,13 +68,29 @@ app :: Component FE.Model Model Action
 app = component initialModel undefined view
 #else
 app = (component initialModel update view)
-  { bindings =
-    [ FE.getSetSitesAndBoards --> getSetSitesAndBoards
-    , FE.getSetCurrentUri --> getSetCurrentUri
-    ]
-  }
+    { bindings =
+        [ FE.getSetSitesAndBoards --> getSetSitesAndBoards
+        , FE.getSetCurrentUri --> getSetCurrentUri
+        ]
+    , mount = Just Initialize
+    }
 
 update :: Action -> Effect a Model Action
+update Initialize = do
+    io_ $ consoleLog "NavigationBar Initialize"
+    model <- get
+    io_ $ do
+        consoleLog $ "NavigationBar has " <> toMisoString (show $ length $ sitesAndBoards model) <> " sites."
+        bCookie <- getCookie boardsSelCookieName
+
+        case bCookie of
+            Nothing -> consoleLog $ "NavigationBar didn't find a b cookie"
+            Just b -> consoleLog $ "NavigationBar b cookie value: " <> b
+
+    where
+        getBoardIdsFromMisoString :: MisoString -> Set.Set Int
+        getBoardIdsFromMisoString = intsFromBitField . read . fromMisoString
+
 update ClickSites = do
     io_ $ consoleLog "Choose Sites Clicked!"
     changeMenuStateOrNavigate ChooseSites
