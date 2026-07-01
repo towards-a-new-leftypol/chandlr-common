@@ -107,6 +107,7 @@ update (InitSelectedSites boardIds) =
             m
                 { currentSites = CurrentSites sites
                 , selectedBoards = boards
+                , allBoardsSelected = False
                 }
 
     where

@@ -73,26 +73,34 @@ navbar m = div_
 sitesText :: Model -> MisoString
 sitesText m
     | allBoardsSelected m = "All websites"
-    | otherwise = case currentSites m of
-        All -> "All sites"
-        CurrentSites sSet
-            | Set.null sSet -> "<Nothing>"
-            | Set.size sSet == 1 ->
-                Site.name (Set.findMin sSet)
-            | otherwise ->
-                Site.name (Set.findMin sSet)
-                    <> " +" <> toMisoString (Set.size sSet - 1) <> " sites"
+    | otherwise =
+        case currentSites m of
+            All -> "All sites"
+            CurrentSites sSet ->
+                if Set.null sSet
+                then "<Nothing>"
+                else
+                    let n = Set.size sSet
+                    in
+                        Site.name (Set.findMin sSet)
+                        <> " +" <> toMisoString n
+                        <> (if n > 1 then " sites" else " site")
+
 
 boardsText :: Model -> MisoString
 boardsText m
-    | allBoardsSelected m = "All Boards"
-    | Set.null (selectedBoards m) = "<Nothing>"
-    | Set.size (selectedBoards m) == 1 =
-        "/" <> Board.pathpart (Set.findMin (selectedBoards m)) <> "/"
+    | allBoardsSelected m = "All boards"
     | otherwise =
-        "/" <> Board.pathpart (Set.findMin (selectedBoards m)) <> "/ +"
-            <> toMisoString (Set.size (selectedBoards m) - 1)
-            <> " boards"
+        if Set.null boards
+        then "<Nothing>"
+        else
+            let n = Set.size boards
+            in
+                Board.pathpart (Set.findMin boards)
+                <> " +" <> toMisoString n
+                <> (if n > 1 then " boards" else " board")
+        where
+            boards = selectedBoards m
 
 maybeThreadCrumb :: Model -> [ View Model Action ]
 maybeThreadCrumb m =
