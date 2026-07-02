@@ -6,10 +6,10 @@
 module Common.Component.NavigationBar where
 
 import Miso
-    ( component
+    ( Component
+    , component
     , Effect
     , io_
-    , io
     , View
     , modify
     , vfrag
@@ -47,6 +47,7 @@ import Miso
     , (-->)
     , issue
     , toMisoString
+    , io
     )
 #endif
 
