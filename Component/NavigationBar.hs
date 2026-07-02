@@ -6,8 +6,7 @@
 module Common.Component.NavigationBar where
 
 import Miso
-    ( Component
-    , component
+    ( component
     , Effect
     , io_
     , io
@@ -43,7 +42,7 @@ import qualified Common.Network.SiteType as Site
 import Data.List.NonEmpty (toList)
 import Control.Monad (void)
 import Miso
-    ( Component (bindings, mount)
+    ( Component (bindings, mount, hydrateModel)
     , consoleLog
     , (-->)
     , issue
@@ -74,27 +73,64 @@ app = (component initialModel update view)
         , FE.getSetCurrentUri --> getSetCurrentUri
         ]
     , mount = Just Initialize
+    , hydrateModel = Just $ do
+        mBoardIds <- getSelectedBoardIdsFromCookie
+
+        case mBoardIds of
+            Nothing -> return initialModel
+            Just boardIds ->
+                return $ setModelBoardSelection initialModel boardIds
     }
 
-update :: Action -> Effect a Model Action
-update Initialize = do
-    io_ $ consoleLog "NavigationBar Initialize"
-    model <- get
-    io $ do
-        consoleLog $ "NavigationBar has " <> toMisoString (show $ length $ sitesAndBoards model) <> " sites."
-        bCookie <- getCookie boardsSelCookieName
+setModelBoardSelection :: Model -> Set.Set Int -> Model
+setModelBoardSelection m boardIds =
+    let
+        (sites, boards) =
+            foldr step (Set.empty, Set.empty) (sitesAndBoards m)
+    in
+        m
+            { currentSites = CurrentSites sites
+            , selectedBoards = boards
+            , allBoardsSelected = False
+            }
 
-        case bCookie of
-            Nothing -> do
-                consoleLog $ "NavigationBar didn't find a b cookie"
-                return Noop
-            Just b -> do
-                consoleLog $ "NavigationBar b cookie value: " <> b
-                return $ InitSelectedSites $ getBoardIdsFromMisoString b
+    where
+        step s (ss, bs) =
+            let ms = filter
+                    ((`Set.member` boardIds) . Board.board_id)
+                    (toList $ Site.boards s)
+            in if null ms
+                then (ss, bs)
+                else
+                    ( Set.insert s ss
+                    , bs `Set.union` Set.fromList ms
+                    )
+
+getSelectedBoardIdsFromCookie :: IO (Maybe (Set.Set Int))
+getSelectedBoardIdsFromCookie = do
+    bCookie <- getCookie boardsSelCookieName
+
+    case bCookie of
+        Nothing -> do
+            consoleLog $ "NavigationBar didn't find a b cookie"
+            return Nothing
+        Just b -> do
+            consoleLog $ "NavigationBar b cookie value: " <> b
+            return $ Just $ getBoardIdsFromMisoString b
 
     where
         getBoardIdsFromMisoString :: MisoString -> Set.Set Int
         getBoardIdsFromMisoString = intsFromBitField . read . fromMisoString
+
+update :: Action -> Effect a Model Action
+update Initialize = do
+    io $ do
+        consoleLog "NavigationBar Initialize"
+        mBoardIds <- getSelectedBoardIdsFromCookie
+
+        case mBoardIds of
+            Nothing -> return Noop
+            Just b -> return $ InitSelectedSites b
 
 update Noop = return ()
 
