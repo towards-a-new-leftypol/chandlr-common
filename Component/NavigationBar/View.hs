@@ -128,14 +128,14 @@ maybeBoardThreadId = fromRight Nothing . routeResult
         hLatest :: a -> h -> m -> Maybe MisoString
         hLatest = const $ const $ const Nothing
 
-        hThread :: a -> a -> Integer -> m -> Maybe MisoString
-        hThread _ _ x _ = Just $ toMisoString  $ show x <> ".html"
+        hThread :: a -> a -> Integer -> h -> m -> Maybe MisoString
+        hThread _ _ x _ _ = Just $ toMisoString  $ show x <> ".html"
 
-        hSearch :: Maybe String -> m -> Maybe MisoString
-        hSearch = const $ const Nothing
+        hSearch :: Maybe String -> h -> m -> Maybe MisoString
+        hSearch = const $ const $ const Nothing
 
-        hBoard :: a -> a -> m -> Maybe MisoString
-        hBoard = const $ const $ const Nothing
+        hBoard :: a -> a -> h -> m -> Maybe MisoString
+        hBoard = const $ const $ const $ const Nothing
 
 
 supportingSvgs :: View model action

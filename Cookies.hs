@@ -10,7 +10,7 @@ import Data.Text (Text)
 import qualified Data.Text.Encoding as TE
 import qualified Data.Map.Strict as Map
 import Servant.API
-import qualified Data.Set as Set
+import Data.Set (Set)
 import Data.Integer.Conversion (textToInteger)
 import Common.BitField (intsFromBitField)
 
@@ -37,6 +37,6 @@ type family WithCookie api where
     WithCookie leaf       = Header "Cookie" CookieJar :> leaf
 
 
-getBoardIdsFromCookie :: CookieJar -> Maybe [ Int ]
+getBoardIdsFromCookie :: CookieJar -> Maybe (Set Int)
 getBoardIdsFromCookie (CookieJar cookies) =
-    (Set.toList . intsFromBitField . textToInteger) <$> (Map.lookup "b" cookies)
+    (intsFromBitField . textToInteger) <$> (Map.lookup "b" cookies)

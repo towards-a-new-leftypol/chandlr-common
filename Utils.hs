@@ -80,14 +80,14 @@ pageTypeFromURI =
         hLatest :: a -> h -> m -> PageType
         hLatest = const $ const $ const Catalog
 
-        hThread :: a -> a -> b -> m -> PageType
-        hThread = const $ const $ const $ const Thread
+        hThread :: a -> a -> b -> h -> m -> PageType
+        hThread = const $ const $ const $ const $ const Thread
 
-        hSearch :: Maybe String -> m -> PageType
-        hSearch = const . Search
+        hSearch :: Maybe String -> h -> m -> PageType
+        hSearch s _ = const $ Search s
 
-        hBoard :: a -> a -> m -> PageType
-        hBoard = const $ const $ const Board
+        hBoard :: a -> a -> h -> m -> PageType
+        hBoard = const $ const $ const $ const Board
 
 
 fakeTime :: UTCTime

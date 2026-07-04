@@ -85,11 +85,11 @@ commonCatalogView ctxRef m = pageWrapperWithDefaults ctxRef m $ vfrag
 catalogView :: InitCtxRef -> Maybe String -> Maybe CookieJar -> Model -> View Model Action
 catalogView ctxRef _ _ m = commonCatalogView ctxRef m
 
-boardView :: InitCtxRef -> a -> a -> Model -> View Model Action
-boardView ctxRef _ _ m = commonCatalogView ctxRef m
+boardView :: InitCtxRef -> a -> a -> Maybe CookieJar -> Model -> View Model Action
+boardView ctxRef _ _ _ m = commonCatalogView ctxRef m
 
-searchView :: InitCtxRef -> Maybe String -> Model -> View Model Action
-searchView ctxRef _ m = pageWrapperWithDefaults ctxRef m $ vfrag
+searchView :: InitCtxRef -> Maybe String -> Maybe CookieJar -> Model -> View Model Action
+searchView ctxRef _ _ m = pageWrapperWithDefaults ctxRef m $ vfrag
     [ div_
         [ class_ "page_heading" ]
         (
@@ -108,8 +108,8 @@ searchView ctxRef _ m = pageWrapperWithDefaults ctxRef m $ vfrag
         term = search_term m
 
 
-threadView :: InitCtxRef -> Text -> Text -> BoardThreadId -> Model -> View Model Action
-threadView ctxRef site_name board_pathpart board_thread_id m =
+threadView :: InitCtxRef -> Text -> Text -> BoardThreadId -> Maybe CookieJar -> Model -> View Model Action
+threadView ctxRef site_name board_pathpart board_thread_id cookies m =
     pageWrapperWithDefaults ctxRef m $ vfrag [ mount_ (Thread.app ctxRef) ]
 
 
