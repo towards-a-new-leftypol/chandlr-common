@@ -10,10 +10,12 @@ import Servant.API
 import Common.Cookies (WithCookie)
 
 type Route a
-    =    WithCookie (R_Latest a)
-    :<|> WithCookie (R_Thread a)
-    :<|> WithCookie (R_Board a)
-    :<|> WithCookie (R_SearchResults a)
+    = WithCookie
+        (    R_Latest a
+        :<|> R_Thread a
+        :<|> R_Board a
+        :<|> R_SearchResults a
+        )
 
 type R_Latest a
     = QueryParam "t" String

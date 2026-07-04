@@ -441,23 +441,23 @@ initialActionFromRoute model uri = fromRight NoAction routing_result
         h_latest Nothing _ m = GoToTime True $ current_time m
         h_latest (Just t) _ _ = GoToTime True $ T.Then $ read t
 
-        h_thread :: Text -> Text -> BoardThreadId -> Model -> Action
-        h_thread website board_pathpart board_thread_id _ =
+        h_thread :: Text -> Text -> BoardThreadId -> c -> Model -> Action
+        h_thread website board_pathpart board_thread_id _ _ =
             GetThread Client.GetThreadArgs
                 { Client.website = toMisoString website
                 , Client.board_pathpart = toMisoString board_pathpart
                 , Client.board_thread_id = board_thread_id
                 }
 
-        h_search :: Maybe String -> Model -> Action
-        h_search Nothing m = GoToTime True $ current_time m
-        h_search (Just search_query) _ = NotifySearch (False, unescaped_search_query)
+        h_search :: Maybe String -> c -> Model -> Action
+        h_search Nothing _ m = GoToTime True $ current_time m
+        h_search (Just search_query) _ _ = NotifySearch (False, unescaped_search_query)
             where
                 unescaped_search_query =
                     toMisoString $ unEscapeString $ search_query
 
-        h_board :: Text -> Text -> Model -> Action
-        h_board website board_pathpart m = undefined
+        h_board :: Text -> Text -> c -> Model -> Action
+        h_board website board_pathpart c m = undefined
 
 
 siteFromSSite :: Flx.SSite -> Site
