@@ -54,7 +54,7 @@ import qualified Common.FrontEnd.JSONSettings as Settings
 import Common.Parsing.FlexibleJsonResponseParser as Flx
 import qualified Common.Component.NavigationBar as NavB
 
-import JSFFI.Profile (sectionEnd, toJSString, displayTotals)
+-- import JSFFI.Profile (sectionEnd, toJSString, displayTotals)
 
 pattern Sender :: Client.ReturnTopicName
 pattern Sender = "main"

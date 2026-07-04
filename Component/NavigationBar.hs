@@ -20,13 +20,13 @@ import Miso
     , topic
     , get
     , publish
-    , MisoString
-    , fromMisoString
+    , hydrateModel
     )
 
 import Miso.JSON (FromJSON, ToJSON)
 import qualified Data.Set as Set
 import GHC.Generics
+import Data.IORef (readIORef)
 
 import Common.Component.NavigationBar.Action
 import Common.Component.NavigationBar.View
@@ -35,24 +35,23 @@ import Common.Component.NavigationBar.NavMenu
 import qualified Common.FrontEnd.Model as FE
 import qualified Common.Network.BoardType as Board
 import Common.Utils
+import qualified Common.FrontEnd.Types as T
 #ifdef FRONT_END
-import JSFFI.MisoFFI (deleteCookie, setCookie, getCookie)
+import JSFFI.MisoFFI (deleteCookie, setCookie)
 import Common.BitField
 import qualified Common.Network.SiteType as Site
 import Data.List.NonEmpty (toList)
 import Control.Monad (void)
 import Miso
-    ( Component (bindings, mount, hydrateModel)
+    ( Component (bindings, mount)
     , consoleLog
     , (-->)
     , issue
     , toMisoString
     , io
     )
+import Utils (getSelectedBoardIdsFromCookie, boardsSelCookieName)
 #endif
-
-boardsSelCookieName :: MisoString
-boardsSelCookieName = "b"
 
 initialModel :: Model
 initialModel = Model
@@ -62,26 +61,31 @@ initialModel = Model
   , currentUri = emptyURI
   , selectedBoards = Set.empty
   , allBoardsSelected = True
+  , hydrate = False
   }
 
-app :: Component FE.Model Model Action
+app :: T.InitCtxRef -> Component FE.Model Model Action
 #ifndef FRONT_END
-app = component initialModel undefined view
+app _ = component initialModel undefined view
 #else
-app = (component initialModel update view)
+app ctxRef = (component initialModel update view)
     { bindings =
         [ FE.getSetSitesAndBoards --> getSetSitesAndBoards
         , FE.getSetCurrentUri --> getSetCurrentUri
         ]
     , mount = Just Initialize
-    , hydrateModel = Just $ do
-        mBoardIds <- getSelectedBoardIdsFromCookie
-
-        case mBoardIds of
-            Nothing -> return initialModel
-            Just boardIds ->
-                return $ setModelBoardSelection initialModel boardIds
+    , hydrateModel = Just $ initializeModel ctxRef
     }
+
+initializeModel :: T.InitCtxRef -> IO Model
+initializeModel ctxRef = do
+    ctx <- readIORef ctxRef
+
+    let m =
+            case T.init_board_selection ctx of
+                Nothing -> initialModel
+                Just boardIds -> setModelBoardSelection initialModel boardIds
+        in return m { hydrate = T.hydrate ctx }
 
 setModelBoardSelection :: Model -> Set.Set Int -> Model
 setModelBoardSelection m boardIds =
@@ -107,57 +111,27 @@ setModelBoardSelection m boardIds =
                     , bs `Set.union` Set.fromList ms
                     )
 
-getSelectedBoardIdsFromCookie :: IO (Maybe (Set.Set Int))
-getSelectedBoardIdsFromCookie = do
-    bCookie <- getCookie boardsSelCookieName
-
-    case bCookie of
-        Nothing -> do
-            consoleLog $ "NavigationBar didn't find a b cookie"
-            return Nothing
-        Just b -> do
-            consoleLog $ "NavigationBar b cookie value: " <> b
-            return $ Just $ getBoardIdsFromMisoString b
-
-    where
-        getBoardIdsFromMisoString :: MisoString -> Set.Set Int
-        getBoardIdsFromMisoString = intsFromBitField . read . fromMisoString
-
 update :: Action -> Effect a Model Action
 update Initialize = do
-    io $ do
-        consoleLog "NavigationBar Initialize"
-        mBoardIds <- getSelectedBoardIdsFromCookie
+    model <- get
 
-        case mBoardIds of
-            Nothing -> return Noop
-            Just b -> return $ InitSelectedSites b
+    if hydrate model
+    then
+        io $ do
+            consoleLog "NavigationBar Initialize"
+            mBoardIds <- getSelectedBoardIdsFromCookie
+
+            case mBoardIds of
+                Nothing -> return Noop
+                Just b -> return $ InitSelectedSites b
+    else
+        return ()
 
 update Noop = return ()
 
 update (InitSelectedSites boardIds) =
     modify $ \m ->
-        let
-            (sites, boards) =
-                foldr step (Set.empty, Set.empty) (sitesAndBoards m)
-        in
-            m
-                { currentSites = CurrentSites sites
-                , selectedBoards = boards
-                , allBoardsSelected = False
-                }
-
-    where
-        step s (ss, bs) =
-            let ms = filter
-                    ((`Set.member` boardIds) . Board.board_id)
-                    (toList $ Site.boards s)
-            in if null ms
-                then (ss, bs)
-                else
-                    ( Set.insert s ss
-                    , bs `Set.union` Set.fromList ms
-                    )
+        setModelBoardSelection m boardIds
 
 update ClickSites = do
     io_ $ consoleLog "Choose Sites Clicked!"

@@ -57,21 +57,21 @@ search :: View Model Action
 search = div_ [ key_ ("search" :: MisoString) ] [ mount_ Search.app ]
 
 
-pageWrapperWithDefaults :: Model -> View Model Action -> View Model Action
-pageWrapperWithDefaults m inner_content =
+pageWrapperWithDefaults :: InitCtxRef -> Model -> View Model Action -> View Model Action
+pageWrapperWithDefaults ctxRef m inner_content =
     trace ("pageWrapperWithDefaults being called. Number of items in catalog_grid: " ++ (show $ length $ catalog_posts m)) $
     vfrag
         [ mount_ Client.app
         , mount_ DIP.app
         -- , pre_ [] [ text $ "between_pages: " <> if between_pages then "True" else "False" ]
-        , mount_ Nav.app
+        , mount_ $ Nav.app ctxRef
         , div_ [ class_ "page-inner-content" ] [ inner_content ]
         , Nav.supportingSvgs
         ]
 
 
 commonCatalogView :: InitCtxRef -> Model -> View Model Action
-commonCatalogView ctxRef m = pageWrapperWithDefaults m $ vfrag
+commonCatalogView ctxRef m = pageWrapperWithDefaults ctxRef m $ vfrag
     [ div_
         [ class_ "page_heading" ]
         [ h1_ [] [ text $ page_title m ]
@@ -89,7 +89,7 @@ boardView :: InitCtxRef -> a -> a -> Model -> View Model Action
 boardView ctxRef _ _ m = commonCatalogView ctxRef m
 
 searchView :: InitCtxRef -> Maybe String -> Model -> View Model Action
-searchView ctxRef _ m = pageWrapperWithDefaults m $ vfrag
+searchView ctxRef _ m = pageWrapperWithDefaults ctxRef m $ vfrag
     [ div_
         [ class_ "page_heading" ]
         (
@@ -110,7 +110,7 @@ searchView ctxRef _ m = pageWrapperWithDefaults m $ vfrag
 
 threadView :: InitCtxRef -> Text -> Text -> BoardThreadId -> Model -> View Model Action
 threadView ctxRef site_name board_pathpart board_thread_id m =
-    pageWrapperWithDefaults m $ vfrag [ mount_ (Thread.app ctxRef) ]
+    pageWrapperWithDefaults ctxRef m $ vfrag [ mount_ (Thread.app ctxRef) ]
 
 
 page404 :: View model Action

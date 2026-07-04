@@ -11,6 +11,7 @@ import Data.Time.Clock (UTCTime)
 import Miso (URI (uriQueryString))
 import Data.IORef (IORef)
 import qualified Data.Map.Strict as Map
+import qualified Data.Set as Set
 
 import Common.Network.CatalogPostType (CatalogPost)
 import qualified Common.Component.Thread.Model as Thread
@@ -45,6 +46,7 @@ instance FromJSON InitialData where
 
 data AppInitCtx = AppInitCtx
     { hydrate :: Bool
+    , init_board_selection :: Maybe (Set.Set Int)
     , init_uri :: URI
     , init_settings :: JSONSettings
     , init_payload :: InitialDataPayload
