@@ -81,10 +81,12 @@ sitesText m
                 then "<Nothing>"
                 else
                     let n = Set.size sSet
+                        name = Site.name (Set.findMin sSet)
                     in
-                        Site.name (Set.findMin sSet)
-                        <> " +" <> toMisoString n
-                        <> (if n > 1 then " sites" else " site")
+                        case n of
+                            1 -> name
+                            _ -> name <> " +" <> toMisoString (n - 1)
+                                <> (if n > 2 then " sites" else " site")
 
 
 boardsText :: Model -> MisoString
@@ -95,12 +97,15 @@ boardsText m
         then "<Nothing>"
         else
             let n = Set.size boards
+                name = Board.pathpart (Set.findMin boards)
             in
-                Board.pathpart (Set.findMin boards)
-                <> " +" <> toMisoString n
-                <> (if n > 1 then " boards" else " board")
+                case n of
+                    1 -> name
+                    _ -> name <> " +" <> toMisoString (n - 1)
+                        <> (if n > 2 then " boards" else " board")
         where
             boards = selectedBoards m
+
 
 maybeThreadCrumb :: Model -> [ View Model Action ]
 maybeThreadCrumb m =

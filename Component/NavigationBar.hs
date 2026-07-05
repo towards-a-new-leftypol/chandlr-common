@@ -252,6 +252,7 @@ initializeModel ctxRef = do
         model = initialModel
             { hydrate = T.hydrate ctx
             , sitesAndBoards = sitesAndBoards
+            , currentUri = T.init_uri ctx
             }
 
         in return $ case T.init_board_selection ctx of
