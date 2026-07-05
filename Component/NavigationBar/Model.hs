@@ -32,10 +32,10 @@ getSetSitesAndBoards =
                             | s <- xs
                             , site_id s `Set.member` oldIds
                             ]
-            in  model
-                    { sitesAndBoards = xs
-                    , currentSites = cs
-                    }
+            in model
+                { sitesAndBoards = xs
+                , currentSites = cs
+                }
         )
 
 getSetCurrentUri :: Lens Model URI
@@ -50,7 +50,7 @@ data MenuState
     | Closed
     deriving Eq
 
-data CurrentSites = All | CurrentSites (Set Site)  deriving Eq
+data CurrentSites = All | CurrentSites (Set Site) deriving Eq
 
 emptyCurrentSites :: CurrentSites
 emptyCurrentSites = CurrentSites empty

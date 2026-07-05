@@ -18,6 +18,8 @@ import Data.Proxy
 import Servant.API hiding (URI)
 import Servant.Miso.Router (route)
 import Data.IORef (readIORef)
+import Data.List.NonEmpty (toList)
+import qualified Data.Set as Set
 
 import qualified Common.FrontEnd.JSONSettings as Settings
 import qualified Common.Component.CatalogGrid as Grid
@@ -28,6 +30,8 @@ import Common.FrontEnd.Views
 import Common.FrontEnd.Action
 import Common.FrontEnd.Types
 import Common.Utils (pageTypeFromURI, PageType (..))
+import qualified Common.Network.SiteType as Site
+import qualified Common.Network.BoardType as Board
 #if defined(FRONT_END)
 import Common.FrontEnd.Update
 #endif
@@ -102,6 +106,12 @@ initializeModel ctxRef = do
     putStrLn $ "MainComponent initializeModel settings: " <> show settings
     let initialPayload = init_payload ctx
     let uri = init_uri ctx
+        selectedBoards = (\boardIds ->
+            [ board
+            | site <- sitesAndBoards initialPayload
+            , board <- toList (Site.boards site)
+            , Set.member (Board.board_id board) boardIds
+            ]) <$> init_board_selection ctx
 
     return
           Model
@@ -124,7 +134,7 @@ initializeModel ctxRef = do
               , all_sites_and_boards = sitesAndBoards initialPayload
               , hydrated = hydrate ctx
               , sites_and_boards_loaded = True
-              , selected_boards = Nothing
+              , selected_boards = selectedBoards
               }
 
     where

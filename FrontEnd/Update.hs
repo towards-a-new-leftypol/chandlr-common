@@ -283,13 +283,16 @@ mainUpdate (GoToTime r (T.Now t)) = do
     modify (\m -> m { current_time = T.Now t, between_pages = True })
     model <- get
 
-    io_ $ publish
-        Client.clientInTopic
-        ( SenderLatest
-        , Client.FetchLatest t (map Board.board_id <$> selected_boards model)
-        )
-
     io_ $ do
+        consoleLog "GoToTime Now"
+        consoleLog $ toMisoString $ show (map Board.board_id <$> selected_boards model)
+
+        publish
+            Client.clientInTopic
+            ( SenderLatest
+            , Client.FetchLatest t (map Board.board_id <$> selected_boards model)
+            )
+
         consoleLog $ "calling replaceURI on " <> toMisoString (show (new_current_uri model))
         (if r then replaceURI else pushURI) $ new_current_uri model
 
