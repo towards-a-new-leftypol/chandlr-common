@@ -36,11 +36,11 @@ import qualified Common.FrontEnd.Model as FE
 import qualified Common.Network.BoardType as Board
 import Common.Utils
 import qualified Common.FrontEnd.Types as T
+import Data.List.NonEmpty (toList)
+import qualified Common.Network.SiteType as Site
 #ifdef FRONT_END
 import JSFFI.MisoFFI (deleteCookie, setCookie)
 import Common.BitField
-import qualified Common.Network.SiteType as Site
-import Data.List.NonEmpty (toList)
 import Control.Monad (void)
 import Miso
     ( Component (bindings, mount)
@@ -66,7 +66,8 @@ initialModel = Model
 
 app :: T.InitCtxRef -> Component FE.Model Model Action
 #ifndef FRONT_END
-app _ = component initialModel undefined view
+app ctxRef = (component initialModel undefined view)
+    { hydrateModel = Just $ initializeModel ctxRef }
 #else
 app ctxRef = (component initialModel update view)
     { bindings =
@@ -77,45 +78,11 @@ app ctxRef = (component initialModel update view)
     , hydrateModel = Just $ initializeModel ctxRef
     }
 
-initializeModel :: T.InitCtxRef -> IO Model
-initializeModel ctxRef = do
-    ctx <- readIORef ctxRef
-
-    let m =
-            case T.init_board_selection ctx of
-                Nothing -> initialModel
-                Just boardIds -> setModelBoardSelection initialModel boardIds
-        in return m { hydrate = T.hydrate ctx }
-
-setModelBoardSelection :: Model -> Set.Set Int -> Model
-setModelBoardSelection m boardIds =
-    let
-        (sites, boards) =
-            foldr step (Set.empty, Set.empty) (sitesAndBoards m)
-    in
-        m
-            { currentSites = CurrentSites sites
-            , selectedBoards = boards
-            , allBoardsSelected = False
-            }
-
-    where
-        step s (ss, bs) =
-            let ms = filter
-                    ((`Set.member` boardIds) . Board.board_id)
-                    (toList $ Site.boards s)
-            in if null ms
-                then (ss, bs)
-                else
-                    ( Set.insert s ss
-                    , bs `Set.union` Set.fromList ms
-                    )
-
 update :: Action -> Effect a Model Action
 update Initialize = do
     model <- get
 
-    if hydrate model
+    if not (hydrate model)
     then
         io $ do
             consoleLog "NavigationBar Initialize"
@@ -249,6 +216,47 @@ update ReloadCatalogGridBecauseSelectedBoardsChanged = do
                     bitFieldFromInts $ Set.map Board.board_id $ selectedBoards model
             in void $ setCookie boardsSelCookieName cookieval
 #endif
+
+setModelBoardSelection :: Model -> Set.Set Int -> Model
+setModelBoardSelection m boardIds =
+    let
+        (sites, boards) =
+            foldr step (Set.empty, Set.empty) (sitesAndBoards m)
+    in
+        m
+            { currentSites = CurrentSites sites
+            , selectedBoards = boards
+            , allBoardsSelected = False
+            }
+
+    where
+        step s (ss, bs) =
+            let ms = filter
+                    ((`Set.member` boardIds) . Board.board_id)
+                    (toList $ Site.boards s)
+            in if null ms
+                then (ss, bs)
+                else
+                    ( Set.insert s ss
+                    , bs `Set.union` Set.fromList ms
+                    )
+
+
+initializeModel :: T.InitCtxRef -> IO Model
+initializeModel ctxRef = do
+    ctx <- readIORef ctxRef
+
+    let
+        sitesAndBoards = T.sitesAndBoards $ T.init_payload ctx
+
+        model = initialModel
+            { hydrate = T.hydrate ctx
+            , sitesAndBoards = sitesAndBoards
+            }
+
+        in return $ case T.init_board_selection ctx of
+                Nothing -> model
+                Just boardIds -> setModelBoardSelection model boardIds
 
 
 view :: Model -> View Model Action
