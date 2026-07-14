@@ -49,8 +49,8 @@ timeControl :: InitCtxRef -> View Model Action
 timeControl ctxRef = vfrag [ mount_ $ TC.app ctxRef ]
 
 
-grid :: InitCtxRef -> View Model Action
-grid ctxRef = mount_ (Grid.app ctxRef)
+grid :: InitCtxRef -> View model action
+grid ctxRef = Grid.gridView (Grid.app ctxRef)
 
 
 search :: View Model Action

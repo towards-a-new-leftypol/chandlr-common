@@ -44,8 +44,6 @@ import qualified Common.AttachmentType as Attachment
 import Common.Network.Units (bytesToHumanReadable)
 import Data.Maybe (fromMaybe)
 
-import Debug.Trace (trace)
-
 max_thumbnail_width :: Int
 max_thumbnail_width = 255
 
@@ -58,12 +56,12 @@ max_original_filename_display_length = 25
 files :: MisoString -> Site -> Post -> View model a
 files media_root site post = div_
   [ class_ "files" ]
-  ( map (file media_root site (trace ("Files multi: " <> show multi) multi)) as )
+  ( map (file media_root site multi) attachments )
 
   where
-    multi = trace ("Files - length of attachments: " <> show (length as)) (length as > 1)
+    multi = length attachments > 1
 
-    as = Post.attachments post
+    attachments = Post.attachments post
 
 file :: MisoString -> Site -> Bool -> Attachment -> View model a
 file media_root site multifile a = div_

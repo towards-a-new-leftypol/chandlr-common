@@ -6,16 +6,17 @@
 {-# HLINT ignore "Move brackets to avoid $" #-}
 
 module Common.Component.CatalogGrid
-( Model (..)
-, Action (..)
-, view
-, update
-, app
-, initialItems
-, GridComponent
-, OutMessage (..)
-, catalogOutTopic
-) where
+    ( Model (..)
+    , Action (..)
+    , view
+    , update
+    , app
+    , initialItems
+    , GridComponent
+    , OutMessage (..)
+    , catalogOutTopic
+    , gridView
+    ) where
 
 import Data.Maybe (maybeToList)
 import Data.Either (fromRight)
@@ -33,6 +34,7 @@ import Miso
     , io_
     , consoleLog
     , key_
+    , mount_
     )
 import Miso.Html
     ( div_
@@ -63,11 +65,11 @@ import qualified Common.Component.BodyRender as Body
 import Common.FrontEnd.Types
 import qualified Common.FrontEnd.Model as FE
 import qualified Common.FrontEnd.JSONSettings  as Settings
+import qualified Common.Component.InfiniteScroll as Inf
+import qualified Common.Component.InfiniteScroll.Model as Inf
 
-import Debug.Trace (trace)
 
-
-app :: InitCtxRef -> GridComponent FE.Model
+app :: InitCtxRef -> GridComponent Inf.Model
 app ctxRef =
     M.Component
         { M.model = Model [] ""
@@ -121,18 +123,22 @@ update (ThreadSelected post) = do
         publish catalogOutTopic $ SelectThread post
 
 
-view :: Model -> View model Action
-view model =
-    trace ("CatalogGrid view being called. Number of catalog items in model: " <> (show $ length $ display_items model)) $
+gridView :: GridComponent Inf.Model -> View model action
+gridView gridC =
     div_
         [ class_ "theme-catalog" ]
         [ div_
             [ class_ "threads" ]
-            [ div_
-                [ id_ "Grid" ]
-                (map (gridItem model) (display_items model))
+            [ mount_ $ Inf.app gridC
             ]
         ]
+
+
+view :: Model -> View model Action
+view model = div_
+    [ id_ "Grid" ]
+    (map (gridItem model) (display_items model))
+
 
 gridItem :: Model -> CatalogPost -> View model Action
 gridItem m post =

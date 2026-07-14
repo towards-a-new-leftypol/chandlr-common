@@ -68,7 +68,7 @@ app ctxRef =
             , media_root_ = ""
             , current_time = Then earliest
             , search_term = ""
-            , page_title = ""
+            , page_title = "Overboard Catalog"
 
             , on_client_mounted_initial_actions = []
                 -- ^ For no hydration, this will have the initial_action and a getSitesAndBoards message. Otherwise (upon hydration) it's set to empty
