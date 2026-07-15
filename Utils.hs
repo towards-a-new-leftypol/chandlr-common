@@ -36,9 +36,9 @@ helperE
     :: (FromJSON a)
     => forall parent
     . Http.HttpResult
-    -> (a -> Effect parent model action)
-    -> (MisoString -> Effect parent model action)
-    -> Effect parent model action
+    -> (a -> Effect parent props model action)
+    -> (MisoString -> Effect parent props model action)
+    -> Effect parent props model action
 helperE (Http.Error e) _ onError = onError e
 helperE (Http.HttpResponse status_code status_text (Just body)) continue onError = do
     io_ $ do
@@ -57,8 +57,8 @@ helper
     :: (FromJSON a)
     => forall parent
     . Http.HttpResult
-    -> (a -> Effect parent model action)
-    -> Effect parent model action
+    -> (a -> Effect parent props model action)
+    -> Effect parent props model action
 helper result onSuccess =
     helperE result onSuccess (io_ . consoleError)
 

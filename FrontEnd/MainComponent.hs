@@ -59,6 +59,7 @@ app ctxRef =
         , M.eventPropagation = False
         , M.mount = Just (Initialize ctxRef)
         , M.unmount = Nothing
+        , M.onPropsChanged = Nothing
         }
 
     where
@@ -145,8 +146,8 @@ initializeModel ctxRef = do
                 _ -> ""
 
 
-mainView :: InitCtxRef -> Model -> View Model Action
-mainView ctxRef model = mainView_
+mainView :: InitCtxRef -> () -> Model -> View Model Action
+mainView ctxRef _ model = mainView_
     where
         mainView_ = either (const page404) id $
             route

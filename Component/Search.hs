@@ -37,7 +37,7 @@ import qualified Common.FrontEnd.Model as FE
 pattern ReturnTopic :: Client.ReturnTopicName
 pattern ReturnTopic = "search-results"
 
-update :: Action -> Effect parent Model Action
+update :: Action -> Effect parent props Model Action
 update Initialize = do
     io_ $ consoleLog "Search component Initialize!"
     subscribe clientReturnTopic SearchResult OnMessageError
@@ -89,7 +89,7 @@ update (OnMessage (b, query)) = do
     modify (\m -> m { searchTerm = query, intendPushUri = b })
     issue $ ChangeAndSubmit query
 
-app :: Component FE.Model Model Action
+app :: Component FE.Model props Model Action
 app = M.Component
     { M.model = Model "" False
     , M.hydrateModel = Nothing
@@ -106,4 +106,5 @@ app = M.Component
     , M.eventPropagation = False
     , M.mount = Just Initialize
     , M.unmount = Just OnUnmount
+    , M.onPropsChanged = Nothing
     }

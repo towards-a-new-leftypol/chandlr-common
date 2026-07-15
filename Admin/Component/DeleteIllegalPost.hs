@@ -84,12 +84,12 @@ deleteIllegalPostInTopic = topic "deleteIllegal-in"
 pattern ReturnTopic :: Client.ReturnTopicName
 pattern ReturnTopic = "delete-illegal-post-results"
 
-type DeleteIllegalPostComponent parent = M.Component parent Model Action
+type DeleteIllegalPostComponent parent props = M.Component parent props Model Action
 
 initialModel :: Model
 initialModel = Model Nothing Nothing False
 
-app :: DeleteIllegalPostComponent parent
+app :: DeleteIllegalPostComponent parent props
 app = M.Component
     { M.model = initialModel
     , M.hydrateModel = Nothing
@@ -108,7 +108,7 @@ app = M.Component
     }
 
 
-update :: Action -> Effect parent Model Action
+update :: Action -> Effect parent props Model Action
 #ifdef FRONT_END
 update Initialize = do
     io_ $ consoleLog "DeleteIllegalPostComponent Init"
@@ -134,7 +134,7 @@ update (ClientResponse (Client.ReturnResult httpResult)) = do
     Utils.helperE httpResult saveDeleteResult saveDeleteErrorResult
 
     where
-        saveDeleteResult :: [ Site.Site ] -> Effect parent Model Action
+        saveDeleteResult :: [ Site.Site ] -> Effect parent props Model Action
         saveDeleteResult sites = do
             io_ $ consoleLog $ toMisoString $ show sites
             modify
@@ -147,7 +147,7 @@ update (ClientResponse (Client.ReturnResult httpResult)) = do
                 TT.threadTopic $
                 TT.PostDeleted $ map P.post_id $ postsFromSites sites
 
-        saveDeleteErrorResult :: MisoString -> Effect parent Model Action
+        saveDeleteErrorResult :: MisoString -> Effect parent props Model Action
         saveDeleteErrorResult errMsg = do
             io_ $ consoleError errMsg
             modify
@@ -195,8 +195,8 @@ update Submit = do
 update = undefined
 #endif
 
-view :: Model -> View model Action
-view m = vfrag hide
+view :: props -> Model -> View model Action
+view _ m = vfrag hide
 
     where
         hide

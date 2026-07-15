@@ -3,7 +3,6 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DerivingVia #-}
-{-# LANGUAGE ImportQualifiedPost #-}
 
 module Common.Component.CatalogGrid.GridTypes where
 
@@ -11,7 +10,6 @@ import GHC.Generics (Generic)
 import Miso.JSON (ToJSON, FromJSON)
 import Miso (Topic, topic, Component)
 import Miso.String (MisoString)
-import Miso.Lens (Lens, LensCore (..))
 
 import Common.Network.CatalogPostType (CatalogPost)
 
@@ -20,19 +18,7 @@ data Model = Model
   , media_root :: MisoString
   } deriving Eq
 
-getSetDisplayItems :: Lens Model [ CatalogPost ]
-getSetDisplayItems =
-    Lens
-        display_items
-        (\x model -> model { display_items = x })
-
-getSetMediaRoot :: Lens Model MisoString
-getSetMediaRoot =
-    Lens
-        media_root
-        (\x model -> model { media_root = x })
-
-type GridComponent parent = Component parent Model Action
+type GridComponent parent = Component parent Model Model Action
 
 newtype Action
     = ThreadSelected CatalogPost

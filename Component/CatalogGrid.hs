@@ -34,7 +34,7 @@ import Miso
     , io_
     , consoleLog
     , key_
-    , mount_
+    , mountWithProps
     )
 import Miso.Html
     ( div_
@@ -53,7 +53,6 @@ import Miso.Html.Property
     )
 import Miso.String (toMisoString, fromMisoString, MisoString, intercalate)
 import qualified Miso as M
-import Miso.Binding ((-->))
 import Data.IORef (readIORef)
 
 import Common.Network.CatalogPostType (CatalogPost)
@@ -63,7 +62,6 @@ import Common.Component.CatalogGrid.GridTypes
 import qualified Common.Network.SiteType as Site
 import qualified Common.Component.BodyRender as Body
 import Common.FrontEnd.Types
-import qualified Common.FrontEnd.Model as FE
 import qualified Common.FrontEnd.JSONSettings  as Settings
 import qualified Common.Component.InfiniteScroll as Inf
 import qualified Common.Component.InfiniteScroll.Model as Inf
@@ -82,13 +80,11 @@ app ctxRef =
         , M.logLevel = M.DebugAll
         , M.scripts = []
         , M.mailbox = const Nothing
-        , M.bindings =
-            [ FE.getSetCatalogPosts --> getSetDisplayItems
-            , FE.getSetMediaRoot --> getSetMediaRoot
-            ]
+        , M.bindings = []
         , M.eventPropagation = False
         , M.mount = Nothing
         , M.unmount = Nothing
+        , M.onPropsChanged = Nothing
         }
 
 
@@ -116,26 +112,26 @@ onClick_ :: a -> Attribute a
 onClick_ action = onWithOptions M.BUBBLE defaultOptions { _preventDefault = True } "click" emptyDecoder (const $ const action)
 
 
-update :: Action -> Effect parent Model Action
+update :: Action -> Effect parent props Model Action
 update (ThreadSelected post) = do
     io_ $ do
         consoleLog $ "ThreadSelected - " <> toMisoString (CatalogPost.thread_id post)
         publish catalogOutTopic $ SelectThread post
 
 
-gridView :: GridComponent Inf.Model -> View model action
-gridView gridC =
+gridView :: GridComponent Inf.Model -> Model -> View model action
+gridView gridC modelAsProps =
     div_
         [ class_ "theme-catalog" ]
         [ div_
             [ class_ "threads" ]
-            [ mount_ $ Inf.app gridC
+            [ mountWithProps modelAsProps $ Inf.app gridC
             ]
         ]
 
 
-view :: Model -> View model Action
-view model = div_
+view :: props -> Model -> View model Action
+view _ model = div_
     [ id_ "Grid" ]
     (map (gridItem model) (display_items model))
 

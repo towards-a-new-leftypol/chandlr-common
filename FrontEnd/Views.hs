@@ -33,6 +33,7 @@ import Common.FrontEnd.Model
 import Common.FrontEnd.Action (Action (..))
 import qualified Common.Component.Search as Search
 import qualified Common.Component.CatalogGrid as Grid
+import qualified Common.Component.CatalogGrid.GridTypes as Grid
 import qualified Common.Component.Thread as Thread
 import qualified Common.Component.TimeControl as TC
 import Common.FrontEnd.Routes (BoardThreadId)
@@ -49,7 +50,7 @@ timeControl :: InitCtxRef -> View Model Action
 timeControl ctxRef = vfrag [ mount_ $ TC.app ctxRef ]
 
 
-grid :: InitCtxRef -> View model action
+grid :: InitCtxRef -> Grid.Model -> View model action
 grid ctxRef = Grid.gridView (Grid.app ctxRef)
 
 
@@ -79,7 +80,7 @@ commonCatalogView ctxRef m = pageWrapperWithDefaults ctxRef m $ vfrag
         ]
     , timeControl ctxRef
     , search
-    , grid ctxRef
+    , grid ctxRef (gridPropsFromModel m)
     ]
 
 catalogView :: InitCtxRef -> Maybe String -> Maybe CookieJar -> Model -> View Model Action
@@ -101,7 +102,7 @@ searchView ctxRef _ _ m = pageWrapperWithDefaults ctxRef m $ vfrag
                 [ p_ [] [ text term ] ]
         )
     , search
-    , grid ctxRef
+    , grid ctxRef (gridPropsFromModel m)
     ]
 
     where
@@ -115,3 +116,7 @@ threadView ctxRef site_name board_pathpart board_thread_id cookies m =
 
 page404 :: View model Action
 page404 = h1_ [] [ text "404 Not Found" ]
+
+
+gridPropsFromModel :: Model -> Grid.Model
+gridPropsFromModel = undefined

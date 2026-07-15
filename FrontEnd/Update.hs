@@ -69,7 +69,7 @@ pattern SitesAndBoards :: Client.ReturnTopicName
 pattern SitesAndBoards = "main-sites_and_boards"
 
 
-mainUpdate :: Action -> Effect ROOT Model Action
+mainUpdate :: Action -> Effect ROOT () Model Action
 mainUpdate NoAction = return ()
 mainUpdate (Initialize ctxRef) = do
     subscribe clientLatestReturnTopic (ClientResponse SenderLatest) OnErrorMessage

@@ -5,7 +5,8 @@ import Miso
     , component
     , vfrag
     , Effect
-    , mount_
+    , mountWithProps
+    , View
     )
 
 import Common.Component.InfiniteScroll.Model
@@ -15,12 +16,14 @@ initialModel :: Model
 initialModel = ()
 
 
+app :: (Eq m, Eq props) => Component Model props m a -> Component parent props Model Action
+app innerComponent = component initialModel update (view innerComponent)
 
-app :: (Eq m) => Component Model m a -> Component parent Model Action
-app innerComponent = component initialModel update
-  (const $ vfrag
-  [ mount_ innerComponent
-  ])
 
-update :: Action -> Effect parent Model Action
+view :: (Eq m, Eq props) => Component Model props m a -> props -> Model -> View Model Action
+view innerComponent props = const $ vfrag
+  [ mountWithProps props innerComponent
+  ]
+
+update :: Action -> Effect parent props Model Action
 update () = return ()

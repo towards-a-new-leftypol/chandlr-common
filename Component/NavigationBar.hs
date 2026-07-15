@@ -64,7 +64,7 @@ initialModel = Model
   , hydrate = False
   }
 
-app :: T.InitCtxRef -> Component FE.Model Model Action
+app :: T.InitCtxRef -> Component FE.Model props Model Action
 #ifndef FRONT_END
 app ctxRef = (component initialModel undefined view)
     { hydrateModel = Just $ initializeModel ctxRef }
@@ -78,7 +78,7 @@ app ctxRef = (component initialModel update view)
     , hydrateModel = Just $ initializeModel ctxRef
     }
 
-update :: Action -> Effect a Model Action
+update :: Action -> Effect parent props Model Action
 update Initialize = do
     model <- get
 
@@ -247,11 +247,11 @@ initializeModel ctxRef = do
     ctx <- readIORef ctxRef
 
     let
-        sitesAndBoards = T.sitesAndBoards $ T.init_payload ctx
+        sitesAndBoards_ = T.sitesAndBoards $ T.init_payload ctx
 
         model = initialModel
             { hydrate = T.hydrate ctx
-            , sitesAndBoards = sitesAndBoards
+            , sitesAndBoards = sitesAndBoards_
             , currentUri = T.init_uri ctx
             }
 
@@ -260,8 +260,8 @@ initializeModel ctxRef = do
                 Just boardIds -> setModelBoardSelection model boardIds
 
 
-view :: Model -> View Model Action
-view m = vfrag
+view :: propse -> Model -> View Model Action
+view _ m = vfrag
     [ navmenu m
     , navbar m
     ]
@@ -272,7 +272,7 @@ shouldNavigateBackToCatalog u
     | otherwise                    = True
 
 
-changeMenuStateOrNavigate :: MenuState -> Effect a Model Action
+changeMenuStateOrNavigate :: MenuState -> Effect parent props Model Action
 changeMenuStateOrNavigate newstate = do
     model <- get
     if shouldNavigateBackToCatalog (currentUri model)

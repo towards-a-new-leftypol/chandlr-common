@@ -59,7 +59,7 @@ data Model = Model
   , atNow     :: Bool
   } deriving Eq
 
-type TimeControl parent = Component parent Model Time
+type TimeControl parent props = Component parent props Model Time
 
 data Message = Message
     { msgAtNow :: Bool -- now or earlier
@@ -72,8 +72,8 @@ data Message = Message
 timeControlTopic :: Topic Message
 timeControlTopic = topic "time-control"
 
-view :: Model -> View model Time
-view m =
+view :: props -> Model -> View model Time
+view _ m =
     div_
         [ class_ "time-control"
         ]
@@ -91,7 +91,7 @@ view m =
 
 update
     :: Time
-    -> Effect parent Model Time
+    -> Effect parent props Model Time
 update (SlideInput nstr) = io_ $
   consoleLog $ "Input: " <> nstr
 
@@ -140,7 +140,7 @@ interpolateTimeHours n currentTime
 
 app
     :: InitCtxRef
-    -> TimeControl parent
+    -> TimeControl parent props
 app _ = M.Component
     { M.model = Model 0 True
     , M.hydrateModel = Nothing
@@ -156,4 +156,5 @@ app _ = M.Component
     , M.eventPropagation = False
     , M.mount = Nothing
     , M.unmount = Nothing
+    , M.onPropsChanged = Nothing
     }

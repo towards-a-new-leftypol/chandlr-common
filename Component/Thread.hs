@@ -64,9 +64,9 @@ import Common.Component.PostViews (op, reply)
 
 import Miso.JSON (encode)
 
-type ThreadComponent parent = Component parent Model Action
+type ThreadComponent parent props = Component parent props Model Action
 
-app :: InitCtxRef -> ThreadComponent FE.Model
+app :: InitCtxRef -> ThreadComponent FE.Model props
 app ctxRef = M.Component
     { M.model = emptyModel
     , M.hydrateModel = Just $ initializeModel ctxRef
@@ -85,6 +85,7 @@ app ctxRef = M.Component
     , M.eventPropagation = False
     , M.mount = Just Initialize
     , M.unmount = Nothing
+    , M.onPropsChanged = Nothing
     }
 
 initializeModel :: InitCtxRef -> IO Model
@@ -107,7 +108,7 @@ initializeModel ctxRef = do
     _ -> return emptyModel
 
 
-update :: Action -> Effect parent Model Action
+update :: Action -> Effect parent props Model Action
 update Initialize = do
     subscribe threadTopic OnMessage OnMessageError
     mailParent MsgThreadViewMounted
@@ -143,8 +144,8 @@ update (OnDeleteBtn pwb) = do
     io_ $ publish DIP.deleteIllegalPostInTopic $ DIP.InMessage model { post_bodies = [ pwb ] }
 
 
-view :: Model -> View model Action
-view m =
+view :: props -> Model -> View model Action
+view _ m =
   div_
     []
     [ h1_ [] [ text title ]
