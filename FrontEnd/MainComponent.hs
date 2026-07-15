@@ -158,6 +158,6 @@ mainView ctxRef _ model = mainView_
 
         handlers
             =    catalogView ctxRef
-            :<|> threadView ctxRef
-            :<|> boardView ctxRef
-            :<|> searchView ctxRef
+            :<|> threadView  ctxRef
+            :<|> boardView   ctxRef
+            :<|> searchView  ctxRef

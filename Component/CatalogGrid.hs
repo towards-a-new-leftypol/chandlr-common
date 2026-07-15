@@ -53,7 +53,6 @@ import Miso.Html.Property
     )
 import Miso.String (toMisoString, fromMisoString, MisoString, intercalate)
 import qualified Miso as M
-import Data.IORef (readIORef)
 
 import Common.Network.CatalogPostType (CatalogPost)
 import qualified Common.Network.CatalogPostType as CatalogPost
@@ -62,16 +61,15 @@ import Common.Component.CatalogGrid.GridTypes
 import qualified Common.Network.SiteType as Site
 import qualified Common.Component.BodyRender as Body
 import Common.FrontEnd.Types
-import qualified Common.FrontEnd.JSONSettings  as Settings
 import qualified Common.Component.InfiniteScroll as Inf
 import qualified Common.Component.InfiniteScroll.Model as Inf
 
 
-app :: InitCtxRef -> GridComponent Inf.Model
-app ctxRef =
+app :: GridComponent Inf.Model
+app =
     M.Component
-        { M.model = Model [] ""
-        , M.hydrateModel = Just $ initializeModel ctxRef
+        { M.model = ()
+        , M.hydrateModel = Nothing
         , M.update = update
         , M.view = view
         , M.subs = []
@@ -86,19 +84,6 @@ app ctxRef =
         , M.unmount = Nothing
         , M.onPropsChanged = Nothing
         }
-
-
-initializeModel :: InitCtxRef -> IO Model
-initializeModel ctxRef = do
-    putStrLn "CatalogGrid initializeModel"
-    ctx <- readIORef ctxRef
-
-    let asdf = initialItems $ initialData $ init_payload ctx
-    putStrLn $ "CatalogGrid initializeModel item size: " ++ (show $ length asdf)
-
-    return $ Model
-        (initialItems $ initialData $ init_payload ctx)
-        (toMisoString $ Settings.media_root $ init_settings ctx)
 
 
 initialItems :: InitialData -> [ CatalogPost ]
@@ -119,24 +104,24 @@ update (ThreadSelected post) = do
         publish catalogOutTopic $ SelectThread post
 
 
-gridView :: GridComponent Inf.Model -> Model -> View model action
-gridView gridC modelAsProps =
+gridView :: GridComponent Inf.Model -> Props -> View model action
+gridView gridC props =
     div_
         [ class_ "theme-catalog" ]
         [ div_
             [ class_ "threads" ]
-            [ mountWithProps modelAsProps $ Inf.app gridC
+            [ mountWithProps props $ Inf.app gridC
             ]
         ]
 
 
-view :: props -> Model -> View model Action
-view _ model = div_
+view :: Props -> Model -> View model Action
+view props _ = div_
     [ id_ "Grid" ]
-    (map (gridItem model) (display_items model))
+    (map (gridItem props) (display_items props))
 
 
-gridItem :: Model -> CatalogPost -> View model Action
+gridItem :: Props -> CatalogPost -> View model Action
 gridItem m post =
     div_
         [ class_ "thread grid-li grid-size-small"

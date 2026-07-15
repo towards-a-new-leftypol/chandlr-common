@@ -35,12 +35,6 @@ data Model = Model
     , selected_boards :: Maybe [ Board ]
     } deriving Eq
 
-getSetCatalogPosts :: Lens Model [ CatalogPost ]
-getSetCatalogPosts =
-    Lens
-        catalog_posts
-        (\x model -> model { catalog_posts = x })
-
 getSetMediaRoot :: Lens Model MisoString
 getSetMediaRoot =
     Lens

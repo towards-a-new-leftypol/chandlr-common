@@ -13,12 +13,14 @@ import Miso.String (MisoString)
 
 import Common.Network.CatalogPostType (CatalogPost)
 
-data Model = Model
+data Props = Props
   { display_items :: [ CatalogPost ]
   , media_root :: MisoString
   } deriving Eq
 
-type GridComponent parent = Component parent Model Model Action
+type Model = ()
+
+type GridComponent parent = Component parent Props Model Action
 
 newtype Action
     = ThreadSelected CatalogPost

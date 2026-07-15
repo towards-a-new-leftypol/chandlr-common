@@ -50,8 +50,8 @@ timeControl :: InitCtxRef -> View Model Action
 timeControl ctxRef = vfrag [ mount_ $ TC.app ctxRef ]
 
 
-grid :: InitCtxRef -> Grid.Model -> View model action
-grid ctxRef = Grid.gridView (Grid.app ctxRef)
+grid :: Grid.Props -> View model action
+grid = Grid.gridView Grid.app
 
 
 search :: View Model Action
@@ -80,7 +80,7 @@ commonCatalogView ctxRef m = pageWrapperWithDefaults ctxRef m $ vfrag
         ]
     , timeControl ctxRef
     , search
-    , grid ctxRef (gridPropsFromModel m)
+    , grid (gridPropsFromModel m)
     ]
 
 catalogView :: InitCtxRef -> Maybe String -> Maybe CookieJar -> Model -> View Model Action
@@ -102,7 +102,7 @@ searchView ctxRef _ _ m = pageWrapperWithDefaults ctxRef m $ vfrag
                 [ p_ [] [ text term ] ]
         )
     , search
-    , grid ctxRef (gridPropsFromModel m)
+    , grid (gridPropsFromModel m)
     ]
 
     where
@@ -118,5 +118,5 @@ page404 :: View model Action
 page404 = h1_ [] [ text "404 Not Found" ]
 
 
-gridPropsFromModel :: Model -> Grid.Model
-gridPropsFromModel = undefined
+gridPropsFromModel :: Model -> Grid.Props
+gridPropsFromModel m = Grid.Props (catalog_posts m) (media_root_ m)
