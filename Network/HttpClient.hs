@@ -8,6 +8,7 @@ module Common.Network.HttpClient
 , post
 , patch
 , delete
+, handleHttp
 ) where
 
 import Data.Text.Encoding (encodeUtf8)
