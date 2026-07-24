@@ -9,6 +9,8 @@ module Common.Network.HttpClient
 , patch
 , delete
 , handleHttp
+, RequestOptions (..)
+, defaultOptions
 ) where
 
 import Data.Text.Encoding (encodeUtf8)
@@ -35,6 +37,17 @@ data HttpError
 
 type Header = (HeaderName, [ BS.ByteString ])
 
+data RequestOptions = RequestOptions
+    { returnRepresentation :: Bool
+    , ignoreDuplicates :: Bool
+    }
+
+defaultOptions :: RequestOptions
+defaultOptions = RequestOptions
+    { returnRepresentation = False
+    , ignoreDuplicates = False
+    }
+
 get_ :: String -> [ Header ] -> IO (Either HttpError LBS.ByteString)
 get_ url headers = do
     initReq <- parseRequest url
@@ -58,14 +71,14 @@ request
   -> T.JSONSettings
   -> String
   -> LBS.ByteString
-  -> Bool
+  -> RequestOptions
   -> IO (Either HttpError LBS.ByteString)
-request method settings path payload return_repr = do
+request method settings path payload reqOpts = do
     let requestUrl = T.postgrest_url settings ++ path
     req <- parseRequest requestUrl
     let initReq = setRequestResponseTimeout responseTimeoutNone req
     let httpRequest = setRequestMethod method
-            . setRequestHeader "Authorization" jwt_header
+            . (uncurry setRequestHeader) (bearer settings)
             . setRequestHeader "Content-Type" [ "application/json" ]
             . setRequestBodyLBS payload
             . prefer
@@ -76,18 +89,38 @@ request method settings path payload return_repr = do
     handleHttp (httpLBS httpRequest)
 
     where
-      jwt_header = snd $ bearer settings
-      prefer =
-        if return_repr
-        then setRequestHeader "Prefer" [ "return=representation" ]
-        else id
+        havePreferHeader
+            =  returnRepresentation reqOpts
+            || ignoreDuplicates reqOpts
+
+        preferHeader :: Header
+        preferHeader = (,) "Prefer" $
+            [ "return=representation"        | returnRepresentation reqOpts ]
+            ++
+            [ "resolution=ignore-duplicates" | ignoreDuplicates     reqOpts ]
+
+        prefer
+            | havePreferHeader = (uncurry setRequestHeader) preferHeader
+            | otherwise = id
+
+
+request_
+  :: BS.ByteString
+  -> T.JSONSettings
+  -> String
+  -> LBS.ByteString
+  -> Bool
+  -> IO (Either HttpError LBS.ByteString)
+request_ method settings path payload returnRepr =
+    request method settings path payload
+        (defaultOptions { returnRepresentation = returnRepr })
 
 
 post
   :: T.JSONSettings
   -> String
   -> LBS.ByteString
-  -> Bool
+  -> RequestOptions
   -> IO (Either HttpError LBS.ByteString)
 post = request "POST"
 
@@ -98,7 +131,7 @@ patch
   -> LBS.ByteString
   -> Bool
   -> IO (Either HttpError LBS.ByteString)
-patch = request "PATCH"
+patch = request_ "PATCH"
 
 
 delete
@@ -106,7 +139,7 @@ delete
   -> String
   -> Bool
   -> IO (Either HttpError LBS.ByteString)
-delete settings path = request "DELETE" settings path LBS.empty
+delete settings path = request_ "DELETE" settings path LBS.empty
 
 
 bearer :: T.JSONSettings -> Header
