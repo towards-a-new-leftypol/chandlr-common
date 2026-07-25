@@ -74,19 +74,21 @@ request
   -> RequestOptions
   -> IO (Either HttpError LBS.ByteString)
 request method settings path payload reqOpts = do
-    let requestUrl = T.postgrest_url settings ++ path
-    req <- parseRequest requestUrl
-    let initReq = setRequestResponseTimeout responseTimeoutNone req
-    let httpRequest = setRequestMethod method
-            . (uncurry setRequestHeader) (bearer settings)
-            . setRequestHeader "Content-Type" [ "application/json" ]
-            . setRequestBodyLBS payload
-            . prefer
-            $ initReq
+    handleHttp $ do
+        let requestUrl = T.postgrest_url settings ++ path
+        req <- parseRequest requestUrl
+        let initReq = setRequestResponseTimeout responseTimeoutNone req
+        let httpRequest = setRequestMethod method
+                . (uncurry setRequestHeader) (bearer settings)
+                . setRequestHeader "Content-Type" [ "application/json" ]
+                . setRequestBodyLBS payload
+                . prefer
+                $ initReq
 
-    putStrLn $ show method ++ "ing to " ++ requestUrl
-    -- putStrLn $ "Payload: " ++ (LC8.unpack payload)
-    handleHttp (httpLBS httpRequest)
+        putStrLn $ show method ++ "ing to " ++ requestUrl
+        -- putStrLn $ "Payload: " ++ (LC8.unpack payload)
+
+        httpLBS httpRequest
 
     where
         havePreferHeader
