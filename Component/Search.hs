@@ -25,19 +25,17 @@ import Miso
   , topic
   )
 import qualified Miso as M
-import Miso.Binding ((-->))
 
 import Common.Component.Search.SearchTypes
 import Common.Component.Search.View
 import qualified Common.Network.ClientTypes as Client
 import qualified Common.Utils as Utils
-import qualified Common.FrontEnd.Model as FE
 
 
 pattern ReturnTopic :: Client.ReturnTopicName
 pattern ReturnTopic = "search-results"
 
-update :: Action -> Effect parent props Model Action
+update :: Action -> Effect context props Model Action
 update Initialize = do
     io_ $ consoleLog "Search component Initialize!"
     subscribe clientReturnTopic SearchResult OnMessageError
@@ -72,6 +70,7 @@ update (ChangeAndSubmit search_query) = do
 
 update (SearchResult (Client.ReturnResult result)) = do
     io_ $ consoleLog "Search - SearchResult action handler"
+
     Utils.helper result $ \searchResults -> do
         model <- get
         io_ $ publish
@@ -86,10 +85,10 @@ update (OnMessageError msg) =
 
 update (OnMessage (b, query)) = do
     io_ $ consoleLog "Search OnMessage"
-    modify (\m -> m { searchTerm = query, intendPushUri = b })
+    modify (\m -> m { intendPushUri = b })
     issue $ ChangeAndSubmit query
 
-app :: Component FE.Model props Model Action
+app :: Component context props Model Action
 app = M.Component
     { M.model = Model "" False
     , M.hydrateModel = Nothing
@@ -101,10 +100,9 @@ app = M.Component
     , M.logLevel = M.DebugAll
     , M.scripts = []
     , M.mailbox = const Nothing
-    , M.bindings =
-        [ FE.getSetSearchTerm --> getSetSearchTerm ]
     , M.eventPropagation = False
     , M.mount = Just Initialize
     , M.unmount = Just OnUnmount
     , M.onPropsChanged = Nothing
+    , M.useContext = False
     }

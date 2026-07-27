@@ -22,8 +22,8 @@ import Miso.Html
 
 import Common.Component.Search.SearchTypes
 
-view :: props -> Model -> View Model Action
-view = const $ const $ form_
+view :: context -> props -> model -> View context Action
+view = const $ const $ const $ form_
     [ class_ "search_form"
     , action_ "/search"
     , method_ "GET"
@@ -36,6 +36,6 @@ view = const $ const $ form_
     , input_
         [ type_ "text"
         , name_ "q"
-        , onChange $ SearchChange
+        , onChange SearchChange
         ]
     ]

@@ -20,15 +20,15 @@ import Miso.Html.Event
     ( onClick
     )
 
-data Model model a = Model
+data Model context a = Model
     { cancel :: a
     , submit :: a
-    , content :: View model a
+    , content :: View context a
     , title :: MisoString
     , action :: MisoString
     }
 
-view :: Model model a -> View context a
+view :: Model context a -> View context a
 view (Model {..}) =
     div_
         [ class_ "modal-dialog__outermost" ]

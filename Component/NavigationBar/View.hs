@@ -21,7 +21,7 @@ import Common.Component.NavigationBar.Model
 import qualified Common.Network.BoardType as Board
 import qualified Common.Network.SiteType as Site
 
-navbar :: Props -> Model -> View Model Action
+navbar :: Props -> Model -> View context Action
 navbar p m = div_
     [ class_ "navbar" ]
     [ div_
@@ -107,7 +107,7 @@ boardsText m
             boards = selectedBoards m
 
 
-maybeThreadCrumb :: Props -> [ View Model Action ]
+maybeThreadCrumb :: Props -> [ View context Action ]
 maybeThreadCrumb p =
     case maybeBoardThreadId (currentUri p) of
         Nothing -> []

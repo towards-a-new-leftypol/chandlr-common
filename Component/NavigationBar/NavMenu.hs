@@ -36,7 +36,7 @@ navmenu props m = div_ [ class_ "modal-dialog" ]
             }
     ]
     where
-        content :: Props -> Model -> View Model Action
+        content :: Props -> Model -> View context Action
         content _ Model { menuState = Closed } = vfrag []
         content p m_@Model { menuState = ChooseBoards } = div_
                 [ class_ "modal-dialog__content" ]
@@ -72,7 +72,7 @@ allOrNoneBoards s =
     ]
 
 
-chooseBoards ::  Props -> Model -> View Model Action
+chooseBoards ::  Props -> Model -> View context Action
 chooseBoards props model
     | currentSites model == emptyCurrentSites =
         button_
@@ -91,14 +91,14 @@ chooseBoards props model
                 All -> sitesAndBoards props
                 CurrentSites selectedSites -> Set.toList selectedSites
 
-        siteBoardsSection :: Model -> (Site.Site, [ Board.Board ]) -> View Model Action
+        siteBoardsSection :: Model -> (Site.Site, [ Board.Board ]) -> View context Action
         siteBoardsSection m (s, bs) = vfrag
             [ div_ [ class_ "modal-dialog__inline-content" ]
                 (h2_ [] [ text $ Site.name s ] : allOrNoneBoards s)
             , div_ [ class_ "modal-dialog__grid-column-content" ] (map (pickBoard m) bs)
             ]
 
-        pickBoard :: Model -> Board.Board -> View Model Action
+        pickBoard :: Model -> Board.Board -> View context Action
         pickBoard
             m b = div_
                 classes
@@ -131,10 +131,10 @@ chooseBoards props model
                 boardChoiceClass = [ class_ "site-choice", class_ "site-choice__board" ]
 
 
-chooseSites :: Props -> Model -> View Model Action
+chooseSites :: Props -> Model -> View context Action
 chooseSites props model = vfrag $ map pickSite (sitesAndBoards props)
     where
-        pickSite :: Site.Site -> View Model Action
+        pickSite :: Site.Site -> View context Action
         pickSite s =
             div_
                 classes

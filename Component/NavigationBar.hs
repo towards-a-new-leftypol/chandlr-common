@@ -15,7 +15,6 @@ import Miso
     , vfrag
     , get
     , URI
-    , emptyURI
     , Topic
     , topic
     , get

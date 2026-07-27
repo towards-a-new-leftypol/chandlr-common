@@ -72,8 +72,8 @@ data Message = Message
 timeControlTopic :: Topic Message
 timeControlTopic = topic "time-control"
 
-view :: props -> Model -> View model Time
-view _ m =
+view :: context -> props -> Model -> View context Time
+view _ _ m =
     div_
         [ class_ "time-control"
         ]
@@ -142,19 +142,19 @@ app
     :: InitCtxRef
     -> TimeControl parent props
 app _ = M.Component
-    { M.model = Model 0 True
-    , M.hydrateModel = Nothing
-    , M.update = update
-    , M.view = view
-    , M.subs = []
-    , M.styles = []
-    , M.mountPoint = Nothing
-    , M.logLevel = M.DebugAll
-    , M.scripts = []
-    , M.mailbox = const Nothing
-    , M.bindings = []
+    { M.model            = Model 0 True
+    , M.hydrateModel     = Nothing
+    , M.update           = update
+    , M.view             = view
+    , M.subs             = []
+    , M.styles           = []
+    , M.mountPoint       = Nothing
+    , M.logLevel         = M.DebugAll
+    , M.scripts          = []
+    , M.mailbox          = const Nothing
     , M.eventPropagation = False
-    , M.mount = Nothing
-    , M.unmount = Nothing
-    , M.onPropsChanged = Nothing
+    , M.mount            = Nothing
+    , M.unmount          = Nothing
+    , M.onPropsChanged   = Nothing
+    , M.useContext       = False
     }
