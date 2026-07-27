@@ -8,16 +8,22 @@ import qualified Data.Set as Set
 import Common.Network.SiteType (Site, site_id)
 import Common.Network.BoardType (Board)
 
+data Props = Props
+    { sitesAndBoards :: [ Site ]
+    , currentUri :: URI
+    } deriving Eq
+
+
 data Model = Model
     { menuState :: MenuState
-    , sitesAndBoards :: [ Site ]
     , currentSites :: CurrentSites
-    , currentUri :: URI
     , selectedBoards :: Set Board
     , allBoardsSelected :: Bool
     , hydrate :: Bool
     } deriving Eq
 
+
+{-
 getSetSitesAndBoards :: Lens Model [ Site ]
 getSetSitesAndBoards =
     Lens
@@ -43,6 +49,7 @@ getSetCurrentUri =
     Lens
         currentUri
         (\x model -> model { currentUri = x })
+-}
 
 data MenuState
     = ChooseSites

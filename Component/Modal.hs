@@ -28,7 +28,7 @@ data Model model a = Model
     , action :: MisoString
     }
 
-view :: Model model a -> View model a
+view :: Model model a -> View context a
 view (Model {..}) =
     div_
         [ class_ "modal-dialog__outermost" ]

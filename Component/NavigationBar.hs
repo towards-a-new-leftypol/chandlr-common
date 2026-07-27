@@ -21,6 +21,7 @@ import Miso
     , get
     , publish
     , hydrateModel
+    , getProps
     )
 
 import Miso.JSON (FromJSON, ToJSON)
@@ -32,7 +33,6 @@ import Common.Component.NavigationBar.Action
 import Common.Component.NavigationBar.View
 import Common.Component.NavigationBar.Model
 import Common.Component.NavigationBar.NavMenu
-import qualified Common.FrontEnd.Model as FE
 import qualified Common.Network.BoardType as Board
 import Common.Utils
 import qualified Common.FrontEnd.Types as T
@@ -43,9 +43,8 @@ import JSFFI.MisoFFI (deleteCookie, setCookie)
 import Common.BitField
 import Control.Monad (void)
 import Miso
-    ( Component (bindings, mount)
+    ( Component (mount, onPropsChanged)
     , consoleLog
-    , (-->)
     , issue
     , toMisoString
     , io
@@ -56,29 +55,24 @@ import Utils (getSelectedBoardIdsFromCookie, boardsSelCookieName)
 initialModel :: Model
 initialModel = Model
   { menuState = Closed
-  , sitesAndBoards = []
   , currentSites = CurrentSites Set.empty
-  , currentUri = emptyURI
   , selectedBoards = Set.empty
   , allBoardsSelected = True
   , hydrate = False
   }
 
-app :: T.InitCtxRef -> Component FE.Model props Model Action
+app :: T.InitCtxRef -> Component context Props Model Action
 #ifndef FRONT_END
 app ctxRef = (component initialModel undefined view)
     { hydrateModel = Just $ initializeModel ctxRef }
 #else
 app ctxRef = (component initialModel update view)
-    { bindings =
-        [ FE.getSetSitesAndBoards --> getSetSitesAndBoards
-        , FE.getSetCurrentUri --> getSetCurrentUri
-        ]
-    , mount = Just Initialize
+    { mount = Just Initialize
     , hydrateModel = Just $ initializeModel ctxRef
+    , onPropsChanged = undefined
     }
 
-update :: Action -> Effect parent props Model Action
+update :: Action -> Effect context Props Model Action
 update Initialize = do
     model <- get
 
@@ -96,9 +90,11 @@ update Initialize = do
 
 update Noop = return ()
 
-update (InitSelectedSites boardIds) =
+update (InitSelectedSites boardIds) = do
+    props <- getProps
+
     modify $ \m ->
-        setModelBoardSelection m boardIds
+        setModelBoardSelection (sitesAndBoards props) m boardIds
 
 update ClickSites = do
     io_ $ consoleLog "Choose Sites Clicked!"
@@ -119,10 +115,11 @@ update CancelMenu = do
 update (ToggleSite s) = do
     io_ $ consoleLog "toggle site!"
     model <- get
+    props <- getProps
     case currentSites model of
         All -> do
             let
-                allSites = Set.fromList $ sitesAndBoards model
+                allSites = Set.fromList $ sitesAndBoards props
                 withoutS = Set.delete s allSites
 
             modify $ \m -> m
@@ -185,10 +182,12 @@ update (RemoveFromSite s) = do
     issue ReloadCatalogGridBecauseSelectedBoardsChanged
 
 update SelectAllSites = do
+    props <- getProps
+
     modify $ \m -> m
-        { currentSites = CurrentSites (Set.fromList $ sitesAndBoards m)
+        { currentSites = CurrentSites (Set.fromList $ sitesAndBoards props)
         , selectedBoards = Set.fromList $
-            concatMap (toList . Site.boards) $ sitesAndBoards m
+            concatMap (toList . Site.boards) $ sitesAndBoards props
         , allBoardsSelected = True
         }
     issue ReloadCatalogGridBecauseSelectedBoardsChanged
@@ -217,11 +216,11 @@ update ReloadCatalogGridBecauseSelectedBoardsChanged = do
             in void $ setCookie boardsSelCookieName cookieval
 #endif
 
-setModelBoardSelection :: Model -> Set.Set Int -> Model
-setModelBoardSelection m boardIds =
+setModelBoardSelection :: [ Site.Site ] -> Model -> Set.Set Int -> Model
+setModelBoardSelection sitesAndBoards_ m boardIds =
     let
         (sites, boards) =
-            foldr step (Set.empty, Set.empty) (sitesAndBoards m)
+            foldr step (Set.empty, Set.empty) sitesAndBoards_
     in
         m
             { currentSites = CurrentSites sites
@@ -249,21 +248,17 @@ initializeModel ctxRef = do
     let
         sitesAndBoards_ = T.sitesAndBoards $ T.init_payload ctx
 
-        model = initialModel
-            { hydrate = T.hydrate ctx
-            , sitesAndBoards = sitesAndBoards_
-            , currentUri = T.init_uri ctx
-            }
+        model = initialModel { hydrate = T.hydrate ctx }
 
-        in return $ case T.init_board_selection ctx of
-                Nothing -> model
-                Just boardIds -> setModelBoardSelection model boardIds
+    return $ case T.init_board_selection ctx of
+        Nothing -> model
+        Just boardIds -> setModelBoardSelection sitesAndBoards_ model boardIds
 
 
-view :: propse -> Model -> View Model Action
-view _ m = vfrag
-    [ navmenu m
-    , navbar m
+view :: context -> Props -> Model -> View context Action
+view _ p m = vfrag
+    [ navmenu p m
+    , navbar p m
     ]
 
 shouldNavigateBackToCatalog :: URI -> Bool
@@ -272,10 +267,11 @@ shouldNavigateBackToCatalog u
     | otherwise                    = True
 
 
-changeMenuStateOrNavigate :: MenuState -> Effect parent props Model Action
+changeMenuStateOrNavigate :: MenuState -> Effect parent Props Model Action
 changeMenuStateOrNavigate newstate = do
-    model <- get
-    if shouldNavigateBackToCatalog (currentUri model)
+    props <- getProps
+
+    if shouldNavigateBackToCatalog (currentUri props)
     then
         io_ $ publish navigationBarTopic GoToCatalog
     else

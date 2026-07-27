@@ -70,7 +70,6 @@ pageWrapperWithDefaults ctxRef m inner_content =
         , Nav.supportingSvgs
         ]
 
-
 commonCatalogView :: InitCtxRef -> Model -> View Model Action
 commonCatalogView ctxRef m = pageWrapperWithDefaults ctxRef m $ vfrag
     [ div_

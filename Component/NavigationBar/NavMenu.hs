@@ -21,30 +21,30 @@ import qualified Common.Component.Modal as Modal
 import qualified Common.Network.SiteType as Site
 import qualified Common.Network.BoardType as Board
 
-navmenu :: Model -> View Model Action
-navmenu Model { menuState = Closed } = vfrag []
-navmenu m = div_ [ class_ "modal-dialog" ]
+navmenu :: Props -> Model -> View context Action
+navmenu _ Model { menuState = Closed } = vfrag []
+navmenu props m = div_ [ class_ "modal-dialog" ]
     [ Modal.view
         Modal.Model
             { Modal.cancel = CancelMenu
             , Modal.submit = case menuState m of
                 ChooseSites -> ClickBoards
                 _           -> SubmitMenuChoice
-            , Modal.content = content m
+            , Modal.content = content props m
             , Modal.title = title m
             , Modal.action = "Apply"
             }
     ]
     where
-        content :: Model -> View Model Action
-        content Model { menuState = Closed } = vfrag []
-        content m_@Model { menuState = ChooseBoards } = div_
+        content :: Props -> Model -> View Model Action
+        content _ Model { menuState = Closed } = vfrag []
+        content p m_@Model { menuState = ChooseBoards } = div_
                 [ class_ "modal-dialog__content" ]
-                [ chooseBoards m_ ]
-        content m_@Model { menuState = ChooseSites } = div_
+                [ chooseBoards p m_ ]
+        content p m_@Model { menuState = ChooseSites } = div_
                 [ class_ "modal-dialog__content" ]
                 [ div_ [ class_ "modal-dialog__inline-content" ] allOrNoneSites
-                , chooseSites m_
+                , chooseSites p m_
                 ]
 
         title :: Model -> MisoString
@@ -72,8 +72,8 @@ allOrNoneBoards s =
     ]
 
 
-chooseBoards ::  Model -> View Model Action
-chooseBoards model
+chooseBoards ::  Props -> Model -> View Model Action
+chooseBoards props model
     | currentSites model == emptyCurrentSites =
         button_
             [ class_ "modal-dialog__button"
@@ -88,7 +88,7 @@ chooseBoards model
         sites :: [ Site.Site ]
         sites =
             case currentSites model of
-                All -> sitesAndBoards model
+                All -> sitesAndBoards props
                 CurrentSites selectedSites -> Set.toList selectedSites
 
         siteBoardsSection :: Model -> (Site.Site, [ Board.Board ]) -> View Model Action
@@ -131,8 +131,8 @@ chooseBoards model
                 boardChoiceClass = [ class_ "site-choice", class_ "site-choice__board" ]
 
 
-chooseSites ::  Model -> View Model Action
-chooseSites model = vfrag $ map pickSite (sitesAndBoards model)
+chooseSites :: Props -> Model -> View Model Action
+chooseSites props model = vfrag $ map pickSite (sitesAndBoards props)
     where
         pickSite :: Site.Site -> View Model Action
         pickSite s =

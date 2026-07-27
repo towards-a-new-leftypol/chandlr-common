@@ -6,7 +6,7 @@
 {-# HLINT ignore "Move brackets to avoid $" #-}
 
 module Common.Component.CatalogGrid
-    ( Model (..)
+    ( Model
     , Action (..)
     , view
     , update
