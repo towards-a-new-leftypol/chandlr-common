@@ -16,12 +16,12 @@ initialModel :: Model
 initialModel = ()
 
 
-app :: (Eq m, Eq props) => Component Model props m a -> Component parent props Model Action
+app :: (Eq context, Eq m, Eq props) => Component context props m a -> Component context props Model Action
 app innerComponent = component initialModel update (view innerComponent)
 
 
-view :: (Eq m, Eq props) => Component Model props m a -> props -> Model -> View Model Action
-view innerComponent props = const $ vfrag
+view :: (Eq context, Eq m, Eq props) => Component context props m a -> context -> props -> Model -> View context Action
+view innerComponent _ props = const $ vfrag
   [ mountWithProps props innerComponent
   ]
 

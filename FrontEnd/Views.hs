@@ -16,6 +16,7 @@ import Miso
     , text
     , key_
     , mount_
+    , mountWithProps
     , vfrag
     )
 import Miso.Html.Property (class_)
@@ -35,6 +36,7 @@ import qualified Common.Component.Search as Search
 import qualified Common.Component.CatalogGrid as Grid
 import qualified Common.Component.CatalogGrid.GridTypes as Grid
 import qualified Common.Component.Thread as Thread
+import qualified Common.Component.Thread.Model as Thread
 import qualified Common.Component.TimeControl as TC
 import Common.FrontEnd.Routes (BoardThreadId)
 import qualified Network.Client as Client
@@ -42,35 +44,36 @@ import Common.FrontEnd.Types (InitCtxRef)
 import qualified Common.Admin.Component.DeleteIllegalPost as DIP
 import qualified Common.Component.NavigationBar.View as Nav
 import qualified Common.Component.NavigationBar as Nav
+import qualified Common.Component.NavigationBar.Model as Nav
 import Common.Cookies (CookieJar)
 
 import Debug.Trace (trace)
 
-timeControl :: InitCtxRef -> View Model Action
+timeControl :: Eq context => InitCtxRef -> View context Action
 timeControl ctxRef = vfrag [ mount_ $ TC.app ctxRef ]
 
 
-grid :: Grid.Props -> View model action
+grid :: Eq context => Grid.Props -> View context action
 grid = Grid.gridView Grid.app
 
 
-search :: View Model Action
+search :: Eq context => View context Action
 search = div_ [ key_ ("search" :: MisoString) ] [ mount_ Search.app ]
 
 
-pageWrapperWithDefaults :: InitCtxRef -> Model -> View Model Action -> View Model Action
+pageWrapperWithDefaults :: Eq context => InitCtxRef -> Model -> View context Action -> View context Action
 pageWrapperWithDefaults ctxRef m inner_content =
     trace ("pageWrapperWithDefaults being called. Number of items in catalog_grid: " ++ (show $ length $ catalog_posts m)) $
     vfrag
         [ mount_ Client.app
-        , mount_ DIP.app
+        , mountWithProps (Thread.Props (admin m) (media_root_ m)) DIP.app
         -- , pre_ [] [ text $ "between_pages: " <> if between_pages then "True" else "False" ]
-        , mount_ $ Nav.app ctxRef
+        , mountWithProps (Nav.Props (all_sites_and_boards m) (current_uri m)) $ Nav.app ctxRef
         , div_ [ class_ "page-inner-content" ] [ inner_content ]
         , Nav.supportingSvgs
         ]
 
-commonCatalogView :: InitCtxRef -> Model -> View Model Action
+commonCatalogView :: Eq context => InitCtxRef -> Model -> View context Action
 commonCatalogView ctxRef m = pageWrapperWithDefaults ctxRef m $ vfrag
     [ div_
         [ class_ "page_heading" ]
@@ -82,13 +85,32 @@ commonCatalogView ctxRef m = pageWrapperWithDefaults ctxRef m $ vfrag
     , grid (gridPropsFromModel m)
     ]
 
-catalogView :: InitCtxRef -> Maybe String -> Maybe CookieJar -> Model -> View Model Action
+catalogView
+    :: Eq context
+    => InitCtxRef
+    -> Maybe String
+    -> Maybe CookieJar
+    -> Model
+    -> View context Action
 catalogView ctxRef _ _ m = commonCatalogView ctxRef m
 
-boardView :: InitCtxRef -> a -> a -> Maybe CookieJar -> Model -> View Model Action
+boardView
+    :: Eq context
+    => InitCtxRef
+    -> a
+    -> a
+    -> Maybe CookieJar
+    -> Model
+    -> View context Action
 boardView ctxRef _ _ _ m = commonCatalogView ctxRef m
 
-searchView :: InitCtxRef -> Maybe String -> Maybe CookieJar -> Model -> View Model Action
+searchView
+    :: Eq context
+    => InitCtxRef
+    -> Maybe String
+    -> Maybe CookieJar
+    -> Model
+    -> View context Action
 searchView ctxRef _ _ m = pageWrapperWithDefaults ctxRef m $ vfrag
     [ div_
         [ class_ "page_heading" ]
@@ -108,9 +130,21 @@ searchView ctxRef _ _ m = pageWrapperWithDefaults ctxRef m $ vfrag
         term = search_term m
 
 
-threadView :: InitCtxRef -> Text -> Text -> BoardThreadId -> Maybe CookieJar -> Model -> View Model Action
+threadView
+    :: Eq context
+    => InitCtxRef
+    -> Text
+    -> Text
+    -> BoardThreadId
+    -> Maybe CookieJar
+    -> Model
+    -> View context Action
 threadView ctxRef site_name board_pathpart board_thread_id cookies m =
-    pageWrapperWithDefaults ctxRef m $ vfrag [ mount_ (Thread.app ctxRef) ]
+    pageWrapperWithDefaults ctxRef m $ vfrag
+        [ mountWithProps
+            (Thread.Props (admin m) (media_root_ m))
+            (Thread.app ctxRef)
+        ]
 
 
 page404 :: View model Action

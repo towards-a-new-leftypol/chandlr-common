@@ -62,10 +62,9 @@ import qualified Common.Network.SiteType as Site
 import qualified Common.Component.BodyRender as Body
 import Common.FrontEnd.Types
 import qualified Common.Component.InfiniteScroll as Inf
-import qualified Common.Component.InfiniteScroll.Model as Inf
 
 
-app :: GridComponent Inf.Model
+app :: GridComponent context
 app =
     M.Component
         { M.model = ()
@@ -78,11 +77,11 @@ app =
         , M.logLevel = M.DebugAll
         , M.scripts = []
         , M.mailbox = const Nothing
-        , M.bindings = []
         , M.eventPropagation = False
         , M.mount = Nothing
         , M.unmount = Nothing
         , M.onPropsChanged = Nothing
+        , M.useContext = False
         }
 
 
@@ -104,7 +103,7 @@ update (ThreadSelected post) = do
         publish catalogOutTopic $ SelectThread post
 
 
-gridView :: GridComponent Inf.Model -> Props -> View model action
+gridView :: (Eq context) => GridComponent context -> Props -> View context action
 gridView gridC props =
     div_
         [ class_ "theme-catalog" ]
@@ -115,8 +114,8 @@ gridView gridC props =
         ]
 
 
-view :: Props -> Model -> View model Action
-view props _ = div_
+view :: context -> Props -> Model -> View context Action
+view _ props _ = div_
     [ id_ "Grid" ]
     (map (gridItem props) (display_items props))
 

@@ -36,17 +36,18 @@ import qualified Common.Component.BodyRender as Body
 
 op
     :: (PostWithBody -> [ View model action ])
+    -> Props
     -> Model
     -> Post
     -> Backlinks
     -> [ View model action ]
-op introExtras m op_post backlinks =
+op introExtras p m op_post backlinks =
     [ files_or_embed_view
     , div_
         [ classList_
             [ ("post", True)
             , ("op", True)
-            , ("post-with-admin", admin m)
+            , ("post-with-admin", admin p)
             , ("multifile", multi op_post)
             ]
         , id_ (toMisoString $ show $ Post.board_post_id op_post)
@@ -67,7 +68,7 @@ op introExtras m op_post backlinks =
         files_or_embed_view =
           case Post.embed op_post of
             Just _ -> embed op_post
-            Nothing -> files (media_root m) site_ op_post
+            Nothing -> files (media_root p) site_ op_post
 
 
         site_ :: Site
@@ -89,12 +90,13 @@ multi post = length (Post.attachments post) > 1
 
 
 reply
-  :: (PostWithBody -> [ View model action ])
+  :: (PostWithBody -> [ View context action ])
+  -> Props
   -> Model
   -> Backlinks
   -> PostWithBody
-  -> View model action
-reply introExtras m backlinks pwb@(post, parts) = div_
+  -> View context action
+reply introExtras p m backlinks pwb@(post, parts) = div_
     [ class_ "postcontainer"
     , id_ $ toMisoString $ show $ Post.board_post_id post
     , key_ $ "post#" <> show (Post.post_id post)
@@ -107,7 +109,7 @@ reply introExtras m backlinks pwb@(post, parts) = div_
             [
             ("post", True)
             , ("reply", True)
-            , ("post-with-admin", admin m)
+            , ("post-with-admin", admin p)
             , ("multifile", multi post)
             ]
         ]
@@ -127,7 +129,7 @@ reply introExtras m backlinks pwb@(post, parts) = div_
         files_or_embed_view =
           case Post.embed post of
             Just _ -> embed post
-            Nothing -> files (media_root m) site_ post
+            Nothing -> files (media_root p) site_ post
 
         site_ :: Site
         site_ = site m

@@ -39,7 +39,6 @@ import Miso.Html.Property
   ( class_
   )
 import qualified Miso as M
-import Miso.Binding ((-->))
 import Data.List.NonEmpty (head)
 import Miso.String (toMisoString, MisoString)
 import Data.Time.Clock (getCurrentTime)
@@ -55,18 +54,17 @@ import Common.Component.Thread.Model
 import Common.Parsing.BodyParser
 import qualified Common.Component.BodyRender as Body
 import Common.Component.Thread.Types
-import qualified Common.FrontEnd.JSONSettings as Settings
+--import qualified Common.FrontEnd.JSONSettings as Settings
 import Common.FrontEnd.Types
-import qualified Common.FrontEnd.Model as FE
 import qualified Common.Admin.Component.DeleteIllegalPost as DIP
 import Common.Admin.DeleteBtn (deleteBtn)
 import Common.Component.PostViews (op, reply)
 
 import Miso.JSON (encode)
 
-type ThreadComponent parent props = Component parent props Model Action
+type ThreadComponent context = Component context Props Model Action
 
-app :: InitCtxRef -> ThreadComponent FE.Model props
+app :: InitCtxRef -> ThreadComponent context
 app ctxRef = M.Component
     { M.model = emptyModel
     , M.hydrateModel = Just $ initializeModel ctxRef
@@ -78,31 +76,28 @@ app ctxRef = M.Component
     , M.logLevel = M.DebugAll
     , M.scripts = []
     , M.mailbox = const Nothing
-    , M.bindings =
-        [ FE.getSetAdmin --> getSetAdmin
-        , FE.getSetMediaRoot --> getSetMediaRoot
-        ]
     , M.eventPropagation = False
     , M.mount = Just Initialize
     , M.unmount = Nothing
     , M.onPropsChanged = Nothing
+    , M.useContext = False
     }
 
 initializeModel :: InitCtxRef -> IO Model
 initializeModel ctxRef = do
   ctx <- readIORef ctxRef
 
-  let settings = init_settings ctx
+  -- let settings = init_settings ctx
   let initialPayload = init_payload ctx
 
   case initialPayload of
     (InitialDataPayload t (ThreadData s pwbs) _) ->
           return Model
             { site = s
-            , media_root = Settings.media_root settings
+            -- , media_root = Settings.media_root settings
             , post_bodies = pwbs
             , current_time = t
-            , admin = Settings.admin settings
+            -- , admin = Settings.admin settings
             }
 
     _ -> return emptyModel
@@ -144,15 +139,15 @@ update (OnDeleteBtn pwb) = do
     io_ $ publish DIP.deleteIllegalPostInTopic $ DIP.InMessage model { post_bodies = [ pwb ] }
 
 
-view :: props -> Model -> View model Action
-view _ m =
+view :: context -> Props -> Model -> View context Action
+view _ props m =
   div_
     []
     [ h1_ [] [ text title ]
     , div_
         [ class_ "thread" ]
         (  op_post (post_bodies m)
-        ++ map (reply (deleteBtn_ m) m backlinks) (drop 1 (post_bodies m))
+        ++ map (reply (deleteBtn_ props) props m backlinks) (drop 1 (post_bodies m))
         )
     ]
 
@@ -162,7 +157,7 @@ view _ m =
 
         op_post :: [ PostWithBody ] -> [ View model Action ]
         op_post [] = [ h2_ [] [ "There's nothing here" ] ]
-        op_post ((p, _):_) = op (deleteBtn_ m) m p backlinks
+        op_post ((p, _):_) = op (deleteBtn_ props) props m p backlinks
 
         title :: MisoString
         title = toMisoString $ Site.name (site m) <> " /" <> board <> "/"
@@ -171,9 +166,9 @@ view _ m =
 
 
 deleteBtn_
-    :: Model
+    :: Props
     -> PostWithBody
-    -> [ View model Action ]
-deleteBtn_ m p
-  | admin m = [ deleteBtn (OnDeleteBtn p) ]
+    -> [ View context Action ]
+deleteBtn_ props p
+  | admin props = [ deleteBtn (OnDeleteBtn p) ]
   | otherwise = []

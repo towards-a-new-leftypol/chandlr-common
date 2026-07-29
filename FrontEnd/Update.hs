@@ -8,7 +8,6 @@ module Common.FrontEnd.Update where
 import Miso
     ( URI (..)
     , Effect
-    , ROOT
     , publish
     , consoleLog
     , consoleError
@@ -69,7 +68,7 @@ pattern SitesAndBoards :: Client.ReturnTopicName
 pattern SitesAndBoards = "main-sites_and_boards"
 
 
-mainUpdate :: Action -> Effect ROOT () Model Action
+mainUpdate :: Action -> Effect context () Model Action
 mainUpdate NoAction = return ()
 mainUpdate (Initialize ctxRef) = do
     subscribe clientLatestReturnTopic (ClientResponse SenderLatest) OnErrorMessage

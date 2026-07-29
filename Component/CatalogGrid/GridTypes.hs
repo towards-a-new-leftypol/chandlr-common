@@ -20,7 +20,7 @@ data Props = Props
 
 type Model = ()
 
-type GridComponent parent = Component parent Props Model Action
+type GridComponent context = Component context Props Model Action
 
 newtype Action
     = ThreadSelected CatalogPost

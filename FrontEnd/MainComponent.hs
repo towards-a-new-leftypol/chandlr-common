@@ -55,11 +55,11 @@ app ctxRef =
         , M.logLevel      = DebugAll
         , M.scripts = []
         , M.mailbox = handleMail
-        , M.bindings = []
         , M.eventPropagation = False
         , M.mount = Just (Initialize ctxRef)
         , M.unmount = Nothing
         , M.onPropsChanged = Nothing
+        , M.useContext = False
         }
 
     where
@@ -146,12 +146,18 @@ initializeModel ctxRef = do
                 _ -> ""
 
 
-mainView :: InitCtxRef -> () -> Model -> View Model Action
-mainView ctxRef _ model = mainView_
+mainView
+    :: Eq context
+    => InitCtxRef
+    -> context
+    -> ()
+    -> Model
+    -> View context Action
+mainView ctxRef _ _ model = mainView_
     where
         mainView_ = either (const page404) id $
             route
-                (Proxy :: Proxy (Route (View Model Action)))
+                (Proxy :: Proxy (Route (View context Action)))
                 handlers
                 current_uri
                 model

@@ -84,12 +84,12 @@ deleteIllegalPostInTopic = topic "deleteIllegal-in"
 pattern ReturnTopic :: Client.ReturnTopicName
 pattern ReturnTopic = "delete-illegal-post-results"
 
-type DeleteIllegalPostComponent parent props = M.Component parent props Model Action
+type DeleteIllegalPostComponent context props = M.Component context props Model Action
 
 initialModel :: Model
 initialModel = Model Nothing Nothing False
 
-app :: DeleteIllegalPostComponent parent props
+app :: DeleteIllegalPostComponent context T.Props
 app = M.Component
     { M.model = initialModel
     , M.hydrateModel = Nothing
@@ -101,10 +101,11 @@ app = M.Component
     , M.logLevel = M.DebugAll
     , M.scripts = []
     , M.mailbox = const Nothing
-    , M.bindings = []
     , M.eventPropagation = False
     , M.mount = Just Initialize
     , M.unmount = Nothing
+    , M.onPropsChanged = Nothing
+    , M.useContext = False
     }
 
 
@@ -195,8 +196,8 @@ update Submit = do
 update = undefined
 #endif
 
-view :: props -> Model -> View model Action
-view _ m = vfrag hide
+view :: context -> T.Props -> Model -> View context Action
+view _ props m = vfrag hide
 
     where
         hide
@@ -211,7 +212,7 @@ view _ m = vfrag hide
                         ( Modal.Model
                             { Modal.cancel = Cancel
                             , Modal.submit = Submit
-                            , Modal.content = content x { T.admin = False }
+                            , Modal.content = content x
                             , Modal.title = "Delete post and attachments?"
                             , Modal.action = "Delete"
                             }
@@ -272,7 +273,7 @@ view _ m = vfrag hide
                 threads = filter (\x -> P.local_idx x == 1) posts
 
 
-        content :: T.Model -> View model Action
+        content :: T.Model -> View context Action
         content threadModel@T.Model { T.post_bodies = (pwb@(post, _):_) } =
             div_ [ class_ "modal-dialog__content" ]
                 [ statusMessage m post
@@ -280,10 +281,10 @@ view _ m = vfrag hide
                     (
                         if isOp post
                         then
-                            op (const []) threadModel post Map.empty
+                            op (const []) props threadModel post Map.empty
                             ++ [ div_ [ class_ "clearfix" ] [] ]
                         else
-                            [ reply (const []) threadModel Map.empty pwb ]
+                            [ reply (const []) props threadModel Map.empty pwb ]
                     )
                 ]
 
