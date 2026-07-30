@@ -42,7 +42,7 @@ import JSFFI.MisoFFI (deleteCookie, setCookie)
 import Common.BitField
 import Control.Monad (void)
 import Miso
-    ( Component (mount, onPropsChanged)
+    ( Component (mount)
     , consoleLog
     , issue
     , toMisoString
@@ -68,7 +68,6 @@ app ctxRef = (component initialModel undefined view)
 app ctxRef = (component initialModel update view)
     { mount = Just Initialize
     , hydrateModel = Just $ initializeModel ctxRef
-    , onPropsChanged = undefined
     }
 
 update :: Action -> Effect context Props Model Action
