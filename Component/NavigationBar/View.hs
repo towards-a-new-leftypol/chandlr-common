@@ -15,60 +15,109 @@ import Servant.API hiding (URI)
 import Common.FrontEnd.Routes (Route)
 import Servant.Miso.Router (route)
 import Data.Either (fromRight)
+import Data.Text (Text)
 
 import Common.Component.NavigationBar.Action
 import Common.Component.NavigationBar.Model
 import qualified Common.Network.BoardType as Board
 import qualified Common.Network.SiteType as Site
 
+data ThreadPath = ThreadPath
+    { threadPathSite  :: MisoString
+    , threadPathBoard :: MisoString
+    , threadPathId    :: MisoString
+    }
+
+
 navbar :: Props -> Model -> View context Action
-navbar p m = div_
-    [ class_ "navbar" ]
-    [ div_
-        [ class_ "menu_button" ]
-        [ div_ [ class_ "menu_button--burger-icon" ] [] ]
-    , div_
-        [ class_ "breadcrumbs--wrapper" ]
+navbar p m =
+    let
+        mThreadPath = maybeThreadPath (currentUri p)
+        sitesLabel  = maybe (sitesText m) threadPathSite mThreadPath
+        boardsLabel = maybe
+            [ text $ boardsText m ]
+            (slashes . threadPathBoard)
+            mThreadPath
+    in div_
+        [ class_ "navbar" ]
         [ div_
-            [ class_ "breadcrumbs" ]
-            ([ div_
-                [ class_ "breadcrumb breadcrumb--clickable"
-                , onClick ClickSites
-                ]
-                [ span_ [] [ text $ sitesText m ]
-                , svg_
-                    [class_ "breadcrumb--chevron-svg-forward"]
-                    [use_ [href_ "#svg-chevron-right-forward"]]
-                , div_
-                    [class_ "breadcrumb--dots"]
-                    [ svg_ [class_ "breadcrumb--dots-dot"] [use_ [href_ "#svg-dot"]]
-                    , svg_ [class_ "breadcrumb--dots-dot"] [use_ [href_ "#svg-dot"]]
-                    , svg_ [class_ "breadcrumb--dots-dot"] [use_ [href_ "#svg-dot"]]
-                    ]
-                ]
-            , div_
-                [ class_ "breadcrumb breadcrumb--clickable"
-                , onClick ClickBoards
-                ]
-                [ svg_
-                    [class_ "breadcrumb--chevron-svg-aft"]
-                    [use_ [href_ "#svg-chevron-right-aft"]]
-                , span_ [] [ text $ boardsText m ]
-                , svg_
-                    [class_ "breadcrumb--chevron-svg-forward"]
-                    [use_ [href_ "#svg-chevron-right-forward"]]
-                , div_
-                    [class_ "breadcrumb--dots"]
-                    [ svg_ [class_ "breadcrumb--dots-dot"] [use_ [href_ "#svg-dot"]]
-                    , svg_ [class_ "breadcrumb--dots-dot"] [use_ [href_ "#svg-dot"]]
-                    , svg_ [class_ "breadcrumb--dots-dot"] [use_ [href_ "#svg-dot"]]
-                    ]
-                ]
+            [ class_ "menu_button" ]
+            [ div_ [ class_ "menu_button--burger-icon" ] [] ]
+        , div_
+            [ class_ "breadcrumbs--wrapper" ]
+            [ div_
+                [ class_ "breadcrumbs" ]
+                ([ sitesCrumb sitesLabel
+                 , boardsCrumb boardsLabel
+                 ]
+                 ++ maybeThreadCrumb mThreadPath)
             ]
-            ++ maybeThreadCrumb p
-            )
+        ]
+
+    where
+        slashes pathpart =
+            [ span_ [ class_ "breadcrumb--boardslash" ] [ "/" ]
+            , text pathpart
+            , span_ [ class_ "breadcrumb--boardslash" ] [ "/" ]
+            ]
+
+
+
+sitesCrumb :: MisoString -> View context Action
+sitesCrumb label = div_
+    [ class_ "breadcrumb breadcrumb--clickable"
+    , onClick ClickSites
+    ]
+    [ span_ [] [ text label ]
+    , chevronForward
+    , crumbDots
+    ]
+
+
+boardsCrumb :: [ View context Action ] -> View context Action
+boardsCrumb label = div_
+    [ class_ "breadcrumb breadcrumb--clickable"
+    , onClick ClickBoards
+    ]
+    [ chevronAft
+    , span_ [] label
+    , chevronForward
+    , crumbDots
+    ]
+
+
+maybeThreadCrumb :: Maybe ThreadPath -> [ View context Action ]
+maybeThreadCrumb Nothing = []
+maybeThreadCrumb (Just tp) =
+    [ div_
+        [ class_ "breadcrumb" ]
+        [ chevronAft
+        , span_ [] [ text $ threadPathId tp ]
         ]
     ]
+
+
+chevronForward :: View model action
+chevronForward = svg_
+    [ class_ "breadcrumb--chevron-svg-forward" ]
+    [ use_ [ href_ "#svg-chevron-right-forward" ] ]
+
+
+chevronAft :: View model action
+chevronAft = svg_
+    [ class_ "breadcrumb--chevron-svg-aft" ]
+    [ use_ [ href_ "#svg-chevron-right-aft" ] ]
+
+
+crumbDots :: View model action
+crumbDots = div_
+    [ class_ "breadcrumb--dots" ]
+    [ dot, dot, dot ]
+    where
+        dot = svg_
+            [ class_ "breadcrumb--dots-dot" ]
+            [ use_ [ href_ "#svg-dot" ] ]
+
 
 sitesText :: Model -> MisoString
 sitesText m
@@ -107,40 +156,26 @@ boardsText m
             boards = selectedBoards m
 
 
-maybeThreadCrumb :: Props -> [ View context Action ]
-maybeThreadCrumb p =
-    case maybeBoardThreadId (currentUri p) of
-        Nothing -> []
-        Just x ->
-            [ div_
-                [ class_ "breadcrumb" ]
-                [ svg_
-                    [ class_ "breadcrumb--chevron-svg-aft" ]
-                    [ use_ [ href_ "#svg-chevron-right-aft" ] ]
-                , span_ [] [ text x ]
-                ]
-            ]
-
-
-maybeBoardThreadId :: URI -> Maybe MisoString
-maybeBoardThreadId = fromRight Nothing . routeResult
+maybeThreadPath :: URI -> Maybe ThreadPath
+maybeThreadPath = fromRight Nothing . routeResult
 
     where
         routeResult uri = route (Proxy :: Proxy (Route (View () ()))) handlers (const uri) undefined
 
         handlers = hLatest :<|> hThread :<|> hBoard :<|> hSearch
 
-        hLatest :: a -> h -> m -> Maybe MisoString
+        hLatest :: a -> h -> m -> Maybe ThreadPath
         hLatest = const $ const $ const Nothing
 
-        hThread :: a -> a -> Integer -> h -> m -> Maybe MisoString
-        hThread _ _ x _ _ = Just $ toMisoString  $ show x <> ".html"
+        hThread :: Text -> Text -> Integer -> h -> m -> Maybe ThreadPath
+        hThread site board x _ _ =
+            Just $ ThreadPath (toMisoString site) (toMisoString board) $ toMisoString (show x <> ".html")
 
-        hSearch :: Maybe String -> h -> m -> Maybe MisoString
-        hSearch = const $ const $ const Nothing
-
-        hBoard :: a -> a -> h -> m -> Maybe MisoString
+        hBoard :: a -> a -> h -> m -> Maybe ThreadPath
         hBoard = const $ const $ const $ const Nothing
+
+        hSearch :: Maybe String -> h -> m -> Maybe ThreadPath
+        hSearch = const $ const $ const Nothing
 
 
 supportingSvgs :: View model action
