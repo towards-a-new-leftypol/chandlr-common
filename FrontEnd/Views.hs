@@ -139,7 +139,7 @@ threadView
     -> Maybe CookieJar
     -> Model
     -> View context Action
-threadView ctxRef site_name board_pathpart board_thread_id cookies m =
+threadView ctxRef _site_name _board_pathpart _board_thread_id _cookies m =
     pageWrapperWithDefaults ctxRef m $ vfrag
         [ mountWithProps
             (Thread.Props (admin m) (media_root_ m))

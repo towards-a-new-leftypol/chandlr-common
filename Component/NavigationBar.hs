@@ -13,11 +13,9 @@ import Miso
     , View
     , modify
     , vfrag
-    , get
     , URI
     , Topic
     , topic
-    , get
     , publish
     , hydrateModel
     , getProps
@@ -47,6 +45,7 @@ import Miso
     , issue
     , toMisoString
     , io
+    , get
     )
 import Utils (getSelectedBoardIdsFromCookie, boardsSelCookieName)
 #endif

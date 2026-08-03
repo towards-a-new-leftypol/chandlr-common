@@ -85,3 +85,9 @@ timeFromInitialPayload ctx =
     where
         p = init_payload ctx
         uri = init_uri ctx
+
+
+data DeletePostResults = DeletePostResults
+    { sites :: [ Site ]
+    , noticer_success_fail_counts :: (Int, Int)
+    } deriving (Generic, ToJSON)
