@@ -42,6 +42,7 @@ import qualified Common.Network.BoardType as B
 import qualified Common.Network.ThreadType as T
 
 #ifdef FRONT_END
+import Common.FrontEnd.Types (DeletePostResults (..))
 import qualified Common.Component.Thread.Types as TT
 import qualified Common.Utils as Utils
 import JSFFI.MisoFFI
@@ -61,7 +62,7 @@ import Miso
 
 data Model = Model
     { threadData :: Maybe T.Model
-    , deleteRequestResult :: Maybe (Either MisoString [ Site.Site ])
+    , deleteRequestResult :: Maybe (Either MisoString DeletePostResults)
     , busy :: Bool
     }
     deriving Eq
@@ -135,20 +136,20 @@ update (ClientResponse (Client.ReturnResult httpResult)) = do
     Utils.helperE httpResult saveDeleteResult saveDeleteErrorResult
 
     where
-        saveDeleteResult :: [ Site.Site ] -> Effect parent props Model Action
-        saveDeleteResult sites = do
-            io_ $ consoleLog $ toMisoString $ show sites
+        saveDeleteResult :: DeletePostResults -> Effect context props Model Action
+        saveDeleteResult results@DeletePostResults { sites = sites_ } = do
+            io_ $ consoleLog $ toMisoString $ show sites_
             modify
                 ( \m -> m
-                    { deleteRequestResult = Just $ Right sites
-                    , busy = True
+                    { deleteRequestResult = Just $ Right results
+                    , busy = False
                     }
                 )
             io_ $ publish
                 TT.threadTopic $
-                TT.PostDeleted $ map P.post_id $ postsFromSites sites
+                TT.PostDeleted $ map P.post_id $ postsFromSites sites_
 
-        saveDeleteErrorResult :: MisoString -> Effect parent props Model Action
+        saveDeleteErrorResult :: MisoString -> Effect context props Model Action
         saveDeleteErrorResult errMsg = do
             io_ $ consoleError errMsg
             modify
@@ -249,10 +250,14 @@ view _ props m = vfrag hide
                     ]
                 ]
 
-        statusMessage Model { deleteRequestResult = Just (Right sites) } _ =
+        statusMessage Model
+            { deleteRequestResult = Just (Right (DeletePostResults sites_ (noticerSuccess, noticerFail)))
+            } _ =
             div_
                 [ class_ "warning-message warning-message--success" ]
-                [ p_ [] [ successMessage ] ]
+                [ p_ [] [ successMessage ]
+                , p_ [] [ noticerSummary ]
+                ]
 
             where
                 successMessage
@@ -266,7 +271,18 @@ view _ props m = vfrag hide
                                 <> toMisoString (show $ length threads)
                                 <> " threads."
 
-                posts = postsFromSites sites
+                noticerSummary
+                    | noticerFail == 0 =
+                        if noticerSuccess > 0
+                        then
+                            text "All offending posts saved to SpamNoticer"
+                        else
+                            text "SpamNoticer wasn't used."
+                    | otherwise = text $ "Only " <> toMisoString noticerSuccess
+                        <> " out of " <> (toMisoString $ noticerSuccess + noticerFail)
+                        <> " attachments were successfully uploaded to SpamNoticer. Tell your sysadmin to check logs"
+
+                posts = postsFromSites sites_
 
                 attachments = concatMap P.attachments posts
 

@@ -459,7 +459,7 @@ initialActionFromRoute model uri = fromRight NoAction routing_result
                     toMisoString $ unEscapeString $ search_query
 
         h_board :: Text -> Text -> c -> Model -> Action
-        h_board website board_pathpart c m = undefined
+        h_board _website _board_pathpart _ _ = undefined
 
 
 siteFromSSite :: Flx.SSite -> Site

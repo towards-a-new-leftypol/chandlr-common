@@ -2,13 +2,14 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE CPP #-}
 
 module Common.FrontEnd.JSONSettings where
 
 import Miso
     ( View
     )
-import Miso.String (MisoString, toMisoString, fromMisoString, pack)
+import Miso.String (MisoString, toMisoString)
 import Miso.Html
     ( meta_
     )
@@ -18,7 +19,10 @@ import Miso.Html.Property
     )
 import GHC.Generics
 import Miso.JSON (FromJSON)
+#ifndef FRONT_END
 import qualified Common.Server.JSONSettings as S
+import Miso.String (fromMisoString, pack)
+#endif
 
 data JSONSettings = JSONSettings
     { postgrest_url :: MisoString
@@ -47,6 +51,7 @@ asHtml settings =
     where
         meta name value = meta_ [ name_ name, content_ value ]
 
+#ifndef FRONT_END
 clientSettings :: JSONSettings -> S.JSONSettings
 clientSettings (JSONSettings {..}) = S.JSONSettings
     { S.postgrest_url = fromMisoString postgrest_url
@@ -56,3 +61,4 @@ clientSettings (JSONSettings {..}) = S.JSONSettings
     , S.site_name = undefined
     , S.site_url = undefined
     }
+#endif
