@@ -109,7 +109,7 @@ gridView gridC props =
         [ class_ "theme-catalog" ]
         [ div_
             [ class_ "threads" ]
-            [ mountWithProps props $ Inf.app gridC
+            [ mountWithProps props $ Inf.app gridC "catalog"
             ]
         ]
 

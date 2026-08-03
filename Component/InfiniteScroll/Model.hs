@@ -1,3 +1,7 @@
 module Common.Component.InfiniteScroll.Model where
 
-type Model = ()
+import Miso (MisoString)
+
+newtype Model = Model
+    { label :: MisoString
+    } deriving Eq

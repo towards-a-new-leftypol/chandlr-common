@@ -34,11 +34,10 @@ import Common.FrontEnd.Routes (Route)
 
 helperE
     :: (FromJSON a)
-    => forall parent
-    . Http.HttpResult
-    -> (a -> Effect parent props model action)
-    -> (MisoString -> Effect parent props model action)
-    -> Effect parent props model action
+    => Http.HttpResult
+    -> (a -> Effect context props model action)
+    -> (MisoString -> Effect context props model action)
+    -> Effect context props model action
 helperE (Http.Error e) _ onError = onError e
 helperE (Http.HttpResponse status_code status_text (Just body)) continue onError = do
     io_ $ do
