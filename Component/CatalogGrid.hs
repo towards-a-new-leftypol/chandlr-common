@@ -15,7 +15,6 @@ module Common.Component.CatalogGrid
     , GridComponent
     , OutMessage (..)
     , catalogOutTopic
-    , gridView
     ) where
 
 import Data.Maybe (maybeToList)
@@ -34,7 +33,6 @@ import Miso
     , io_
     , consoleLog
     , key_
-    , mountWithProps
     )
 import Miso.Html
     ( div_
@@ -61,10 +59,9 @@ import Common.Component.CatalogGrid.GridTypes
 import qualified Common.Network.SiteType as Site
 import qualified Common.Component.BodyRender as Body
 import Common.FrontEnd.Types
-import qualified Common.Component.InfiniteScroll as Inf
 
 
-app :: GridComponent context
+app :: Foldable f => GridComponent context f
 app =
     M.Component
         { M.model = ()
@@ -103,24 +100,13 @@ update (ThreadSelected post) = do
         publish catalogOutTopic $ SelectThread post
 
 
-gridView :: (Eq context) => GridComponent context -> Props -> View context action
-gridView gridC props =
-    div_
-        [ class_ "theme-catalog" ]
-        [ div_
-            [ class_ "threads" ]
-            [ mountWithProps props $ Inf.app gridC "catalog"
-            ]
-        ]
-
-
-view :: context -> Props -> Model -> View context Action
+view :: Foldable f => context -> Props f -> Model -> View context Action
 view _ props _ = div_
     [ id_ "Grid" ]
-    (map (gridItem props) (display_items props))
+    (foldMap ((: []) . gridItem props) (display_items props))
 
 
-gridItem :: Props -> CatalogPost -> View model Action
+gridItem :: Props f -> CatalogPost -> View model Action
 gridItem m post =
     div_
         [ class_ "thread grid-li grid-size-small"

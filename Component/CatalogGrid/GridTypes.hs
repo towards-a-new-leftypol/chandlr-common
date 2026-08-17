@@ -3,6 +3,8 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DerivingVia #-}
+{-# LANGUAGE StandaloneDeriving #-}
+{-# LANGUAGE UndecidableInstances #-}
 
 module Common.Component.CatalogGrid.GridTypes where
 
@@ -13,14 +15,16 @@ import Miso.String (MisoString)
 
 import Common.Network.CatalogPostType (CatalogPost)
 
-data Props = Props
-  { display_items :: [ CatalogPost ]
+data Props f = Props
+  { display_items :: f CatalogPost
   , media_root :: MisoString
-  } deriving Eq
+  }
+
+deriving stock instance Eq (f CatalogPost) => Eq (Props f)
 
 type Model = ()
 
-type GridComponent context = Component context Props Model Action
+type GridComponent context f = Component context (Props f) Model Action
 
 newtype Action
     = ThreadSelected CatalogPost

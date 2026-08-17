@@ -33,8 +33,7 @@ import Data.Text (Text)
 import Common.FrontEnd.Model
 import Common.FrontEnd.Action (Action (..))
 import qualified Common.Component.Search as Search
-import qualified Common.Component.CatalogGrid as Grid
-import qualified Common.Component.CatalogGrid.GridTypes as Grid
+import qualified Common.Component.Catalog as Catalog
 import qualified Common.Component.Thread as Thread
 import qualified Common.Component.Thread.Model as Thread
 import qualified Common.Component.TimeControl as TC
@@ -45,6 +44,7 @@ import qualified Common.Admin.Component.DeleteIllegalPost as DIP
 import qualified Common.Component.NavigationBar.View as Nav
 import qualified Common.Component.NavigationBar as Nav
 import qualified Common.Component.NavigationBar.Model as Nav
+import qualified Common.Component.InfiniteScroll as Inf
 import Common.Cookies (CookieJar)
 
 import Debug.Trace (trace)
@@ -52,9 +52,15 @@ import Debug.Trace (trace)
 timeControl :: Eq context => InitCtxRef -> View context Action
 timeControl ctxRef = vfrag [ mount_ $ TC.app ctxRef ]
 
-
-grid :: Eq context => Grid.Props -> View context action
-grid = Grid.gridView Grid.app
+grid :: Eq context => Catalog.Props -> View context action
+grid props =
+    div_
+        [ class_ "theme-catalog" ]
+        [ div_
+            [ class_ "threads" ]
+            [ mountWithProps props $ Inf.app Catalog.app "catalog"
+            ]
+        ]
 
 
 search :: Eq context => View context Action
@@ -151,5 +157,5 @@ page404 :: View model Action
 page404 = h1_ [] [ text "404 Not Found" ]
 
 
-gridPropsFromModel :: Model -> Grid.Props
-gridPropsFromModel m = Grid.Props (catalog_posts m) (media_root_ m)
+gridPropsFromModel :: Model -> Catalog.Props
+gridPropsFromModel m = Catalog.Props $ media_root_ m
