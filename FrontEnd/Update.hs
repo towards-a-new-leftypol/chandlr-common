@@ -58,9 +58,6 @@ import qualified Common.Component.NavigationBar as NavB
 pattern Sender :: Client.ReturnTopicName
 pattern Sender = "main"
 
-pattern SenderLatest :: Client.ReturnTopicName
-pattern SenderLatest = "main-latest"
-
 pattern SenderThread :: Client.ReturnTopicName
 pattern SenderThread = "main-thread"
 
@@ -71,7 +68,6 @@ pattern SitesAndBoards = "main-sites_and_boards"
 mainUpdate :: Action -> Effect context () Model Action
 mainUpdate NoAction = return ()
 mainUpdate (Initialize ctxRef) = do
-    subscribe clientLatestReturnTopic (ClientResponse SenderLatest) OnErrorMessage
     subscribe clientThreadReturnTopic (ClientResponse SenderThread) OnErrorMessage
     subscribe clientSitesAndBoardsTopic (ClientResponse SitesAndBoards) OnErrorMessage
     subscribe Grid.catalogOutTopic GridMessage OnErrorMessage
@@ -105,9 +101,6 @@ mainUpdate (Initialize ctxRef) = do
         )
 
     where
-        clientLatestReturnTopic :: Topic Client.MessageOut
-        clientLatestReturnTopic = topic SenderLatest
-
         clientThreadReturnTopic :: Topic Client.MessageOut
         clientThreadReturnTopic = topic SenderThread
 
@@ -243,18 +236,6 @@ mainUpdate (GridMessage (Grid.SelectThread catalog_post)) = do
 mainUpdate (OnErrorMessage msg) =
     io_ $ consoleError ("Main Component OnErrorMessage decode failure: " <> toMisoString msg)
 
-mainUpdate (ClientResponse SenderLatest (Client.ReturnResult result)) = do
-    io_ $ consoleLog "ClientResponse - SenderLatest have encoded result"
-    Utils.helper result $
-        \catalogPosts -> do
-            io_ $ consoleLog $ "ClientResponse - SenderLatest, saving posts to model. number of posts: " <> toMisoString (show $ length catalogPosts)
-            modify
-                ( \m -> m
-                    { catalog_posts = catalogPosts
-                    , between_pages = False
-                    }
-                )
-
 mainUpdate (ClientResponse SenderThread (Client.ReturnResult result)) = do
     io_ $ consoleLog $ SenderThread <> " - Has result. Storing result in model."
 
@@ -278,49 +259,44 @@ mainUpdate (ClientResponse SitesAndBoards (Client.ReturnResult result)) = do
 
 mainUpdate (ClientResponse _ (Client.ReturnResult _)) = return ()
 
-mainUpdate (GoToTime r (T.Now t)) = do
-    modify (\m -> m { current_time = T.Now t, between_pages = True })
+mainUpdate (GoToTime r time) = do
+    modify (\m -> m { current_time = time, between_pages = True })
     model <- get
 
     io_ $ do
         consoleLog "GoToTime Now"
         consoleLog $ toMisoString $ show (map Board.board_id <$> selected_boards model)
 
-        publish
-            Client.clientInTopic
-            ( SenderLatest
-            , Client.FetchLatest t (map Board.board_id <$> selected_boards model)
-            )
+        -- publish
+        --     Client.clientInTopic
+        --     ( SenderLatest
+        --     , Client.FetchLatest t (map Board.board_id <$> selected_boards model)
+        --     )
+
+            -- here we need to inform Catalog to reload the catalog
+            -- technically we can use props for this and watch for changed props in catalog
+            -- or should I send Catalog a message?
+            --      Catalog changes when:
+            --          - Time changes
+            --          - selected_boards changes
+            --          - page scroll (but that comes from a message)
 
         consoleLog $ "calling replaceURI on " <> toMisoString (show (new_current_uri model))
         (if r then replaceURI else pushURI) $ new_current_uri model
 
     where
         new_current_uri :: Model -> URI
-        new_current_uri m = (current_uri m)
-            { uriQueryString = Map.empty
-            , uriFragment = ""
-            }
-
-mainUpdate (GoToTime r (T.Then t)) = do
-    modify (\m -> m { current_time = T.Then t, between_pages = True })
-    model <- get
-
-    io_ $ publish
-        Client.clientInTopic
-        ( SenderLatest
-        , Client.FetchLatest t (map Board.board_id <$> selected_boards model)
-        )
-
-    io_ $ do
-        consoleLog $ "calling replaceURI on " <> toMisoString (show (new_current_uri model))
-        (if r then replaceURI else pushURI) $ new_current_uri model
-
-    where
-        new_current_uri :: Model -> URI
-        new_current_uri m = (current_uri m)
-            { uriQueryString = Map.fromList [ ("t", Just $ toMisoString $ show t) ]
-            }
+        new_current_uri m =
+            case time of
+                T.Now _ ->
+                    (current_uri m)
+                        { uriQueryString = Map.empty
+                        , uriFragment = ""
+                        }
+                T.Then t ->
+                    (current_uri m)
+                        { uriQueryString = Map.fromList [ ("t", Just $ toMisoString $ show t) ]
+                        }
 
 mainUpdate (GetThread Client.GetThreadArgs {..}) = do
     io_ $ consoleLog $ "Thread " <> (toMisoString $ show board_thread_id)
@@ -334,12 +310,13 @@ mainUpdate (ChangeURI uri) = do
     io_ $ consoleLog $ "ChangeURI! " <> (toMisoString $ show uri)
     model <- get
 
-    if not $ between_pages model then do
-        io_ $ consoleLog $ "Not between pages, issuing initialAction, between_pages: " <> (toMisoString $ show $ (between_pages model))
-        issue $ initialActionFromRoute model uri
-    else do
-        io_ $ consoleLog "Between pages."
-        modify (\m -> m { between_pages = False })
+    -- if not $ between_pages model then do
+    --     io_ $ consoleLog $ "Not between pages, issuing initialAction, between_pages: " <> (toMisoString $ show $ (between_pages model))
+    --     issue $ initialActionFromRoute model uri
+    -- else do
+    --     io_ $ consoleLog "Between pages."
+    --     modify (\m -> m { between_pages = False })
+    issue $ initialActionFromRoute model uri
 
 mainUpdate (SearchResults Search.Mounted) = do
     io_ $ consoleLog "main Update - Search mounted"
@@ -360,10 +337,10 @@ mainUpdate (SearchResults Search.UnMounted) = do
     io_ $ consoleLog "main Update - Search unmounted"
     modify (\m -> m { search_mounted = False })
 
-mainUpdate (SearchResults (Search.SearchResults (intendPushUri, searchTerm, catalogPosts))) = do
-    io_ $ consoleLog $ "MainComponent - SearchResults. intendPushUri: " <> (toMisoString $ show intendPushUri) <> ", searchTerm: " <> searchTerm <> ", number of results: " <> (toMisoString $ show $ length catalogPosts)
+mainUpdate (SearchResults (Search.SearchResults (intendPushUri, searchTerm, results))) = do
+    io_ $ consoleLog $ "MainComponent - SearchResults. intendPushUri: " <> (toMisoString $ show intendPushUri) <> ", searchTerm: " <> searchTerm <> ", number of results: " <> (toMisoString $ show $ length results)
     modify (\m -> m
-        { catalog_posts = catalogPosts
+        { search_results = results
         , between_pages = intendPushUri
         , search_term = searchTerm })
 

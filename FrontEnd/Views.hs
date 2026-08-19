@@ -47,8 +47,6 @@ import qualified Common.Component.NavigationBar.Model as Nav
 import qualified Common.Component.InfiniteScroll as Inf
 import Common.Cookies (CookieJar)
 
-import Debug.Trace (trace)
-
 timeControl :: Eq context => InitCtxRef -> View context Action
 timeControl ctxRef = vfrag [ mount_ $ TC.app ctxRef ]
 
@@ -69,7 +67,6 @@ search = div_ [ key_ ("search" :: MisoString) ] [ mount_ Search.app ]
 
 pageWrapperWithDefaults :: Eq context => InitCtxRef -> Model -> View context Action -> View context Action
 pageWrapperWithDefaults ctxRef m inner_content =
-    trace ("pageWrapperWithDefaults being called. Number of items in catalog_grid: " ++ (show $ length $ catalog_posts m)) $
     vfrag
         [ mount_ Client.app
         , mountWithProps (Thread.Props (admin m) (media_root_ m)) DIP.app
@@ -158,4 +155,8 @@ page404 = h1_ [] [ text "404 Not Found" ]
 
 
 gridPropsFromModel :: Model -> Catalog.Props
-gridPropsFromModel m = Catalog.Props $ media_root_ m
+gridPropsFromModel m = Catalog.Props
+    { Catalog.mediaRoot = media_root_ m
+    , Catalog.currentTime = current_time m
+    , Catalog.selectedBoards = selected_boards m
+    }

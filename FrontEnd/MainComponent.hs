@@ -22,7 +22,7 @@ import Data.List.NonEmpty (toList)
 import qualified Data.Set as Set
 
 import qualified Common.FrontEnd.JSONSettings as Settings
-import qualified Common.Component.CatalogGrid as Grid
+import Common.Network.CatalogPostType (CatalogPost)
 import Common.Component.TimeControl (earliest)
 import Common.FrontEnd.Routes
 import Common.FrontEnd.Model
@@ -77,10 +77,9 @@ app ctxRef =
             , thread_message = Nothing
             , pg_api_root = ""
             , client_fetch_count = 0
-            , catalog_posts = []
+            , search_results = []
             , between_pages = False
             , admin = False
-            -- , initialized = False -- TODO: get rid of this, it doesn't reflect everything being mounted, we need a better way if we want components to display ghost elements before they're loaded
             , client_mounted = False
             , search_mounted = False
             , search_message = Nothing
@@ -125,7 +124,7 @@ initializeModel ctxRef = do
               , thread_message = Nothing
               , pg_api_root = toMisoString $ Settings.postgrest_url settings
               , client_fetch_count = Settings.postgrest_fetch_count settings
-              , catalog_posts = Grid.initialItems $ initialData initialPayload
+              , search_results = initialSearchResults $ initialData initialPayload
               , between_pages = False
               , admin = Settings.admin settings
               -- , initialized = True
@@ -144,6 +143,11 @@ initializeModel ctxRef = do
             case pageTypeFromURI u of
                 Search (Just q) -> toMisoString  q
                 _ -> ""
+
+        initialSearchResults :: InitialData -> [ CatalogPost ]
+        initialSearchResults (SearchData posts) = posts
+        initialSearchResults _ = []
+
 
 
 mainView

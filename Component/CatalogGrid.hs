@@ -11,7 +11,6 @@ module Common.Component.CatalogGrid
     , view
     , update
     , app
-    , initialItems
     , GridComponent
     , OutMessage (..)
     , catalogOutTopic
@@ -80,12 +79,6 @@ app =
         , M.onPropsChanged = Nothing
         , M.useContext = False
         }
-
-
-initialItems :: InitialData -> [ CatalogPost ]
-initialItems (CatalogData catalog_posts) = catalog_posts
-initialItems (SearchData catalog_posts) = catalog_posts
-initialItems _ = []
 
 
 -- Custom event handler with preventDefault set to True

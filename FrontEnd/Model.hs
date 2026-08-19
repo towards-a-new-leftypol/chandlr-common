@@ -22,7 +22,7 @@ data Model = Model
     , thread_message :: Maybe Thread.Message
     , pg_api_root :: MisoString
     , client_fetch_count :: Int
-    , catalog_posts :: [ CatalogPost ]
+    , search_results :: [ CatalogPost ]
     , between_pages :: Bool
     , admin :: Bool
     -- , initialized :: Bool
