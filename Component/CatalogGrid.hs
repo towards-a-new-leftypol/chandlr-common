@@ -57,7 +57,6 @@ import Common.Parsing.EmbedParser (extractVideoId)
 import Common.Component.CatalogGrid.GridTypes
 import qualified Common.Network.SiteType as Site
 import qualified Common.Component.BodyRender as Body
-import Common.FrontEnd.Types
 
 
 app :: Foldable f => GridComponent context f

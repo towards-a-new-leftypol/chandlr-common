@@ -68,13 +68,18 @@ search = div_ [ key_ ("search" :: MisoString) ] [ mount_ Search.app ]
 pageWrapperWithDefaults :: Eq context => InitCtxRef -> Model -> View context Action -> View context Action
 pageWrapperWithDefaults ctxRef m inner_content =
     vfrag
-        [ mount_ Client.app
+        [ mountWithProps clientProps Client.app
         , mountWithProps (Thread.Props (admin m) (media_root_ m)) DIP.app
         -- , pre_ [] [ text $ "between_pages: " <> if between_pages then "True" else "False" ]
         , mountWithProps (Nav.Props (all_sites_and_boards m) (current_uri m)) $ Nav.app ctxRef
         , div_ [ class_ "page-inner-content" ] [ inner_content ]
         , Nav.supportingSvgs
         ]
+
+    where
+        clientProps :: Client.Props
+        clientProps = Client.Props (pg_api_root m) (client_fetch_count m)
+
 
 commonCatalogView :: Eq context => InitCtxRef -> Model -> View context Action
 commonCatalogView ctxRef m = pageWrapperWithDefaults ctxRef m $ vfrag

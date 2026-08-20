@@ -2,7 +2,6 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DerivingStrategies #-}
-{-# LANGUAGE RecordWildCards #-}
 
 module Common.Network.ClientTypes where
 
@@ -20,9 +19,15 @@ data Action
     | OnMessage MessageIn
     | OnErrorMessage MisoString
     | Publish ReturnTopicName MessageOut
+    | PropsInitialized
     | Initialize
 
-data Model = Uninitialized | Model
+data Model = Model
+    { initialized :: Bool
+    , messageQueue :: [ MessageIn ]
+    } deriving Eq
+
+data Props = Props
   { pgApiRoot :: MisoString
   , fetchCount :: Int
   } deriving (Eq, Show, Generic, ToJSON, FromJSON)
@@ -54,7 +59,6 @@ data Query
     | GetThread GetThreadArgs
     | Search MisoString
     | DeleteIllegalPost DeleteIllegalPostArgs
-    | InitModel Model
     | LoadAllSitesAndBoards
     deriving (Eq, Generic, ToJSON, FromJSON)
 

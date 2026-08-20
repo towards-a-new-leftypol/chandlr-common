@@ -1,10 +1,10 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE PatternSynonyms #-}
 
 module Common.Component.Catalog where
 
-import Data.Sequence (empty)
 import Miso
-    ( Component
+    ( Component (mount)
     , component
     , vfrag
     , View
@@ -20,6 +20,9 @@ import Miso
     , toMisoString
     , getProps
     , consoleError
+    , get
+    , publish
+    , io_
     )
 
 import Data.Time.Clock (UTCTime)
@@ -31,7 +34,11 @@ import Common.Network.CatalogPostType (CatalogPost)
 import Common.FrontEnd.Types (Pages (..), Page (..), Time (..))
 import qualified Common.Network.ClientTypes as Client
 import qualified Common.Utils as Utils
-import Common.Network.BoardType (Board)
+import qualified Common.Network.BoardType as Board
+import Control.Monad (when)
+
+pattern SenderLatest :: Client.ReturnTopicName
+pattern SenderLatest = "main-latest"
 
 type CatalogPages = Pages (UTCTime, Maybe UTCTime) [] CatalogPost
 
@@ -42,14 +49,14 @@ data Model = Model
 
 initialModel :: Model
 initialModel = Model
-    { pages = Pages empty
+    { pages = Pages Seq.empty
     , scrollTime = Nothing
     }
 
 data Props = Props
     { mediaRoot :: MisoString
     , currentTime :: Time
-    , selectedBoards :: Maybe [ Board ]
+    , selectedBoards :: Maybe [ Board.Board ]
     }
     deriving Eq
 
@@ -59,7 +66,8 @@ data Action
     | OnErrorMessage MisoString
 
 app :: Eq context => Component context Props Model Action
-app = component initialModel (const $ return ()) view
+app = (component initialModel update view)
+    { mount = Just Initialize }
 
 view :: Eq context => context -> Props -> Model -> View context Action
 view _ props model = vfrag [ mountWithProps (mkGridProps model props) Grid.app ]
@@ -68,11 +76,35 @@ mkGridProps :: Model -> Props -> Grid.Props (Pages (UTCTime, Maybe UTCTime) [])
 mkGridProps m p = Grid.Props (pages m) (mediaRoot p)
 
 clientLatestReturnTopic :: Topic Client.MessageOut
-clientLatestReturnTopic = topic "main-latest"
+clientLatestReturnTopic = topic SenderLatest
 
 update :: Action -> Effect context Props Model Action
-update Initialize =
+update Initialize = do
     subscribe clientLatestReturnTopic ClientResponse OnErrorMessage
+
+    model <- get
+
+    io_ $
+        consoleLog $ "Catalog Initialize. emptyPages: " <> toMisoString (show (emptyPages $ pages model))
+
+    when (emptyPages $ pages model) $ do
+        props <- getProps
+        io_ $ do
+            consoleLog "Catalog - pages are empty, asking client for latest catalog"
+            publish Client.clientInTopic
+                ( SenderLatest
+                , Client.FetchLatest
+                    (utcTimeFromTime $ currentTime props)
+                    (map Board.board_id <$> selectedBoards props)
+                )
+
+    where
+        emptyPages :: Pages a b c -> Bool
+        emptyPages (Pages a) = Seq.null a
+
+        utcTimeFromTime :: Time -> UTCTime
+        utcTimeFromTime (Now t) = t
+        utcTimeFromTime (Then t) = t
 
 update (ClientResponse (Client.ReturnResult result)) = do
     io_ $ consoleLog "ClientResponse - have Catalog encoded result"

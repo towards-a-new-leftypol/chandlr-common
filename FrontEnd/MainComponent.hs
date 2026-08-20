@@ -149,7 +149,6 @@ initializeModel ctxRef = do
         initialSearchResults _ = []
 
 
-
 mainView
     :: Eq context
     => InitCtxRef

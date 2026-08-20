@@ -118,17 +118,15 @@ mainUpdate (Initialize ctxRef) = do
 
 
 mainUpdate (InitNoHydration ctx) = do
-    io_ $ consoleLog "InitNoHydration - initializing model from settings"
+    io_ $ consoleLog $ "InitNoHydration - initializing model from settings: "
+        <> toMisoString (show settings)
 
     modify $ \m -> m
         { current_uri = uri
         , media_root_ = toMisoString $ Settings.media_root settings
         , current_time = current_time_
         , search_term = searchTermFromUri uri
-        , on_client_mounted_initial_actions =
-            [ initialActionFromRoute (m { current_time = current_time_ }) uri
-            , InitAllSitesAndBoards
-            ]
+        , on_client_mounted_initial_actions = [ InitAllSitesAndBoards ]
         , thread_message = Nothing
         , pg_api_root = toMisoString $ Settings.postgrest_url settings
         , client_fetch_count = Settings.postgrest_fetch_count settings
@@ -153,22 +151,8 @@ mainUpdate (InitNoHydration ctx) = do
 
 -- This may also come from the mailbox, see MainComponent handleMail
 mainUpdate ClientMounted = do
-    io_ $ consoleLog "ClientMounted"
+    io_ $ consoleLog "MainComponent - ClientMounted"
     model <- get
-
-    io_ $ do
-        consoleLog "Http Client Mounted!"
-        consoleLog $ "pg_api_root: " <> pg_api_root model
-        consoleLog $ "client_fetch_count: " <> toMisoString (client_fetch_count model)
-
-        publish
-            Client.clientInTopic
-            ( Sender
-            , Client.InitModel $
-                Client.Model
-                    (pg_api_root model)
-                    (client_fetch_count model)
-            )
 
     mapM_ issue $ on_client_mounted_initial_actions model
 
@@ -310,13 +294,12 @@ mainUpdate (ChangeURI uri) = do
     io_ $ consoleLog $ "ChangeURI! " <> (toMisoString $ show uri)
     model <- get
 
-    -- if not $ between_pages model then do
-    --     io_ $ consoleLog $ "Not between pages, issuing initialAction, between_pages: " <> (toMisoString $ show $ (between_pages model))
-    --     issue $ initialActionFromRoute model uri
-    -- else do
-    --     io_ $ consoleLog "Between pages."
-    --     modify (\m -> m { between_pages = False })
-    issue $ initialActionFromRoute model uri
+    if not $ between_pages model then do
+        io_ $ consoleLog $ "Not between pages, issuing initialAction, between_pages: " <> (toMisoString $ show $ (between_pages model))
+        issue $ initialActionFromRoute model uri
+    else do
+        io_ $ consoleLog "Between pages."
+        modify (\m -> m { between_pages = False })
 
 mainUpdate (SearchResults Search.Mounted) = do
     io_ $ consoleLog "main Update - Search mounted"
