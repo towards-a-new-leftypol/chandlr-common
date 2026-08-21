@@ -82,7 +82,7 @@ pageWrapperWithDefaults ctxRef m inner_content =
 
 
 commonCatalogView :: Eq context => InitCtxRef -> Model -> View context Action
-commonCatalogView ctxRef m = pageWrapperWithDefaults ctxRef m $ vfrag
+commonCatalogView ctxRef m = pageWrapperWithDefaults ctxRef m $ vfrag $
     [ div_
         [ class_ "page_heading" ]
         [ h1_ [] [ text $ page_title m ]
@@ -90,8 +90,11 @@ commonCatalogView ctxRef m = pageWrapperWithDefaults ctxRef m $ vfrag
         ]
     , timeControl ctxRef
     , search
-    , grid (gridPropsFromModel m)
     ]
+    ++ if hydrated m || client_mounted m
+    then
+        [ grid (gridPropsFromModel m) ]
+    else []
 
 catalogView
     :: Eq context
@@ -100,7 +103,7 @@ catalogView
     -> Maybe CookieJar
     -> Model
     -> View context Action
-catalogView ctxRef _ _ m = commonCatalogView ctxRef m
+catalogView ctxRef _ _ = commonCatalogView ctxRef
 
 boardView
     :: Eq context

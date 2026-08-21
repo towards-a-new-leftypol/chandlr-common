@@ -4,7 +4,7 @@
 module Common.Component.Catalog where
 
 import Miso
-    ( Component (mount)
+    ( Component (mount, onPropsChanged)
     , component
     , vfrag
     , View
@@ -23,24 +23,25 @@ import Miso
     , get
     , publish
     , io_
+    , issue
     )
 
 import Data.Time.Clock (UTCTime)
 import qualified Common.Component.CatalogGrid as Grid
 import qualified Common.Component.CatalogGrid.GridTypes as Grid
 import qualified Data.Sequence as Seq
+import Control.Monad (when)
 
 import Common.Network.CatalogPostType (CatalogPost)
 import Common.FrontEnd.Types (Pages (..), Page (..), Time (..))
 import qualified Common.Network.ClientTypes as Client
 import qualified Common.Utils as Utils
 import qualified Common.Network.BoardType as Board
-import Control.Monad (when)
 
 pattern SenderLatest :: Client.ReturnTopicName
 pattern SenderLatest = "main-latest"
 
-type CatalogPages = Pages (UTCTime, Maybe UTCTime) [] CatalogPost
+type CatalogPages = Pages [] CatalogPost
 
 data Model = Model
     { pages :: CatalogPages
@@ -64,15 +65,18 @@ data Action
     = Initialize
     | ClientResponse Client.MessageOut
     | OnErrorMessage MisoString
+    | PropsChanged
 
 app :: Eq context => Component context Props Model Action
 app = (component initialModel update view)
-    { mount = Just Initialize }
+    { mount = Just Initialize
+    , onPropsChanged = Just $ const $ const PropsChanged
+    }
 
 view :: Eq context => context -> Props -> Model -> View context Action
 view _ props model = vfrag [ mountWithProps (mkGridProps model props) Grid.app ]
 
-mkGridProps :: Model -> Props -> Grid.Props (Pages (UTCTime, Maybe UTCTime) [])
+mkGridProps :: Model -> Props -> Grid.Props (Pages [])
 mkGridProps m p = Grid.Props (pages m) (mediaRoot p)
 
 clientLatestReturnTopic :: Topic Client.MessageOut
@@ -87,21 +91,24 @@ update Initialize = do
     io_ $
         consoleLog $ "Catalog Initialize. emptyPages: " <> toMisoString (show (emptyPages $ pages model))
 
-    when (emptyPages $ pages model) $ do
-        props <- getProps
-        io_ $ do
-            consoleLog "Catalog - pages are empty, asking client for latest catalog"
-            publish Client.clientInTopic
-                ( SenderLatest
-                , Client.FetchLatest
-                    (utcTimeFromTime $ currentTime props)
-                    (map Board.board_id <$> selectedBoards props)
-                )
+    when (emptyPages $ pages model) $ issue PropsChanged
 
     where
-        emptyPages :: Pages a b c -> Bool
+        emptyPages :: Pages b c -> Bool
         emptyPages (Pages a) = Seq.null a
 
+update PropsChanged = do
+    props <- getProps
+    io_ $ do
+        consoleLog "Catalog - PropsChanged, asking client for latest catalog"
+        publish Client.clientInTopic
+            ( SenderLatest
+            , Client.FetchLatest
+                (utcTimeFromTime $ currentTime props)
+                (map Board.board_id <$> selectedBoards props)
+            )
+
+    where
         utcTimeFromTime :: Time -> UTCTime
         utcTimeFromTime (Now t) = t
         utcTimeFromTime (Then t) = t
@@ -111,22 +118,10 @@ update (ClientResponse (Client.ReturnResult result)) = do
     Utils.helper result $
         \catalogPosts -> do
             io_ $ consoleLog $ "ClientResponse - Catalog, saving catalog posts as Pages. number of posts: " <> toMisoString (show $ length catalogPosts)
-            props <- getProps
             modify
                 ( \m -> m
-                    { pages = Pages $ Seq.singleton $
-                        Page
-                            ( utcTimeFromTime $ currentTime props
-                            , scrollTime m
-                            )
-                            catalogPosts
-                    }
+                    { pages = Pages $ Seq.singleton $ Page catalogPosts }
                 )
-
-    where
-        utcTimeFromTime :: Time -> UTCTime
-        utcTimeFromTime (Then t) = t
-        utcTimeFromTime (Now t) = t
 
 update (OnErrorMessage msg) =
     io_ $ consoleError ("Catalog Component OnErrorMessage decode failure: " <> toMisoString msg)

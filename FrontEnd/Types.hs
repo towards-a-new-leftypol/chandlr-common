@@ -94,19 +94,16 @@ data DeletePostResults = DeletePostResults
     } deriving (Generic, Eq, ToJSON, FromJSON)
 
 
-data Page k f a = Page
-    { pageKey  :: !k
-    , pageRows :: f a
-    }
+newtype Page f a = Page { pageRows :: f a }
 
-newtype Pages k f a = Pages (Seq (Page k f a))
+instance Eq (f a) => Eq (Page f a) where
+    p1 == p2 = pageRows p1 == pageRows p2
+
+newtype Pages f a = Pages (Seq (Page f a))
     deriving Eq
 
-instance Eq k => Eq (Page k f a) where
-    p1 == p2 = pageKey p1 == pageKey p2
-
-instance (Eq k, Foldable f) => Foldable (Pages k f) where
-    foldMap g (Pages s) = foldMap (\(Page _ rows) -> foldMap g rows) s
-    foldr c z (Pages s) = foldr (\(Page _ rows) acc -> foldr c acc rows) z s
-    null      (Pages s) = all (null . pageRows) s
-    length    (Pages s) = foldl' (\n (Page _ rows) -> n + Prelude.length rows) 0 s
+instance Foldable f => Foldable (Pages f) where
+    foldMap g (Pages s) = foldMap (\(Page rows) -> foldMap g rows) s
+    foldr c z (Pages s) = foldr   (\(Page rows) acc -> foldr c acc rows) z s
+    null      (Pages s) = all     (null . pageRows) s
+    length    (Pages s) = foldl'  (\n (Page rows) -> n + Prelude.length rows) 0 s
