@@ -28,7 +28,6 @@ import Miso
 
 import Data.Time.Clock (UTCTime)
 import qualified Common.Component.CatalogGrid as Grid
-import qualified Common.Component.CatalogGrid.GridTypes as Grid
 import qualified Data.Sequence as Seq
 import Control.Monad (when)
 

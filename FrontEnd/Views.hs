@@ -34,6 +34,7 @@ import Common.FrontEnd.Model
 import Common.FrontEnd.Action (Action (..))
 import qualified Common.Component.Search as Search
 import qualified Common.Component.Catalog as Catalog
+import qualified Common.Component.CatalogGrid as Grid
 import qualified Common.Component.Thread as Thread
 import qualified Common.Component.Thread.Model as Thread
 import qualified Common.Component.TimeControl as TC
@@ -134,11 +135,18 @@ searchView ctxRef _ _ m = pageWrapperWithDefaults ctxRef m $ vfrag
                 [ p_ [] [ text term ] ]
         )
     , search
-    , grid (gridPropsFromModel m)
+    , div_
+        [ class_ "theme-catalog" ]
+        [ div_
+            [ class_ "threads" ]
+            [ mountWithProps gridProps Grid.app
+            ]
+        ]
     ]
 
     where
         term = search_term m
+        gridProps = Grid.Props (search_results m) (media_root_ m)
 
 
 threadView

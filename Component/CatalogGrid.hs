@@ -8,6 +8,7 @@
 module Common.Component.CatalogGrid
     ( Model
     , Action (..)
+    , Props (..)
     , view
     , update
     , app
