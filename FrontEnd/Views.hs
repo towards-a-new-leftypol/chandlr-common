@@ -79,7 +79,7 @@ pageWrapperWithDefaults ctxRef m inner_content =
 
     where
         clientProps :: Client.Props
-        clientProps = Client.Props (pg_api_root m) (client_fetch_count m)
+        clientProps = Client.Props (pg_api_root m)
 
 
 commonCatalogView :: Eq context => InitCtxRef -> Model -> View context Action
@@ -175,4 +175,5 @@ gridPropsFromModel m = Catalog.Props
     { Catalog.mediaRoot = media_root_ m
     , Catalog.currentTime = current_time m
     , Catalog.selectedBoards = selected_boards m
+    , Catalog.fetchCount = client_fetch_count m
     }

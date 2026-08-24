@@ -24,7 +24,7 @@ data CatalogPost = CatalogPost
     , name                 :: Maybe MisoString
     , subject              :: Maybe MisoString
     , email                :: Maybe MisoString
-    , thread_id            :: Int
+    , thread_id            :: Integer
     -- , post_count           :: Int
     , embed                :: Maybe MisoString
     , estimated_post_count :: Int

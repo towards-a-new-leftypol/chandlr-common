@@ -29,14 +29,15 @@ data Model = Model
 
 data Props = Props
   { pgApiRoot :: MisoString
-  , fetchCount :: Int
   } deriving (Eq, Show, Generic, ToJSON, FromJSON)
 
 data FetchCatalogArgs = FetchCatalogArgs
-  { selected_time :: UTCTime
-  , thread_count :: Int
-  , board_ids :: Maybe [ Int ]
-  } deriving (Generic, ToJSON, FromJSON)
+  { selected_time    :: UTCTime
+  , scroll_time      :: Maybe UTCTime
+  , scroll_thread_id :: Maybe Integer
+  , thread_count     :: Int
+  , board_ids        :: Maybe [ Int ]
+  } deriving (Eq, Generic, ToJSON, FromJSON)
 
 
 data SearchPostsArgs = SearchPostsArgs
@@ -54,8 +55,9 @@ type ReturnTopicName = MisoString
 
 type MessageIn = (ReturnTopicName, Query)
 
+
 data Query
-    = FetchLatest UTCTime (Maybe [ Int ])
+    = FetchLatest FetchCatalogArgs
     | GetThread GetThreadArgs
     | Search MisoString
     | DeleteIllegalPost DeleteIllegalPostArgs

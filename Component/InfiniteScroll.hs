@@ -16,9 +16,9 @@ import Miso
     , get
     , io_
     , startSub
-    -- , syncCallback1
     , asyncCallback1
     , toMisoString
+    , mailChildren
     )
 import Miso.Html.Property (class_)
 import Miso.Html
@@ -86,5 +86,6 @@ update (RegisterSentinel pos domRef) = do
         iObs <- new iObsC (callback, options)
         void $ iObs # "observe" $ [ domRef ]
 
-update (ReachedTarget pos) = io_ $
-    consoleLog $ "InfiniteScroll REACHED " <> toMisoString (show pos)
+update (ReachedTarget pos) = do
+    io_ $ consoleLog $ "InfiniteScroll REACHED " <> toMisoString (show pos)
+    mailChildren $ Grow pos

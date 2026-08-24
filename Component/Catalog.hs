@@ -4,7 +4,7 @@
 module Common.Component.Catalog where
 
 import Miso
-    ( Component (mount, onPropsChanged)
+    ( Component (mount, onPropsChanged, mailbox)
     , component
     , vfrag
     , View
@@ -24,8 +24,10 @@ import Miso
     , publish
     , io_
     , issue
+    , checkMail
     )
 
+import Miso.JSON (Value)
 import Data.Time.Clock (UTCTime)
 import qualified Common.Component.CatalogGrid as Grid
 import qualified Data.Sequence as Seq
@@ -36,15 +38,16 @@ import Common.FrontEnd.Types (Pages (..), Page (..), Time (..))
 import qualified Common.Network.ClientTypes as Client
 import qualified Common.Utils as Utils
 import qualified Common.Network.BoardType as Board
+import Common.Component.InfiniteScroll.Action hiding (Action)
 
 pattern SenderLatest :: Client.ReturnTopicName
 pattern SenderLatest = "main-latest"
 
-type CatalogPages = Pages [] CatalogPost
+type CatalogPages = Pages Seq.Seq CatalogPost
 
 data Model = Model
     { pages :: CatalogPages
-    , scrollTime :: Maybe UTCTime
+    , scrollTime :: Maybe (UTCTime, Integer)
     } deriving Eq
 
 initialModel :: Model
@@ -57,6 +60,7 @@ data Props = Props
     { mediaRoot :: MisoString
     , currentTime :: Time
     , selectedBoards :: Maybe [ Board.Board ]
+    , fetchCount :: Int
     }
     deriving Eq
 
@@ -65,17 +69,23 @@ data Action
     | ClientResponse Client.MessageOut
     | OnErrorMessage MisoString
     | PropsChanged
+    | OnScrollMessage InfScrollOutMsg
 
 app :: Eq context => Component context Props Model Action
 app = (component initialModel update view)
     { mount = Just Initialize
     , onPropsChanged = Just $ const $ const PropsChanged
+    , mailbox = handleMail
     }
+
+    where
+        handleMail :: Value -> Maybe Action
+        handleMail = checkMail OnScrollMessage OnErrorMessage
 
 view :: Eq context => context -> Props -> Model -> View context Action
 view _ props model = vfrag [ mountWithProps (mkGridProps model props) Grid.app ]
 
-mkGridProps :: Model -> Props -> Grid.Props (Pages [])
+mkGridProps :: Model -> Props -> Grid.Props (Pages Seq.Seq)
 mkGridProps m p = Grid.Props (pages m) (mediaRoot p)
 
 clientLatestReturnTopic :: Topic Client.MessageOut
@@ -98,13 +108,19 @@ update Initialize = do
 
 update PropsChanged = do
     props <- getProps
+    model <- get
     io_ $ do
         consoleLog "Catalog - PropsChanged, asking client for latest catalog"
         publish Client.clientInTopic
             ( SenderLatest
-            , Client.FetchLatest
-                (utcTimeFromTime $ currentTime props)
-                (map Board.board_id <$> selectedBoards props)
+            , Client.FetchLatest $ Client.FetchCatalogArgs
+                { Client.selected_time = (utcTimeFromTime $ currentTime props)
+                , Client.board_ids =
+                    (map Board.board_id <$> selectedBoards props)
+                , Client.scroll_time = fst <$> scrollTime model
+                , Client.scroll_thread_id = snd <$> scrollTime model
+                , Client.thread_count = fetchCount props
+                }
             )
 
     where
@@ -119,8 +135,13 @@ update (ClientResponse (Client.ReturnResult result)) = do
             io_ $ consoleLog $ "ClientResponse - Catalog, saving catalog posts as Pages. number of posts: " <> toMisoString (show $ length catalogPosts)
             modify
                 ( \m -> m
-                    { pages = Pages $ Seq.singleton $ Page catalogPosts }
+                    { pages = Pages $ Seq.singleton $
+                        Page $ Seq.fromList catalogPosts
+                    }
                 )
+
+update (OnScrollMessage (Grow Bottom)) = return ()
+update (OnScrollMessage _) = io_ $ consoleLog "Catalog UNIMPLEMENTED Scroll Message"
 
 update (OnErrorMessage msg) =
     io_ $ consoleError ("Catalog Component OnErrorMessage decode failure: " <> toMisoString msg)

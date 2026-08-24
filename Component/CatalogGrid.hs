@@ -89,7 +89,7 @@ onClick_ action = onWithOptions M.BUBBLE defaultOptions { _preventDefault = True
 update :: Action -> Effect parent props Model Action
 update (ThreadSelected post) = do
     io_ $ do
-        consoleLog $ "ThreadSelected - " <> toMisoString (CatalogPost.thread_id post)
+        consoleLog $ "ThreadSelected - " <> toMisoString (show $ CatalogPost.thread_id post)
         publish catalogOutTopic $ SelectThread post
 
 
