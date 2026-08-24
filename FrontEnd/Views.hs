@@ -52,13 +52,13 @@ import Common.Cookies (CookieJar)
 timeControl :: Eq context => InitCtxRef -> View context Action
 timeControl ctxRef = vfrag [ mount_ $ TC.app ctxRef ]
 
-grid :: Eq context => Catalog.Props -> View context action
-grid props =
+grid :: Eq context => InitCtxRef -> Catalog.Props -> View context action
+grid ctxRef props =
     div_
         [ class_ "theme-catalog" ]
         [ div_
             [ class_ "threads" ]
-            [ mountWithProps props $ Inf.app Catalog.app "catalog"
+            [ mountWithProps props $ Inf.app (Catalog.app ctxRef) "catalog"
             ]
         ]
 
@@ -95,7 +95,7 @@ commonCatalogView ctxRef m = pageWrapperWithDefaults ctxRef m $ vfrag $
     ]
     ++ if hydrated m || client_mounted m
     then
-        [ grid (gridPropsFromModel m) ]
+        [ grid ctxRef (gridPropsFromModel m) ]
     else []
 
 catalogView

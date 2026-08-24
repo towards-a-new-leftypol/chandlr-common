@@ -4,7 +4,7 @@
 module Common.Component.Catalog where
 
 import Miso
-    ( Component (mount, onPropsChanged, mailbox)
+    ( Component (mount, onPropsChanged, mailbox, hydrateModel)
     , component
     , vfrag
     , View
@@ -32,9 +32,10 @@ import Data.Time.Clock (UTCTime)
 import qualified Common.Component.CatalogGrid as Grid
 import qualified Data.Sequence as Seq
 import Control.Monad (when)
+import Data.IORef (readIORef)
 
 import Common.Network.CatalogPostType (CatalogPost)
-import Common.FrontEnd.Types (Pages (..), Page (..), Time (..))
+import Common.FrontEnd.Types
 import qualified Common.Network.ClientTypes as Client
 import qualified Common.Utils as Utils
 import qualified Common.Network.BoardType as Board
@@ -50,9 +51,12 @@ data Model = Model
     , scrollTime :: Maybe (UTCTime, Integer)
     } deriving Eq
 
+emptyPage :: CatalogPages
+emptyPage = Pages Seq.empty
+
 initialModel :: Model
 initialModel = Model
-    { pages = Pages Seq.empty
+    { pages = emptyPage
     , scrollTime = Nothing
     }
 
@@ -71,16 +75,33 @@ data Action
     | PropsChanged
     | OnScrollMessage InfScrollOutMsg
 
-app :: Eq context => Component context Props Model Action
-app = (component initialModel update view)
+app :: Eq context => InitCtxRef -> Component context Props Model Action
+app ctxRef = (component initialModel update view)
     { mount = Just Initialize
     , onPropsChanged = Just $ const $ const PropsChanged
     , mailbox = handleMail
+    , hydrateModel  = Just $ initializeModel ctxRef
     }
 
     where
         handleMail :: Value -> Maybe Action
         handleMail = checkMail OnScrollMessage OnErrorMessage
+
+initializeModel :: InitCtxRef -> IO Model
+initializeModel ctxRef = do
+    putStrLn "MainComponent initializeModel"
+    ctx <- readIORef ctxRef
+    let initialPayload = init_payload ctx
+        initialData_ = initialData initialPayload
+
+    return $ initialModel { pages = pagesFromInitialData initialData_ }
+
+    where
+        pagesFromInitialData :: InitialData -> CatalogPages
+        pagesFromInitialData (CatalogData posts) = Pages $ Seq.singleton $
+            Page $ Seq.fromList posts
+        pagesFromInitialData _ = emptyPage
+
 
 view :: Eq context => context -> Props -> Model -> View context Action
 view _ props model = vfrag [ mountWithProps (mkGridProps model props) Grid.app ]
