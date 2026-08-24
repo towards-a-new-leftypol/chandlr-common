@@ -40,6 +40,7 @@ import qualified Common.Component.Thread.Model as Thread
 import qualified Common.Component.TimeControl as TC
 import Common.FrontEnd.Routes (BoardThreadId)
 import qualified Network.Client as Client
+import qualified Common.Network.ClientTypes as Client
 import Common.FrontEnd.Types (InitCtxRef)
 import qualified Common.Admin.Component.DeleteIllegalPost as DIP
 import qualified Common.Component.NavigationBar.View as Nav

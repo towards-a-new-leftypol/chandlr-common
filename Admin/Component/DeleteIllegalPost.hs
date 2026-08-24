@@ -40,9 +40,9 @@ import qualified Common.Network.ClientTypes as Client
 import qualified Common.Network.SiteType as Site
 import qualified Common.Network.BoardType as B
 import qualified Common.Network.ThreadType as T
+import Common.FrontEnd.Types (DeletePostResults (..))
 
 #ifdef FRONT_END
-import Common.FrontEnd.Types (DeletePostResults (..))
 import qualified Common.Component.Thread.Types as TT
 import qualified Common.Utils as Utils
 import JSFFI.MisoFFI
