@@ -283,7 +283,7 @@ mainUpdate (GoToTime r time) = do
                         }
 
 mainUpdate (GetThread Client.GetThreadArgs {..}) = do
-    io_ $ consoleLog $ "Thread " <> (toMisoString $ show board_thread_id)
+    io_ $ consoleLog $ "GetThread thread " <> (toMisoString $ show board_thread_id)
 
     modify (\m -> m { between_pages = True })
 

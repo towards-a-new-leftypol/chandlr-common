@@ -99,13 +99,25 @@ maybeThreadCrumb (Just tp) =
 
 chevronForward :: View model action
 chevronForward = svg_
-    [ class_ "breadcrumb--chevron-svg-forward" ]
+    [ class_ "breadcrumb--chevron-svg-forward"
+    , textProp "width" "0"
+    , textProp "height" "0"
+    , textProp "fill" "none"
+    , textProp "stroke" "none"
+    , aria_ "hidden" "true"
+    ]
     [ use_ [ href_ "#svg-chevron-right-forward" ] ]
 
 
 chevronAft :: View model action
 chevronAft = svg_
-    [ class_ "breadcrumb--chevron-svg-aft" ]
+    [ class_ "breadcrumb--chevron-svg-aft"
+    , textProp "width" "0"
+    , textProp "height" "0"
+    , textProp "fill" "none"
+    , textProp "stroke" "none"
+    , aria_ "hidden" "true"
+    ]
     [ use_ [ href_ "#svg-chevron-right-aft" ] ]
 
 
@@ -115,7 +127,13 @@ crumbDots = div_
     [ dot, dot, dot ]
     where
         dot = svg_
-            [ class_ "breadcrumb--dots-dot" ]
+            [ class_ "breadcrumb--dots-dot"
+            , textProp "width" "0"
+            , textProp "height" "0"
+            , textProp "fill" "none"
+            , textProp "stroke" "none"
+            , aria_ "hidden" "true"
+            ]
             [ use_ [ href_ "#svg-dot" ] ]
 
 
@@ -187,6 +205,7 @@ supportingSvgs = svg_
         [ preserveAspectRatio_ "none"
         , viewBox_ "0 0 100 100"
         , id_ "svg-chevron-right-forward"
+        , textProp "overflow" "visible"
         ]
         [ path_
             [ strokeLinejoin_ "miter"
@@ -198,6 +217,7 @@ supportingSvgs = svg_
         [ preserveAspectRatio_ "none"
         , viewBox_ "0 0 100 100"
         , id_ "svg-chevron-right-aft"
+        , textProp "overflow" "visible"
         ]
         [ path_
             [ strokeLinejoin_ "miter"
@@ -206,7 +226,10 @@ supportingSvgs = svg_
             ]
         ]
     , symbol_
-        [viewBox_ "0 0 10 10", id_ "svg-dot"]
+        [ viewBox_ "0 0 10 10"
+        , id_ "svg-dot"
+        , textProp "overflow" "visible"
+        ]
         [ path_
             [ strokeLinecap_ "round"
             , textProp "vector-effect" "non-scaling-stroke"
