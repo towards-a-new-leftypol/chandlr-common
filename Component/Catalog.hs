@@ -31,32 +31,36 @@ import Miso.JSON (Value)
 import Data.Time.Clock (UTCTime)
 import qualified Common.Component.CatalogGrid as Grid
 import qualified Data.Sequence as Seq
-import Control.Monad (when)
+import Data.Sequence ((|>), ViewR ((:>)))
+import Control.Monad (when, unless)
 import Data.IORef (readIORef)
 
-import Common.Network.CatalogPostType (CatalogPost)
+import qualified Common.Network.CatalogPostType as C
 import Common.FrontEnd.Types
 import qualified Common.Network.ClientTypes as Client
 import qualified Common.Utils as Utils
 import qualified Common.Network.BoardType as Board
 import Common.Component.InfiniteScroll.Action hiding (Action)
 
-pattern SenderLatest :: Client.ReturnTopicName
-pattern SenderLatest = "main-latest"
+pattern FetchCatalogBottom :: Client.ReturnTopicName
+pattern FetchCatalogBottom = "fetch-catalog-bottom"
 
-type CatalogPages = Pages Seq.Seq CatalogPost
+type CatalogPages = Pages Seq.Seq C.CatalogPost
 
 data Model = Model
     { pages :: CatalogPages
     , scrollTime :: Maybe (UTCTime, Integer)
     } deriving Eq
 
-emptyPage :: CatalogPages
-emptyPage = Pages Seq.empty
+emptyPages :: CatalogPages
+emptyPages = Pages Seq.empty
+
+isEmptyPages :: Pages b c -> Bool
+isEmptyPages (Pages a) = Seq.null a
 
 initialModel :: Model
 initialModel = Model
-    { pages = emptyPage
+    { pages = emptyPages
     , scrollTime = Nothing
     }
 
@@ -70,7 +74,7 @@ data Props = Props
 
 data Action
     = Initialize
-    | ClientResponse Client.MessageOut
+    | ClientResponse Client.ReturnTopicName Client.MessageOut
     | OnErrorMessage MisoString
     | PropsChanged
     | OnScrollMessage InfScrollOutMsg
@@ -100,7 +104,7 @@ initializeModel ctxRef = do
         pagesFromInitialData :: InitialData -> CatalogPages
         pagesFromInitialData (CatalogData posts) = Pages $ Seq.singleton $
             Page $ Seq.fromList posts
-        pagesFromInitialData _ = emptyPage
+        pagesFromInitialData _ = emptyPages
 
 
 view :: Eq context => context -> Props -> Model -> View context Action
@@ -109,23 +113,19 @@ view _ props model = vfrag [ mountWithProps (mkGridProps model props) Grid.app ]
 mkGridProps :: Model -> Props -> Grid.Props (Pages Seq.Seq)
 mkGridProps m p = Grid.Props (pages m) (mediaRoot p)
 
-clientLatestReturnTopic :: Topic Client.MessageOut
-clientLatestReturnTopic = topic SenderLatest
+clientFetchCatalogBottom :: Topic Client.MessageOut
+clientFetchCatalogBottom = topic FetchCatalogBottom
 
 update :: Action -> Effect context Props Model Action
 update Initialize = do
-    subscribe clientLatestReturnTopic ClientResponse OnErrorMessage
+    subscribe clientFetchCatalogBottom (ClientResponse FetchCatalogBottom) OnErrorMessage
 
     model <- get
 
     io_ $
-        consoleLog $ "Catalog Initialize. emptyPages: " <> toMisoString (show (emptyPages $ pages model))
+        consoleLog $ "Catalog Initialize. isEmptyPages: " <> toMisoString (show (isEmptyPages $ pages model))
 
-    when (emptyPages $ pages model) $ issue PropsChanged
-
-    where
-        emptyPages :: Pages b c -> Bool
-        emptyPages (Pages a) = Seq.null a
+    when (isEmptyPages $ pages model) $ issue PropsChanged
 
 update PropsChanged = do
     props <- getProps
@@ -133,7 +133,7 @@ update PropsChanged = do
     io_ $ do
         consoleLog "Catalog - PropsChanged, asking client for latest catalog"
         publish Client.clientInTopic
-            ( SenderLatest
+            ( FetchCatalogBottom
             , Client.FetchLatest $ Client.FetchCatalogArgs
                 { Client.selected_time = (utcTimeFromTime $ currentTime props)
                 , Client.board_ids =
@@ -149,20 +149,46 @@ update PropsChanged = do
         utcTimeFromTime (Now t) = t
         utcTimeFromTime (Then t) = t
 
-update (ClientResponse (Client.ReturnResult result)) = do
+update (ClientResponse FetchCatalogBottom (Client.ReturnResult result)) = do
     io_ $ consoleLog "ClientResponse - have Catalog encoded result"
     Utils.helper result $
         \catalogPosts -> do
             io_ $ consoleLog $ "ClientResponse - Catalog, saving catalog posts as Pages. number of posts: " <> toMisoString (show $ length catalogPosts)
-            modify
-                ( \m -> m
-                    { pages = Pages $ Seq.singleton $
-                        Page $ Seq.fromList catalogPosts
-                    }
-                )
+            modify ( \m -> m { pages = addPage (pages m) catalogPosts } )
 
-update (OnScrollMessage (Grow Bottom)) = return ()
+    where
+        addPage :: CatalogPages -> [ C.CatalogPost ] -> CatalogPages
+        addPage (Pages p) posts
+            | Seq.null p = Pages $ Seq.singleton $
+                Page $ Seq.fromList posts
+            | otherwise = Pages $ p |> Page (Seq.fromList posts)
+
+update (ClientResponse _ _) = error "Catalog error - unexpected Client response topic"
+
+update (OnScrollMessage (Grow Bottom)) = do
+    model <- get
+
+    unless (isEmptyPages (pages model)) $ do
+        modify $ \m -> m { scrollTime = scrollKey (pages m) }
+        io_ $ consoleLog "Catalog Scroll Message Grow Bottom"
+        issue PropsChanged
+
+    where
+        scrollKey :: CatalogPages -> Maybe (UTCTime, Integer)
+        scrollKey = fmap (\post -> (C.bump_time post, C.thread_id post)) . getLast
+
 update (OnScrollMessage _) = io_ $ consoleLog "Catalog UNIMPLEMENTED Scroll Message"
 
 update (OnErrorMessage msg) =
     io_ $ consoleError ("Catalog Component OnErrorMessage decode failure: " <> toMisoString msg)
+
+
+-- | Safely gets the last element of a Seq
+lastOf :: Seq.Seq a -> Maybe a
+lastOf s = case Seq.viewr s of
+    Seq.EmptyR -> Nothing
+    _ :> x -> Just x
+
+-- | Gets the last post from the last page
+getLast :: CatalogPages -> Maybe C.CatalogPost
+getLast (Pages ps) = lastOf ps >>= lastOf . pageRows
