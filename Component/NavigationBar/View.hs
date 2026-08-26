@@ -210,7 +210,7 @@ supportingSvgs = svg_
         [ path_
             [ strokeLinejoin_ "miter"
             , textProp "vector-effect" "non-scaling-stroke"
-            , d_ "M 0 8 L 15 8 L 92 50 L 15 92 L 0 92"
+            , d_ "M 0 0 L 10 0 L 100 50 L 10 100 L 0 100"
             ]
         ]
     , symbol_
@@ -222,7 +222,7 @@ supportingSvgs = svg_
         [ path_
             [ strokeLinejoin_ "miter"
             , textProp "vector-effect" "non-scaling-stroke"
-            , d_ "M 15 8 L 92 50 L 15 92"
+            , d_ "M 15 0 L 92 50 L 15 100"
             ]
         ]
     , symbol_
