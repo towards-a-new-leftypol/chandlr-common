@@ -4,7 +4,7 @@ module Common.Component.InfiniteScroll where
 
 import Prelude hiding ((!!))
 import Miso
-    ( Component
+    ( Component (mailbox)
     , component
     , vfrag
     , Effect
@@ -19,7 +19,11 @@ import Miso
     , asyncCallback1
     , toMisoString
     , mailChildren
+    , checkMail
+    , consoleError
+    , modify
     )
+
 import Miso.Html.Property (class_)
 import Miso.Html
     ( div_
@@ -34,10 +38,15 @@ import Miso.DSL
     , setField
     , create
     )
+import Miso.JSON (Value)
 import Control.Monad (void)
 
 import Common.Component.InfiniteScroll.Model
 import Common.Component.InfiniteScroll.Action
+
+
+maxLoadedPages :: Int
+maxLoadedPages = 3
 
 
 app
@@ -45,9 +54,18 @@ app
     => Component context props m a
     -> MisoString
     -> Component context props Model Action
-app innerComponent lbl = component initialModel update (view innerComponent)
+app innerComponent lbl = (component initialModel update (view innerComponent))
+    { mailbox = handleMail
+    }
+
     where
-        initialModel = Model lbl
+        initialModel = Model
+            { label = lbl
+            , loadedPages = 1
+            }
+
+        handleMail :: Value -> Maybe Action
+        handleMail = checkMail ChildMessage OnErrorMessage
 
 
 view :: (Eq context, Eq m, Eq props) => Component context props m a -> context -> props -> Model -> View context Action
@@ -89,3 +107,25 @@ update (RegisterSentinel pos domRef) = do
 update (ReachedTarget pos) = do
     io_ $ consoleLog $ "InfiniteScroll REACHED " <> toMisoString (show pos)
     mailChildren $ Grow pos
+
+update (ChildMessage (Loaded Bottom)) = do
+    model <- get
+
+    if loadedPages model == maxLoadedPages
+    then do
+        mailChildren $ Trim $ opposite Bottom
+    else
+        modify $ \m -> m { loadedPages = loadedPages m + 1 }
+
+update (ChildMessage Reset) =
+    modify $ \m -> m { loadedPages = 1 }
+
+update (ChildMessage _) = io_ $ consoleError "Not Implemented "
+
+update (OnErrorMessage msg) =
+    io_ $ consoleError ("InfiniteScroll Component OnErrorMessage decode failure: " <> toMisoString msg)
+
+
+opposite :: SentinelPosition -> SentinelPosition
+opposite Top    = Bottom
+opposite Bottom = Top

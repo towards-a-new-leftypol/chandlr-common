@@ -25,13 +25,15 @@ import Miso
     , io_
     , issue
     , checkMail
+    , put
+    , mailParent
     )
 
 import Miso.JSON (Value)
 import Data.Time.Clock (UTCTime)
 import qualified Common.Component.CatalogGrid as Grid
 import qualified Data.Sequence as Seq
-import Data.Sequence ((|>), ViewR ((:>)))
+import Data.Sequence ((|>), ViewL (..), ViewR (..), viewr, viewl)
 import Control.Monad (when, unless)
 import Data.IORef (readIORef)
 
@@ -40,7 +42,7 @@ import Common.FrontEnd.Types
 import qualified Common.Network.ClientTypes as Client
 import qualified Common.Utils as Utils
 import qualified Common.Network.BoardType as Board
-import Common.Component.InfiniteScroll.Action hiding (Action)
+import Common.Component.InfiniteScroll.Action hiding (Action (..))
 
 pattern FetchCatalogBottom :: Client.ReturnTopicName
 pattern FetchCatalogBottom = "fetch-catalog-bottom"
@@ -77,6 +79,7 @@ data Action
     | ClientResponse Client.ReturnTopicName Client.MessageOut
     | OnErrorMessage MisoString
     | PropsChanged
+    | NextPage
     | OnScrollMessage InfScrollOutMsg
 
 app :: Eq context => InitCtxRef -> Component context Props Model Action
@@ -128,6 +131,11 @@ update Initialize = do
     when (isEmptyPages $ pages model) $ issue PropsChanged
 
 update PropsChanged = do
+    put initialModel
+    mailParent Reset
+    issue NextPage
+
+update NextPage = do
     props <- getProps
     model <- get
     io_ $ do
@@ -154,14 +162,20 @@ update (ClientResponse FetchCatalogBottom (Client.ReturnResult result)) = do
     Utils.helper result $
         \catalogPosts -> do
             io_ $ consoleLog $ "ClientResponse - Catalog, saving catalog posts as Pages. number of posts: " <> toMisoString (show $ length catalogPosts)
-            modify ( \m -> m { pages = addPage (pages m) catalogPosts } )
+            let posts = Seq.fromList catalogPosts
+            modify ( \m -> m { pages = addPage (pages m) posts } )
+
+            if Seq.length posts == 0
+            then
+                mailParent (Exhausted Bottom)
+            else
+                mailParent (Loaded Bottom)
 
     where
-        addPage :: CatalogPages -> [ C.CatalogPost ] -> CatalogPages
+        addPage :: CatalogPages -> Seq.Seq C.CatalogPost -> CatalogPages
         addPage (Pages p) posts
-            | Seq.null p = Pages $ Seq.singleton $
-                Page $ Seq.fromList posts
-            | otherwise = Pages $ p |> Page (Seq.fromList posts)
+            | Seq.null p = Pages $ Seq.singleton $ Page posts
+            | otherwise = Pages $ p |> Page posts
 
 update (ClientResponse _ _) = error "Catalog error - unexpected Client response topic"
 
@@ -171,11 +185,14 @@ update (OnScrollMessage (Grow Bottom)) = do
     unless (isEmptyPages (pages model)) $ do
         modify $ \m -> m { scrollTime = scrollKey (pages m) }
         io_ $ consoleLog "Catalog Scroll Message Grow Bottom"
-        issue PropsChanged
+        issue NextPage
 
     where
         scrollKey :: CatalogPages -> Maybe (UTCTime, Integer)
         scrollKey = fmap (\post -> (C.bump_time post, C.thread_id post)) . getLast
+
+update (OnScrollMessage (Trim Top)) =
+    modify $ \m -> m { pages = trimFirstPage (pages m) }
 
 update (OnScrollMessage _) = io_ $ consoleLog "Catalog UNIMPLEMENTED Scroll Message"
 
@@ -185,10 +202,21 @@ update (OnErrorMessage msg) =
 
 -- | Safely gets the last element of a Seq
 lastOf :: Seq.Seq a -> Maybe a
-lastOf s = case Seq.viewr s of
-    Seq.EmptyR -> Nothing
+lastOf s = case viewr s of
+    EmptyR -> Nothing
     _ :> x -> Just x
 
 -- | Gets the last post from the last page
 getLast :: CatalogPages -> Maybe C.CatalogPost
 getLast (Pages ps) = lastOf ps >>= lastOf . pageRows
+
+
+trimFirstPage :: Pages f a -> Pages f a
+trimFirstPage (Pages s) = case viewl s of
+    EmptyL   -> Pages s
+    _ :< rest -> Pages rest
+
+trimLastPage :: Pages f a -> Pages f a
+trimLastPage (Pages s) = case viewr s of
+    EmptyR    -> Pages s
+    rest :> _ -> Pages rest

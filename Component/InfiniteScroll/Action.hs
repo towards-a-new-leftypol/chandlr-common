@@ -3,6 +3,7 @@
 
 module Common.Component.InfiniteScroll.Action where
 
+import Miso.String (MisoString)
 import Miso.Effect (DOMRef)
 import GHC.Generics (Generic)
 import Miso.JSON (ToJSON, FromJSON)
@@ -13,6 +14,8 @@ data SentinelPosition = Top | Bottom
 data Action
     = RegisterSentinel SentinelPosition DOMRef
     | ReachedTarget SentinelPosition
+    | ChildMessage InfScrollInMsg
+    | OnErrorMessage MisoString
 
 data InfScrollOutMsg
     = Grow SentinelPosition
@@ -23,4 +26,5 @@ data InfScrollOutMsg
 data InfScrollInMsg
     = Loaded SentinelPosition
     | Exhausted SentinelPosition
+    | Reset
     deriving (Generic, ToJSON, FromJSON)
