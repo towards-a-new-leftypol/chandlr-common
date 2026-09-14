@@ -12,7 +12,6 @@ import Miso (URI (uriQueryString))
 import Data.IORef (IORef)
 import qualified Data.Map.Strict as Map
 import qualified Data.Set as Set
-import Data.Sequence (Seq)
 
 import Common.Network.CatalogPostType (CatalogPost)
 import qualified Common.Component.Thread.Model as Thread
@@ -92,18 +91,3 @@ data DeletePostResults = DeletePostResults
     { sites :: [ Site ]
     , noticer_success_fail_counts :: (Int, Int)
     } deriving (Generic, Eq, ToJSON, FromJSON)
-
-
-newtype Page f a = Page { pageRows :: f a }
-
-instance Eq (f a) => Eq (Page f a) where
-    p1 == p2 = pageRows p1 == pageRows p2
-
-newtype Pages f a = Pages (Seq (Page f a))
-    deriving Eq
-
-instance Foldable f => Foldable (Pages f) where
-    foldMap g (Pages s) = foldMap (\(Page rows) -> foldMap g rows) s
-    foldr c z (Pages s) = foldr   (\(Page rows) acc -> foldr c acc rows) z s
-    null      (Pages s) = all     (null . pageRows) s
-    length    (Pages s) = foldl'  (\n (Page rows) -> n + Prelude.length rows) 0 s

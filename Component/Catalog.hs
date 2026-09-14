@@ -29,11 +29,12 @@ import Miso
     , mailParent
     )
 
+import Miso.Event (onCreatedWith)
 import Miso.JSON (Value)
 import Data.Time.Clock (UTCTime)
 import qualified Common.Component.CatalogGrid as Grid
 import qualified Data.Sequence as Seq
-import Data.Sequence ((|>), ViewL (..), ViewR (..), viewr, viewl)
+import Data.Sequence (Seq, (|>), ViewL (..), ViewR (..), viewr, viewl)
 import Control.Monad (when, unless)
 import Data.IORef (readIORef)
 
@@ -47,22 +48,16 @@ import Common.Component.InfiniteScroll.Action hiding (Action (..))
 pattern FetchCatalogBottom :: Client.ReturnTopicName
 pattern FetchCatalogBottom = "fetch-catalog-bottom"
 
-type CatalogPages = Pages Seq.Seq C.CatalogPost
+type CatalogPages = Seq (Seq C.CatalogPost)
 
 data Model = Model
     { pages :: CatalogPages
     , scrollTime :: Maybe (UTCTime, Integer)
     } deriving Eq
 
-emptyPages :: CatalogPages
-emptyPages = Pages Seq.empty
-
-isEmptyPages :: Pages b c -> Bool
-isEmptyPages (Pages a) = Seq.null a
-
 initialModel :: Model
 initialModel = Model
-    { pages = emptyPages
+    { pages = Seq.empty
     , scrollTime = Nothing
     }
 
@@ -105,15 +100,15 @@ initializeModel ctxRef = do
 
     where
         pagesFromInitialData :: InitialData -> CatalogPages
-        pagesFromInitialData (CatalogData posts) = Pages $ Seq.singleton $
-            Page $ Seq.fromList posts
-        pagesFromInitialData _ = emptyPages
+        pagesFromInitialData (CatalogData posts) = Seq.singleton $
+            Seq.fromList posts
+        pagesFromInitialData _ = Seq.empty
 
 
 view :: Eq context => context -> Props -> Model -> View context Action
 view _ props model = vfrag [ mountWithProps (mkGridProps model props) Grid.app ]
 
-mkGridProps :: Model -> Props -> Grid.Props (Pages Seq.Seq)
+mkGridProps :: Model -> Props -> Grid.Props Seq Seq
 mkGridProps m p = Grid.Props (pages m) (mediaRoot p)
 
 clientFetchCatalogBottom :: Topic Client.MessageOut
@@ -126,9 +121,9 @@ update Initialize = do
     model <- get
 
     io_ $
-        consoleLog $ "Catalog Initialize. isEmptyPages: " <> toMisoString (show (isEmptyPages $ pages model))
+        consoleLog $ "Catalog Initialize. isEmptyPages: " <> toMisoString (show (Seq.null $ pages model))
 
-    when (isEmptyPages $ pages model) $ issue PropsChanged
+    when (Seq.null $ pages model) $ issue PropsChanged
 
 update PropsChanged = do
     put initialModel
@@ -172,17 +167,17 @@ update (ClientResponse FetchCatalogBottom (Client.ReturnResult result)) = do
                 mailParent (Loaded Bottom)
 
     where
-        addPage :: CatalogPages -> Seq.Seq C.CatalogPost -> CatalogPages
-        addPage (Pages p) posts
-            | Seq.null p = Pages $ Seq.singleton $ Page posts
-            | otherwise = Pages $ p |> Page posts
+        addPage :: CatalogPages -> Seq C.CatalogPost -> CatalogPages
+        addPage ps posts
+            | Seq.null ps = Seq.singleton posts
+            | otherwise = ps |> posts
 
 update (ClientResponse _ _) = error "Catalog error - unexpected Client response topic"
 
 update (OnScrollMessage (Grow Bottom)) = do
     model <- get
 
-    unless (isEmptyPages (pages model)) $ do
+    unless (Seq.null (pages model)) $ do
         modify $ \m -> m { scrollTime = scrollKey (pages m) }
         io_ $ consoleLog "Catalog Scroll Message Grow Bottom"
         issue NextPage
@@ -201,22 +196,24 @@ update (OnErrorMessage msg) =
 
 
 -- | Safely gets the last element of a Seq
-lastOf :: Seq.Seq a -> Maybe a
+lastOf :: Seq a -> Maybe a
 lastOf s = case viewr s of
     EmptyR -> Nothing
     _ :> x -> Just x
 
 -- | Gets the last post from the last page
 getLast :: CatalogPages -> Maybe C.CatalogPost
-getLast (Pages ps) = lastOf ps >>= lastOf . pageRows
+getLast ps = lastOf ps >>= lastOf
 
 
-trimFirstPage :: Pages f a -> Pages f a
-trimFirstPage (Pages s) = case viewl s of
-    EmptyL   -> Pages s
-    _ :< rest -> Pages rest
+trimFirstPage :: Seq (f a) -> Seq (f a)
+trimFirstPage ps =
+    case viewl ps of
+        EmptyL  -> ps
+        _ :< xs -> xs
 
-trimLastPage :: Pages f a -> Pages f a
-trimLastPage (Pages s) = case viewr s of
-    EmptyR    -> Pages s
-    rest :> _ -> Pages rest
+trimLastPage :: Seq (f a) -> Seq (f a)
+trimLastPage ps =
+    case viewr ps of
+        EmptyR  -> ps
+        xs :> _ -> xs

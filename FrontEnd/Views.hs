@@ -147,7 +147,7 @@ searchView ctxRef _ _ m = pageWrapperWithDefaults ctxRef m $ vfrag
 
     where
         term = search_term m
-        gridProps = Grid.Props (search_results m) (media_root_ m)
+        gridProps = Grid.Props [ search_results m ] (media_root_ m)
 
 
 threadView

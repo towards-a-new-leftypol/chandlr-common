@@ -15,16 +15,16 @@ import Miso.String (MisoString)
 
 import Common.Network.CatalogPostType (CatalogPost)
 
-data Props f = Props
-  { display_items :: f CatalogPost
+data Props f g = Props
+  { display_items :: f (g CatalogPost)
   , media_root :: MisoString
   }
 
-deriving stock instance Eq (f CatalogPost) => Eq (Props f)
+deriving stock instance (Eq (f (g CatalogPost))) => Eq (Props f g)
 
 type Model = ()
 
-type GridComponent context f = Component context (Props f) Model Action
+type GridComponent context f g = Component context (Props f g) Model Action
 
 newtype Action
     = ThreadSelected CatalogPost

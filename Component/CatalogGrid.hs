@@ -60,7 +60,7 @@ import qualified Common.Network.SiteType as Site
 import qualified Common.Component.BodyRender as Body
 
 
-app :: Foldable f => GridComponent context f
+app :: (Foldable f, Foldable g) => GridComponent context f g
 app =
     M.Component
         { M.model = ()
@@ -93,14 +93,23 @@ update (ThreadSelected post) = do
         publish catalogOutTopic $ SelectThread post
 
 
-view :: Foldable f => context -> Props f -> Model -> View context Action
+view
+  :: (Foldable f, Foldable g)
+  => context
+  -> Props f g
+  -> Model
+  -> View context Action
 view _ props _ = div_
     [ id_ "Grid" ]
-    (foldMap ((: []) . gridItem props) (display_items props))
+    (foldMap ((: []) . page) (display_items props))
+
+    where
+        page items = div_ [ class_ "grid-page" ]
+          (foldMap ((: []) . (gridItem props)) items)
 
 
-gridItem :: Props f -> CatalogPost -> View model Action
-gridItem m post =
+gridItem :: Props f g -> CatalogPost -> View context Action
+gridItem props post =
     div_
         [ class_ "thread grid-li grid-size-small"
         , key_ ("thread#" <> show (CatalogPost.thread_id post))
@@ -161,7 +170,7 @@ gridItem m post =
                 case mthumb_path of
                     -- TODO: what about embeds!?
                     Nothing -> "/static/default_thumbnail.png"
-                    Just thumb_path -> (media_root m) <> (toMisoString thumb_path)
+                    Just thumb_path -> (media_root props) <> (toMisoString thumb_path)
             Just u -> "https://leftychan.net/vi/" <> toMisoString u <> "/0.jpg"
 
     mthumb_path :: Maybe MisoString
