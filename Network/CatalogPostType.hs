@@ -15,7 +15,7 @@ import Miso.String (MisoString)
 import Common.AttachmentType (Dimension)
 
 data CatalogPost = CatalogPost
-    { post_id              :: Maybe Integer
+    { post_id              :: Integer
     , board_post_id        :: Integer
     , board_thread_id      :: Integer
     , creation_time        :: UTCTime

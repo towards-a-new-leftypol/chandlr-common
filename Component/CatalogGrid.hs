@@ -33,6 +33,7 @@ import Miso
     , io_
     , consoleLog
     , key_
+    , vfrag
     )
 import Miso.Html
     ( div_
@@ -45,7 +46,6 @@ import Miso.Html
 import Miso.Html.Property
     ( src_
     , title_
-    , id_
     , class_
     , href_
     , data_
@@ -61,7 +61,7 @@ import qualified Common.Network.SiteType as Site
 import qualified Common.Component.BodyRender as Body
 
 
-app :: (Foldable f, Foldable g) => GridComponent context f g
+app :: (Foldable f) => GridComponent context f
 app =
     M.Component
         { M.model = ()
@@ -95,21 +95,16 @@ update (ThreadSelected post) = do
 
 
 view
-  :: (Foldable f, Foldable g)
+  :: (Foldable f)
   => context
-  -> Props f g
+  -> Props f
   -> Model
   -> View context Action
-view _ props _ = div_
-    [ id_ "Grid" ]
-    (foldMap ((: []) . page) (display_items props))
-
-    where
-        page items = div_ [ class_ "grid-page" ]
-          (foldMap ((: []) . (gridItem props)) items)
+view _ props _ = vfrag
+      (foldMap ((: []) . (gridItem props)) (display_items props))
 
 
-gridItem :: Props f g -> CatalogPost -> View context Action
+gridItem :: Props f -> CatalogPost -> View context Action
 gridItem props post =
     div_
         [ class_ "thread grid-li grid-size-small"

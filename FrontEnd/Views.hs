@@ -1,5 +1,5 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE RecordWildCards #-}
 {-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
 {-# HLINT ignore "Use list comprehension" #-}
 
@@ -40,7 +40,9 @@ import qualified Common.Component.Thread.Model as Thread
 import qualified Common.Component.TimeControl as TC
 import Common.FrontEnd.Routes (BoardThreadId)
 import qualified Network.Client as Client
+#ifndef FRONT_END
 import qualified Common.Network.ClientTypes as Client -- needed for server-side rendering
+#endif
 import Common.FrontEnd.Types (InitCtxRef)
 import qualified Common.Admin.Component.DeleteIllegalPost as DIP
 import qualified Common.Component.NavigationBar.View as Nav
@@ -147,7 +149,7 @@ searchView ctxRef _ _ m = pageWrapperWithDefaults ctxRef m $ vfrag
 
     where
         term = search_term m
-        gridProps = Grid.Props [ search_results m ] (media_root_ m)
+        gridProps = Grid.Props (search_results m) (media_root_ m)
 
 
 threadView

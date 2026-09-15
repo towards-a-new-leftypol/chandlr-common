@@ -6,7 +6,6 @@ module Common.Component.Catalog where
 import Miso
     ( Component (mount, onPropsChanged, mailbox, hydrateModel)
     , component
-    , vfrag
     , View
     , mountWithProps
     , MisoString
@@ -27,8 +26,11 @@ import Miso
     , checkMail
     , put
     , mailParent
+    , DOMRef
     )
 
+import Miso.Html (div_)
+import Miso.Html.Property (id_, class_)
 import Miso.Event (onCreatedWith)
 import Miso.JSON (Value)
 import Data.Time.Clock (UTCTime)
@@ -37,6 +39,8 @@ import qualified Data.Sequence as Seq
 import Data.Sequence (Seq, (|>), ViewL (..), ViewR (..), viewr, viewl)
 import Control.Monad (when, unless)
 import Data.IORef (readIORef)
+import qualified Data.Map as Map
+import Data.Maybe (fromJust)
 
 import qualified Common.Network.CatalogPostType as C
 import Common.FrontEnd.Types
@@ -53,12 +57,14 @@ type CatalogPages = Seq (Seq C.CatalogPost)
 data Model = Model
     { pages :: CatalogPages
     , scrollTime :: Maybe (UTCTime, Integer)
+    , pageHeightPixels :: Map.Map Integer Int -- map post_id to height
     } deriving Eq
 
 initialModel :: Model
 initialModel = Model
     { pages = Seq.empty
     , scrollTime = Nothing
+    , pageHeightPixels = Map.empty
     }
 
 data Props = Props
@@ -76,6 +82,7 @@ data Action
     | PropsChanged
     | NextPage
     | OnScrollMessage InfScrollOutMsg
+    | NewPageInDom Integer DOMRef
 
 app :: Eq context => InitCtxRef -> Component context Props Model Action
 app ctxRef = (component initialModel update view)
@@ -85,9 +92,10 @@ app ctxRef = (component initialModel update view)
     , hydrateModel  = Just $ initializeModel ctxRef
     }
 
-    where
-        handleMail :: Value -> Maybe Action
-        handleMail = checkMail OnScrollMessage OnErrorMessage
+
+handleMail :: Value -> Maybe Action
+handleMail = checkMail OnScrollMessage OnErrorMessage
+
 
 initializeModel :: InitCtxRef -> IO Model
 initializeModel ctxRef = do
@@ -106,13 +114,25 @@ initializeModel ctxRef = do
 
 
 view :: Eq context => context -> Props -> Model -> View context Action
-view _ props model = vfrag [ mountWithProps (mkGridProps model props) Grid.app ]
+view _ props model = div_
+    [ id_ "Grid" ]
+    (foldMap ((: []) . pageView) (pages model))
 
-mkGridProps :: Model -> Props -> Grid.Props Seq Seq
-mkGridProps m p = Grid.Props (pages m) (mediaRoot p)
+    where
+        pageView page = div_
+            [ class_ "grid-page"
+            , onCreatedWith $ NewPageInDom $ C.post_id $ fromJust $ firstOf page
+            ]
+            [ mountWithProps (mkGridProps page props) Grid.app ]
+
+
+mkGridProps :: Seq.Seq C.CatalogPost -> Props -> Grid.Props Seq
+mkGridProps page p = Grid.Props page (mediaRoot p)
+
 
 clientFetchCatalogBottom :: Topic Client.MessageOut
 clientFetchCatalogBottom = topic FetchCatalogBottom
+
 
 update :: Action -> Effect context Props Model Action
 update Initialize = do
@@ -194,12 +214,19 @@ update (OnScrollMessage _) = io_ $ consoleLog "Catalog UNIMPLEMENTED Scroll Mess
 update (OnErrorMessage msg) =
     io_ $ consoleError ("Catalog Component OnErrorMessage decode failure: " <> toMisoString msg)
 
+update (NewPageInDom postId _domRef) =
+    io_ $ consoleLog $ "PAGE CREATED " <> toMisoString (show postId)
 
 -- | Safely gets the last element of a Seq
 lastOf :: Seq a -> Maybe a
 lastOf s = case viewr s of
     EmptyR -> Nothing
     _ :> x -> Just x
+
+firstOf :: Seq a -> Maybe a
+firstOf s = case viewl s of
+    EmptyL -> Nothing
+    x :< _ -> Just x
 
 -- | Gets the last post from the last page
 getLast :: CatalogPages -> Maybe C.CatalogPost

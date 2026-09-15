@@ -8,7 +8,6 @@ import GHC.Generics
 import Miso.String (MisoString)
 import Miso.JSON (FromJSON, ToJSON)
 import Data.List.NonEmpty
-import Data.Maybe (fromJust)
 import Data.Ord (comparing)
 
 import qualified Common.Network.BoardType as B
@@ -63,7 +62,7 @@ fromCatalogPost p =
           }
 
         post = P.Post
-          { P.post_id           = toInteger $ fromJust $ Ct.post_id p
+          { P.post_id           = toInteger $ Ct.post_id p
           , P.board_post_id     = toInteger $ Ct.board_post_id p
           , P.creation_time     = Ct.creation_time p
           , P.body              = Ct.body p
@@ -89,7 +88,7 @@ fromCatalogPost p =
                 , A.sha256_hash       = ""
                 , A.phash             = Nothing
                 , A.illegal           = False
-                , A.post_id           = fromJust $ Ct.post_id p
+                , A.post_id           = Ct.post_id p
                 , A.resolution        = Ct.file_resolution p
                 , A.file_extension    = Just extension
                 , A.thumb_extension   = Just thumb_extension
