@@ -48,6 +48,7 @@ import Miso.Html.Property
     , id_
     , class_
     , href_
+    , data_
     )
 import Miso.String (toMisoString, fromMisoString, MisoString, intercalate)
 import qualified Miso as M
@@ -112,6 +113,7 @@ gridItem :: Props f g -> CatalogPost -> View context Action
 gridItem props post =
     div_
         [ class_ "thread grid-li grid-size-small"
+        , data_ "site" (CatalogPost.site_name post)
         , key_ ("thread#" <> show (CatalogPost.thread_id post))
         ]
         [ a_
