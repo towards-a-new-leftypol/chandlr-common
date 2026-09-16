@@ -16,6 +16,7 @@ import Miso
     , modify
     , io_
     , consoleLog
+    , consoleLog'
     , toMisoString
     , getProps
     , consoleError
@@ -33,11 +34,12 @@ import Miso.Html (div_)
 import Miso.Html.Property (id_, class_)
 import Miso.Event (onCreatedWith)
 import Miso.JSON (Value)
+import Miso.DSL
 import Data.Time.Clock (UTCTime)
 import qualified Common.Component.CatalogGrid as Grid
 import qualified Data.Sequence as Seq
 import Data.Sequence (Seq, (|>), ViewL (..), ViewR (..), viewr, viewl)
-import Control.Monad (when, unless)
+import Control.Monad (when, unless, void)
 import Data.IORef (readIORef)
 import qualified Data.Map as Map
 import Data.Maybe (fromJust)
@@ -209,13 +211,22 @@ update (OnScrollMessage (Grow Bottom)) = do
 update (OnScrollMessage (Trim Top)) =
     modify $ \m -> m { pages = trimFirstPage (pages m) }
 
-update (OnScrollMessage _) = io_ $ consoleLog "Catalog UNIMPLEMENTED Scroll Message"
+update (OnScrollMessage _) =
+    io_ $ consoleLog "Catalog UNIMPLEMENTED Scroll Message"
 
 update (OnErrorMessage msg) =
     io_ $ consoleError ("Catalog Component OnErrorMessage decode failure: " <> toMisoString msg)
 
-update (NewPageInDom postId _domRef) =
-    io_ $ consoleLog $ "PAGE CREATED " <> toMisoString (show postId)
+update (NewPageInDom postId domRef) = do
+    io_ $ do
+        consoleLog $ "PAGE CREATED " <> toMisoString (show postId)
+        callback <- asyncCallback1 $ const $ do
+            pageElem <- toJSVal domRef
+            height <- pageElem ! "offsetHeight" >>= fromJSValUnchecked
+            consoleLog' domRef
+            consoleLog $ "Page height: " <> height
+
+        void $ jsg1 "requestAnimationFrame" callback
 
 -- | Safely gets the last element of a Seq
 lastOf :: Seq a -> Maybe a

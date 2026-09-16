@@ -49,6 +49,8 @@ import Miso.Html.Property
     , class_
     , href_
     , data_
+    , width_
+    , height_
     )
 import Miso.String (toMisoString, fromMisoString, MisoString, intercalate)
 import qualified Miso as M
@@ -59,6 +61,7 @@ import Common.Parsing.EmbedParser (extractVideoId)
 import Common.Component.CatalogGrid.GridTypes
 import qualified Common.Network.SiteType as Site
 import qualified Common.Component.BodyRender as Body
+import qualified Common.AttachmentType as At
 
 
 app :: (Foldable f) => GridComponent context f
@@ -115,11 +118,11 @@ gridItem props post =
             [ href_ thread_url
             , onClick_ (ThreadSelected post)
             ]
-            [ img_
+            [ img_ $
                 [ class_ "thread-image"
                 , src_ thumb_url
                 , title_ ( toMisoString $ show $ CatalogPost.bump_time post )
-                ]
+                ] ++ dimension
             ]
         , div_
             [ class_ "replies" ]
@@ -188,3 +191,13 @@ gridItem props post =
       , CatalogPost.pathpart post
       , toMisoString $ show $ CatalogPost.board_thread_id post
       ]
+
+
+    dimension :: [ Attribute a ]
+    dimension = maybe []
+        ( \res ->
+            [ width_ $ toMisoString $ At.width res
+            , height_ $ toMisoString $ At.height res
+            ]
+        )
+        (CatalogPost.file_resolution post)
