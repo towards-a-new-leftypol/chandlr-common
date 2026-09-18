@@ -49,8 +49,6 @@ import Miso.Html.Property
     , class_
     , href_
     , data_
-    , width_
-    , height_
     )
 import Miso.String (toMisoString, fromMisoString, MisoString, intercalate)
 import qualified Miso as M
@@ -196,8 +194,8 @@ gridItem props post =
     dimension :: [ Attribute a ]
     dimension = maybe []
         ( \res ->
-            [ width_ $ toMisoString $ At.width res
-            , height_ $ toMisoString $ At.height res
+            [ data_ "width" $ toMisoString $ At.width res
+            , data_ "height" $ toMisoString $ At.height res
             ]
         )
         (CatalogPost.file_resolution post)

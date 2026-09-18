@@ -17,9 +17,9 @@ import Text.HTML.Parser
     , Attr(..)
     )
 import Text.HTML.Tree (tokensToForest)
+import Text.HTML.Parser.EntityDecode (decodeEntities)
 import Data.Tree (Forest, Tree (..))
 import System.IO.Unsafe (unsafePerformIO)
-
 import Common.Parsing.PostPartType
 import Common.Parsing.QuoteLinkParser
 import Common.Parsing.PostBodyUtils
@@ -38,11 +38,14 @@ getAttr attrName (Attr x y:xs)
 
 parsePostBody :: MisoString -> [ PostPart ]
 parsePostBody htmltxt =
-    case tokensToForest $ canonicalizeTokens $ parseTokens $ fromMisoString htmltxt of
+    case tokensToForest $ canonicalizeTokens $ parseTokens txt of
         Left err ->
-            unsafePerformIO (print err >> return [ SimpleText htmltxt ])
+            unsafePerformIO (print err >> return [ SimpleText txt ])
 
         Right forest -> forestToPostParts forest
+
+    where
+        txt = fromMisoString htmltxt
 
 
 forestToPostParts :: Forest Token -> [ PostPart ]
@@ -94,14 +97,14 @@ treeToPostParts Node { rootLabel = (TagOpen "s" _), subForest } =
     [ Strikethrough $ forestToPostParts subForest ]
 
 treeToPostParts Node { rootLabel = (TagOpen "pre" _), subForest } =
-    [ Code $ forestToPostParts subForest ]
+    [ Code $ unescapeCode $ forestToPostParts subForest ]
 
 treeToPostParts Node { rootLabel = (TagOpen "br" _) } =
     [ Skip ]
 
-treeToPostParts Node { rootLabel = (ContentText txt) } = [ SimpleText str ]
-    where
-        str = toMisoString txt
+treeToPostParts Node { rootLabel = (TagOpen _ _), subForest } = forestToPostParts subForest
+
+treeToPostParts Node { rootLabel = (ContentText txt) } = [ SimpleText txt ]
 
 treeToPostParts _ = [ Skip ]
 
@@ -135,3 +138,10 @@ treeToPostParts _ = [ Skip ]
 --  -- | Doctype
 --  | Doctype !Text
 --  deriving (Show, Ord, Eq, Generic)
+
+unescapeCode :: [ PostPart ] -> [ PostPart ]
+unescapeCode = map f
+    where
+        f :: PostPart -> PostPart
+        f (SimpleText s) = SimpleText $ decodeEntities s
+        f x = x

@@ -52,7 +52,7 @@ render :: Site.Site -> [ PostPart ] -> [ View model a ]
 render = map . renderPostPart
 
 renderPostPart :: Site.Site -> PostPart -> View model a
-renderPostPart _ (SimpleText txt) = text $ getRidOfCarriageReturn txt
+renderPostPart _ (SimpleText txt) = text $ getRidOfCarriageReturn $ toMisoString txt
 renderPostPart _ (PostedUrl u) =
     a_
         [ href_ u

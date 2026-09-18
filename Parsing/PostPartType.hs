@@ -4,15 +4,16 @@
 module Common.Parsing.PostPartType where
 
 import GHC.Generics
-import Miso.String (MisoString, fromMisoString)
+import Miso.String (MisoString, fromMisoString, toMisoString)
 import Data.Map (Map)
 import Miso.JSON
+import Data.Text (Text)
 
 import Common.Network.PostType (Post)
 import Common.Parsing.QuoteLinkParser (ParsedURL, UrlParseError)
 
 data PostPart
-    = SimpleText MisoString
+    = SimpleText Text
     | PostedUrl MisoString
     | Skip
     | Quote (Either UrlParseError ParsedURL)
@@ -31,7 +32,7 @@ data PostPart
     deriving (Show, Eq, Generic)
 
 instance ToJSON PostPart where
-    toJSON (SimpleText s)        = object [ "tag" .= String "SimpleText",        "contents" .= String s ]
+    toJSON (SimpleText s)        = object [ "tag" .= String "SimpleText",        "contents" .= String (toMisoString s) ]
     toJSON (PostedUrl s)         = object [ "tag" .= String "PostedUrl",         "contents" .= String s ]
     toJSON Skip                  = object [ "tag" .= String "Skip" ]
     toJSON (Quote e)             = object
